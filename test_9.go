@@ -32,7 +32,6 @@ const (
 	messagesLimit   = 10 // Лимит сообщений за один запрос
 	chatsLimit      = 20
 	refreshInterval = 5 * time.Minute
-	scrollThreshold = 100.0 // Порог в пикселях от верха для подгрузки
 )
 
 // --- Структуры для токенов ---
@@ -122,6 +121,22 @@ func main() {
 
 	mainWindow := myApp.NewWindow("KFC Chat")
 	mainWindow.Resize(fyne.NewSize(400, 300))
+
+	// Устанавливаем обработчик закрытия главного окна
+	mainWindow.SetCloseIntercept(func() {
+		// Останавливаем автообновление токенов
+		if refreshTicker != nil {
+			refreshTicker.Stop()
+			refreshDone <- true
+		}
+
+		// Закрываем WebSocket соединение
+		disconnectWebSocket()
+
+		// Завершаем приложение
+		myApp.Quit()
+	})
+
 	mainWindow.SetContent(container.NewCenter(
 		container.NewVBox(
 			widget.NewProgressBarInfinite(),
@@ -336,31 +351,6 @@ func login(email, password string) (*TokenPair, error) {
 	}
 
 	return tokens, nil
-}
-
-func register(email, username, password string) (*TokenPair, error) {
-	input := RegisterInput{
-		Email:    email,
-		Username: username,
-		Password: password,
-	}
-	body, _ := json.Marshal(input)
-
-	req, _ := http.NewRequest("POST", apiBase+"/users", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		errorBody, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("registration failed (%s): %s", resp.Status, string(errorBody))
-	}
-
-	return login(email, password)
 }
 
 func logout(accessToken string) error {
@@ -582,7 +572,12 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			refreshTicker.Stop()
 			refreshDone <- true
 		}
-		cw.window.Close()
+
+		// Закрываем WebSocket соединение
+		disconnectWebSocket()
+
+		// Завершаем приложение
+		myApp.Quit()
 	})
 
 	// Статусная строка
@@ -1056,21 +1051,43 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 
 func (cw *ChatWindow) logout() {
 	go func() {
+		// Останавливаем автообновление
 		if refreshTicker != nil {
 			refreshTicker.Stop()
 			refreshDone <- true
 		}
 
-		_ = logout(cw.tokens.AccessToken)
-		_ = os.Remove(tokenFile)
+		// Закрываем WebSocket
 		disconnectWebSocket()
 
+		// Выходим из системы на сервере
+		_ = logout(cw.tokens.AccessToken)
+
+		// Удаляем файл с токенами
+		_ = os.Remove(tokenFile)
+
 		fyne.Do(func() {
+			// Закрываем текущее окно чата
 			cw.window.Close()
 
+			// Создаем новое окно авторизации
 			mainWindow := cw.app.NewWindow("KFC Chat")
 			mainWindow.Resize(fyne.NewSize(400, 300))
-			showAuthWindow(cw.app, mainWindow)
+			mainWindow.SetContent(container.NewCenter(
+				container.NewVBox(
+					widget.NewProgressBarInfinite(),
+					widget.NewLabel("Проверка авторизации..."),
+				),
+			))
+
+			// Устанавливаем обработчик закрытия для нового главного окна
+			mainWindow.SetCloseIntercept(func() {
+				mainWindow.Close()
+				cw.app.Quit()
+			})
+
+			// Запускаем проверку авторизации
+			go authenticateAndRun(cw.app, mainWindow)
 			mainWindow.Show()
 		})
 	}()
@@ -1325,13 +1342,29 @@ func showSearchUsersDialog(cw *ChatWindow) {
 
 func showAuthWindow(myApp fyne.App, parentWindow fyne.Window) {
 	authWin := myApp.NewWindow("Вход / Регистрация")
-	authWin.Resize(fyne.NewSize(400, 400))
+	authWin.Resize(fyne.NewSize(400, 450))
 
+	// Устанавливаем обработчик закрытия окна авторизации
+	authWin.SetCloseIntercept(func() {
+		// Если пользователь закрывает окно авторизации, завершаем приложение
+		parentWindow.Close() // Закрываем родительское окно
+		authWin.Close()      // Закрываем окно авторизации
+		myApp.Quit()         // Завершаем приложение
+	})
+
+	// Создаем вкладки
+	tabs := container.NewAppTabs(
+		container.NewTabItem("Вход", container.NewVBox()),
+		container.NewTabItem("Регистрация", container.NewVBox()),
+	)
+
+	// Вход
 	loginEmail := widget.NewEntry()
 	loginEmail.SetPlaceHolder("Email")
 	loginPassword := widget.NewPasswordEntry()
 	loginPassword.SetPlaceHolder("Пароль")
 
+	// Регистрация
 	registerEmail := widget.NewEntry()
 	registerEmail.SetPlaceHolder("Email")
 	registerUsername := widget.NewEntry()
@@ -1345,46 +1378,114 @@ func showAuthWindow(myApp fyne.App, parentWindow fyne.Window) {
 	progress := widget.NewProgressBarInfinite()
 	progress.Hidden = true
 
+	// Логин
+	loginBtn := widget.NewButton("Войти", func() {
+		if loginEmail.Text == "" || loginPassword.Text == "" {
+			statusLabel.SetText("Заполните все поля")
+			return
+		}
+
+		progress.Hidden = false
+		statusLabel.SetText("")
+
+		go func() {
+			tokens, err := login(loginEmail.Text, loginPassword.Text)
+			if err != nil {
+				fyne.Do(func() {
+					progress.Hidden = true
+					statusLabel.SetText("Ошибка: " + err.Error())
+				})
+				return
+			}
+
+			user, err := getCurrentUser(tokens.AccessToken)
+			if err != nil {
+				fyne.Do(func() {
+					progress.Hidden = true
+					statusLabel.SetText("Ошибка получения пользователя: " + err.Error())
+				})
+				return
+			}
+
+			currentUser = user
+			currentTokens = tokens
+			saveTokensToFile(tokens)
+			startTokenRefreshRoutine(myApp)
+
+			fyne.Do(func() {
+				parentWindow.Close()
+				authWin.Close()
+				showMainChatWindow(myApp, tokens)
+			})
+		}()
+	})
+
 	loginTab := container.NewVBox(
 		widget.NewLabelWithStyle("Вход", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		loginEmail,
 		loginPassword,
-		widget.NewButton("Войти", func() {
-			progress.Hidden = false
-			statusLabel.SetText("")
-
-			go func() {
-				tokens, err := login(loginEmail.Text, loginPassword.Text)
-				if err != nil {
-					fyne.Do(func() {
-						progress.Hidden = true
-						statusLabel.SetText("Ошибка: " + err.Error())
-					})
-					return
-				}
-
-				user, err := getCurrentUser(tokens.AccessToken)
-				if err != nil {
-					fyne.Do(func() {
-						progress.Hidden = true
-						statusLabel.SetText("Ошибка получения пользователя: " + err.Error())
-					})
-					return
-				}
-
-				currentUser = user
-				currentTokens = tokens
-				saveTokensToFile(tokens)
-				startTokenRefreshRoutine(myApp)
-
-				fyne.Do(func() {
-					parentWindow.Close()
-					authWin.Close()
-					showMainChatWindow(myApp, tokens)
-				})
-			}()
-		}),
+		loginBtn,
 	)
+
+	// Регистрация
+	registerBtn := widget.NewButton("Зарегистрироваться", func() {
+		// Валидация
+		if registerEmail.Text == "" || registerUsername.Text == "" ||
+			registerPassword.Text == "" || registerConfirm.Text == "" {
+			statusLabel.SetText("Заполните все поля")
+			return
+		}
+
+		if registerPassword.Text != registerConfirm.Text {
+			statusLabel.SetText("Пароли не совпадают")
+			return
+		}
+
+		if len(registerUsername.Text) < 5 {
+			statusLabel.SetText("Имя пользователя должно быть не менее 5 символов")
+			return
+		}
+
+		progress.Hidden = false
+		statusLabel.SetText("Регистрация...")
+
+		go func() {
+			// Вызываем только регистрацию, без автоматического логина
+			err := registerUser(registerEmail.Text, registerUsername.Text, registerPassword.Text)
+			if err != nil {
+				fyne.Do(func() {
+					progress.Hidden = true
+					statusLabel.SetText("Ошибка регистрации: " + err.Error())
+				})
+				return
+			}
+
+			fyne.Do(func() {
+				progress.Hidden = true
+				statusLabel.SetText("Регистрация успешна! Теперь войдите.")
+
+				// Очищаем поля регистрации
+				registerEmail.SetText("")
+				registerUsername.SetText("")
+				registerPassword.SetText("")
+				registerConfirm.SetText("")
+
+				// Заполняем поля входа тем же email
+				loginEmail.SetText(registerEmail.Text)
+				loginPassword.SetText("")
+
+				// Переключаемся на вкладку входа
+				tabs.SelectIndex(0)
+
+				// Убираем сообщение об успехе через 3 секунды
+				time.AfterFunc(3*time.Second, func() {
+					fyne.Do(func() {
+						statusLabel.SetText("")
+					})
+				})
+			})
+		}()
+	})
 
 	registerTab := container.NewVBox(
 		widget.NewLabelWithStyle("Регистрация", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
@@ -1392,56 +1493,12 @@ func showAuthWindow(myApp fyne.App, parentWindow fyne.Window) {
 		registerUsername,
 		registerPassword,
 		registerConfirm,
-		widget.NewButton("Зарегистрироваться", func() {
-			if registerPassword.Text != registerConfirm.Text {
-				statusLabel.SetText("Пароли не совпадают")
-				return
-			}
-			if len(registerUsername.Text) < 5 {
-				statusLabel.SetText("Имя пользователя должно быть не менее 5 символов")
-				return
-			}
-
-			progress.Hidden = false
-			statusLabel.SetText("")
-
-			go func() {
-				tokens, err := register(registerEmail.Text, registerUsername.Text, registerPassword.Text)
-				if err != nil {
-					fyne.Do(func() {
-						progress.Hidden = true
-						statusLabel.SetText("Ошибка: " + err.Error())
-					})
-					return
-				}
-
-				user, err := getCurrentUser(tokens.AccessToken)
-				if err != nil {
-					fyne.Do(func() {
-						progress.Hidden = true
-						statusLabel.SetText("Ошибка получения пользователя: " + err.Error())
-					})
-					return
-				}
-
-				currentUser = user
-				currentTokens = tokens
-				saveTokensToFile(tokens)
-				startTokenRefreshRoutine(myApp)
-
-				fyne.Do(func() {
-					parentWindow.Close()
-					authWin.Close()
-					showMainChatWindow(myApp, tokens)
-				})
-			}()
-		}),
+		registerBtn,
 	)
 
-	tabs := container.NewAppTabs(
-		container.NewTabItem("Вход", loginTab),
-		container.NewTabItem("Регистрация", registerTab),
-	)
+	// Обновляем содержимое вкладок
+	tabs.Items[0].Content = loginTab
+	tabs.Items[1].Content = registerTab
 
 	content := container.NewVBox(
 		tabs,
@@ -1453,6 +1510,32 @@ func showAuthWindow(myApp fyne.App, parentWindow fyne.Window) {
 	authWin.SetContent(content)
 	parentWindow.Hide()
 	authWin.Show()
+}
+
+// Новая функция только для регистрации (без автоматического логина)
+func registerUser(email, username, password string) error {
+	input := RegisterInput{
+		Email:    email,
+		Username: username,
+		Password: password,
+	}
+	body, _ := json.Marshal(input)
+
+	req, _ := http.NewRequest("POST", apiBase+"/users", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		errorBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("registration failed (%s): %s", resp.Status, string(errorBody))
+	}
+
+	return nil
 }
 
 // --- Вспомогательные функции ---
