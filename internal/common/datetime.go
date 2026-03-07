@@ -6,9 +6,8 @@ import (
 )
 
 const (
-	LoggingTraceSkipLevel = 1
-	DateFormat            = "02.01.2006"
-	DateTimeFormat        = DateFormat + " 15:04"
+	DateFormat     = "02.01.2006"
+	DateTimeFormat = DateFormat + " 15:04"
 )
 
 var Timezone *time.Location
