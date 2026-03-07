@@ -23,8 +23,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/gorilla/websocket"
-
-	"kfcGUI/internal/common"
 )
 
 const (
@@ -445,7 +443,7 @@ func searchUsers(accessToken, query string, limit, offset int) ([]User, error) {
 }
 
 // --- WebSocket подключение ---
-func connectWebSocket(accessToken string, chatID uint64, onMessage func(*Message)) error {
+func connectWebSocket(accessToken string, onMessage func(*Message)) error {
 	wsMutex.Lock()
 	defer wsMutex.Unlock()
 
@@ -565,6 +563,7 @@ type ChatWindow struct {
 	messages     []Message
 	statusLabel  *widget.Label
 	loadMoreBtn  *widget.Button // Добавлено
+	closeChatBtn *widget.Button
 	loadingMore  bool
 	hasMore      bool
 	chatsMu      sync.RWMutex // Мьютекс для защиты списка чатов
@@ -598,7 +597,6 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			return container.NewHBox(
 				widget.NewIcon(theme.MailComposeIcon()),
 				widget.NewLabel("Chat"),
-				widget.NewLabel(""),
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
@@ -679,7 +677,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 				sender.SetText(msg.Sender.Username)
 			}
 			message.SetText(msg.Text)
-			time_.SetText(msg.CreatedAt.Format(common.DateTimeFormat))
+			time_.SetText(msg.CreatedAt.Format("15:04"))
 		},
 	)
 
@@ -698,7 +696,14 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	loadMoreBtn := widget.NewButtonWithIcon("Загрузить историю", theme.ContentAddIcon(), func() {
 		cw.loadMoreMessages()
 	})
-	loadMoreBtn.Hidden = true // По умолчанию скрыта, пока не выбран чат
+	loadMoreBtn.Hidden = true
+
+	// Кнопка закрытия чата
+	closeChatBtn := widget.NewButtonWithIcon("Закрыть чат", theme.CancelIcon(), func() {
+		cw.closeChat()
+	})
+	closeChatBtn.Hidden = true
+	closeChatBtn.Importance = widget.DangerImportance
 
 	// Кнопки управления
 	newChatBtn := widget.NewButtonWithIcon("Новый чат", theme.ContentAddIcon(), func() {
@@ -712,14 +717,20 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	logoutBtn := widget.NewButtonWithIcon("Выйти", theme.LogoutIcon(), func() {
 		cw.logout()
 	})
+	logoutBtn.Importance = widget.DangerImportance
 
-	// Сборка интерфейса
-	toolbar := container.NewHBox(newChatBtn, searchBtn, logoutBtn)
-
-	// Верхняя панель для сообщений с кнопкой загрузки
+	// Верхняя панель для сообщений
 	messagesHeader := container.NewHBox(
 		widget.NewLabelWithStyle("Сообщения", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		loadMoreBtn,
+		closeChatBtn,
+	)
+
+	// Левая панель с чатами и кнопками
+	leftToolbar := container.NewVBox(
+		newChatBtn,
+		searchBtn,
+		logoutBtn,
 	)
 
 	leftPanel := container.NewBorder(
@@ -727,10 +738,10 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			widget.NewLabelWithStyle("Чаты", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 			widget.NewSeparator(),
 		),
-		cw.statusLabel,
+		nil,
 		nil, nil,
 		container.NewBorder(
-			toolbar,
+			leftToolbar,
 			nil, nil, nil,
 			cw.chatsList,
 		),
@@ -755,8 +766,19 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 
 	// Сохраняем ссылку на кнопку для управления видимостью
 	cw.loadMoreBtn = loadMoreBtn
+	cw.closeChatBtn = closeChatBtn
 
 	cw.loadChats()
+
+	// Запускаем WebSocket соединение (одно для всех чатов)
+	go func() {
+		err := connectWebSocket(cw.tokens.AccessToken, func(msg *Message) {
+			cw.onNewMessage(msg)
+		})
+		if err != nil {
+			cw.showError("Ошибка WebSocket", err)
+		}
+	}()
 
 	// Запускаем периодическое обновление списка чатов
 	go cw.startChatsRefreshRoutine()
@@ -945,23 +967,53 @@ func (cw *ChatWindow) selectChat(chat *Chat) {
 	cw.loadingMore = false
 	cw.messagesList.Refresh()
 
-	// Показываем кнопку загрузки истории
+	// Показываем кнопки
 	if cw.loadMoreBtn != nil {
+		cw.loadMoreBtn.Enable()
 		cw.loadMoreBtn.Show()
+	}
+
+	if cw.closeChatBtn != nil {
+		cw.closeChatBtn.Show()
 	}
 
 	// Загружаем сообщения
 	go cw.loadMessages(chat.ID, 0)
+}
 
-	// Подключаем WebSocket
-	go func() {
-		err := connectWebSocket(cw.tokens.AccessToken, chat.ID, func(msg *Message) {
-			cw.onNewMessage(msg)
+// --- Обновленный closeChat (без currentChatID) ---
+func (cw *ChatWindow) closeChat() {
+	if cw.currentChat == nil {
+		return
+	}
+
+	// Просто очищаем текущий чат, НЕ закрываем WebSocket
+	cw.currentChat = nil
+	cw.messages = nil
+	cw.hasMore = true
+	cw.messagesList.Refresh()
+
+	// Скрываем кнопки
+	if cw.loadMoreBtn != nil {
+		cw.loadMoreBtn.Enable()
+		cw.loadMoreBtn.Hide()
+	}
+	if cw.closeChatBtn != nil {
+		cw.closeChatBtn.Hide()
+	}
+
+	// Очищаем поле ввода
+	cw.messageEntry.SetText("")
+
+	// Снимаем выделение
+	cw.chatsList.UnselectAll()
+
+	cw.statusLabel.SetText("Чат закрыт")
+	time.AfterFunc(2*time.Second, func() {
+		fyne.Do(func() {
+			cw.statusLabel.SetText("")
 		})
-		if err != nil {
-			cw.showError("Ошибка WebSocket", err)
-		}
-	}()
+	})
 }
 
 func (cw *ChatWindow) markChatAsRead(chatID uint64) {
@@ -1071,19 +1123,21 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 	if !chatExists {
 		go cw.refreshChats()
 	} else {
-		// Если чат есть, просто помечаем как непрочитанный
-		cw.chatsMu.Lock()
-		for i, chat := range cw.chats {
-			if chat.ID == msg.ChatID {
-				cw.chats[i].IsRead = false
-				break
+		// Если чат есть и это НЕ текущий чат - помечаем как непрочитанный
+		if cw.currentChat == nil || msg.ChatID != cw.currentChat.ID {
+			cw.chatsMu.Lock()
+			for i, chat := range cw.chats {
+				if chat.ID == msg.ChatID {
+					cw.chats[i].IsRead = false
+					break
+				}
 			}
-		}
-		cw.chatsMu.Unlock()
+			cw.chatsMu.Unlock()
 
-		fyne.Do(func() {
-			cw.chatsList.Refresh()
-		})
+			fyne.Do(func() {
+				cw.chatsList.Refresh()
+			})
+		}
 	}
 
 	// Если сообщение для текущего чата - добавляем его
@@ -1099,10 +1153,8 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 
 		// Помечаем чат как прочитанный
 		cw.markChatAsRead(msg.ChatID)
-	}
-
-	// Показываем уведомление для сообщений из других чатов
-	if (cw.currentChat == nil || msg.ChatID != cw.currentChat.ID) && msg.Sender.ID != currentUser.ID {
+	} else if msg.Sender.ID != currentUser.ID {
+		// Показываем уведомление для сообщений из других чатов
 		chatTitle := cw.getChatTitle(msg.ChatID)
 		showNotification(cw.app, "Новое сообщение", fmt.Sprintf("[%s] %s: %s",
 			chatTitle, msg.Sender.Username, msg.Text))
