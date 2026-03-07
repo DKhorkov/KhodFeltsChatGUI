@@ -1,4 +1,4 @@
 # Build
 ```shell
-go build -o kfc 
+go build -C cmd -o ../kfc 
 ```

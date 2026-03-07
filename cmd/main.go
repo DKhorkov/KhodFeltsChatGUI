@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"kfcGUI/internal/common"
 	"net"
 	"net/http"
 	"net/url"
@@ -20,6 +21,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/gorilla/websocket"
@@ -567,6 +569,7 @@ type ChatWindow struct {
 	loadingMore  bool
 	hasMore      bool
 	chatsMu      sync.RWMutex // Мьютекс для защиты списка чатов
+	rightPanel   *fyne.Container
 }
 
 func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
@@ -677,7 +680,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 				sender.SetText(msg.Sender.Username)
 			}
 			message.SetText(msg.Text)
-			time_.SetText(msg.CreatedAt.Format("15:04"))
+			time_.SetText(msg.CreatedAt.Format(common.DateTimeFormat))
 		},
 	)
 
@@ -722,7 +725,9 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	// Верхняя панель для сообщений
 	messagesHeader := container.NewHBox(
 		widget.NewLabelWithStyle("Сообщения", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		layout.NewSpacer(), // Это pushes все последующие элементы вправо
 		loadMoreBtn,
+		layout.NewSpacer(), // Это pushes все последующие элементы вправо
 		closeChatBtn,
 	)
 
@@ -730,7 +735,6 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	leftToolbar := container.NewVBox(
 		newChatBtn,
 		searchBtn,
-		logoutBtn,
 	)
 
 	leftPanel := container.NewBorder(
@@ -738,7 +742,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			widget.NewLabelWithStyle("Чаты", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 			widget.NewSeparator(),
 		),
-		nil,
+		logoutBtn,
 		nil, nil,
 		container.NewBorder(
 			leftToolbar,
@@ -758,6 +762,9 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			cw.messagesList,
 		),
 	)
+	rightPanel.Hide() // скрываем, пока не выбран чат
+
+	cw.rightPanel = rightPanel
 
 	split := container.NewHSplit(leftPanel, rightPanel)
 	split.Offset = 0.25
@@ -962,6 +969,7 @@ func (cw *ChatWindow) selectChat(chat *Chat) {
 	// Помечаем чат как прочитанный
 	cw.markChatAsRead(chat.ID)
 
+	cw.rightPanel.Show()
 	cw.messages = nil
 	cw.hasMore = true
 	cw.loadingMore = false
@@ -988,6 +996,7 @@ func (cw *ChatWindow) closeChat() {
 	}
 
 	// Просто очищаем текущий чат, НЕ закрываем WebSocket
+	cw.rightPanel.Hide()
 	cw.currentChat = nil
 	cw.messages = nil
 	cw.hasMore = true
