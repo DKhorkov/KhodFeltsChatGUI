@@ -32,7 +32,6 @@ const (
 	apiBase         = "http://localhost:8080"
 	wsBase          = "ws://localhost:8080"
 	messagesLimit   = 10 // Лимит сообщений за один запрос
-	chatsLimit      = 20
 	refreshInterval = 5 * time.Minute
 )
 
@@ -98,6 +97,7 @@ type RegisterInput struct {
 }
 
 // --- Глобальные переменные ---
+// TODO подумать о переводе всех мьютексов и каналов на context.WithCancel
 var (
 	httpClient    = &http.Client{Timeout: 10 * time.Second}
 	currentUser   *User
@@ -106,7 +106,11 @@ var (
 	wsMutex       sync.Mutex
 	messagesMu    sync.RWMutex
 	refreshTicker *time.Ticker
-	refreshDone   chan bool
+	refreshDone   chan struct{}
+	appShutdown   = make(chan struct{})
+	wg            sync.WaitGroup
+	shutdownOnce  sync.Once  // Гарантирует, что канал закроется только один раз
+	refreshMu     sync.Mutex // Мьютекс для защиты доступа к refreshDone
 )
 
 // --- Основная функция ---
@@ -192,15 +196,23 @@ func saveTokensToFile(tokens *TokenPair) error {
 
 func startTokenRefreshRoutine() {
 	refreshTicker = time.NewTicker(refreshInterval)
-	refreshDone = make(chan bool)
+	refreshDone = make(chan struct{}) // Используем struct{}
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		for {
 			select {
+			case <-appShutdown:
+				fmt.Println("Token refresh: приложение завершается")
+				return
 			case <-refreshDone:
-				fmt.Println("refresh done")
+				fmt.Println("Token refresh: получен сигнал завершения")
 				return
 			case <-refreshTicker.C:
+				if isShuttingDown() {
+					return
+				}
 				refreshTokenRoutine()
 			}
 		}
@@ -433,10 +445,14 @@ func searchUsers(accessToken, query string, limit, offset int) ([]User, error) {
 }
 
 // --- WebSocket подключение ---
-
 func connectWebSocket(accessToken string, chatID uint64, onMessage func(*Message)) error {
 	wsMutex.Lock()
 	defer wsMutex.Unlock()
+
+	// Если приложение завершается, не подключаемся
+	if isShuttingDown() {
+		return errors.New("приложение завершается")
+	}
 
 	if wsConn != nil {
 		return nil
@@ -452,29 +468,57 @@ func connectWebSocket(accessToken string, chatID uint64, onMessage func(*Message
 
 	wsConn = conn
 
+	wg.Add(1)
 	go func() {
-		for {
-			var msg Message
-			err := wsConn.ReadJSON(&msg)
-			switch {
-			case errors.Is(err, net.ErrClosed):
-				return
-			case err != nil:
-				wsMutex.Lock()
-				wsConn.Close()
-				wsConn = nil
-				wsMutex.Unlock()
+		defer wg.Done()
 
-				if currentTokens != nil {
-					time.Sleep(3 * time.Second)
-					connectWebSocket(currentTokens.AccessToken, chatID, onMessage)
+		// Канал для сигнала завершения чтения
+		readDone := make(chan struct{})
+
+		// Горутина для чтения сообщений
+		go func() {
+			defer close(readDone)
+
+			for {
+				// Проверяем завершение перед каждым чтением
+				select {
+				case <-appShutdown:
+					fmt.Println("WebSocket reader: получен сигнал завершения")
+					return
+				default:
 				}
 
-				return
-			}
+				var msg Message
+				err := conn.ReadJSON(&msg)
 
-			onMessage(&msg)
+				if err != nil {
+					if websocket.IsCloseError(err, websocket.CloseNormalClosure) ||
+						errors.Is(err, net.ErrClosed) {
+						return
+					}
+					fmt.Printf("WebSocket ошибка: %v\n", err)
+					return
+				}
+
+				onMessage(&msg)
+			}
+		}()
+
+		// Ждем либо завершения чтения, либо сигнала остановки
+		select {
+		case <-readDone:
+			fmt.Println("WebSocket: чтение завершено")
+		case <-appShutdown:
+			fmt.Println("WebSocket: принудительное завершение")
 		}
+
+		// Закрываем соединение
+		wsMutex.Lock()
+		if wsConn != nil {
+			wsConn.Close()
+			wsConn = nil
+		}
+		wsMutex.Unlock()
 	}()
 
 	return nil
@@ -510,21 +554,20 @@ func disconnectWebSocket() {
 // --- Основное окно чата ---
 
 type ChatWindow struct {
-	app           fyne.App
-	tokens        *TokenPair
-	window        fyne.Window
-	chatsList     *widget.List
-	messagesList  *widget.List
-	messageEntry  *widget.Entry
-	currentChat   *Chat
-	chats         []Chat
-	messages      []Message
-	statusLabel   *widget.Label
-	loadMoreBtn   *widget.Button // Добавлено
-	loadingMore   bool
-	hasMore       bool
-	scrollPos     float32
-	lastScrollPos float32
+	app          fyne.App
+	tokens       *TokenPair
+	window       fyne.Window
+	chatsList    *widget.List
+	messagesList *widget.List
+	messageEntry *widget.Entry
+	currentChat  *Chat
+	chats        []Chat
+	messages     []Message
+	statusLabel  *widget.Label
+	loadMoreBtn  *widget.Button // Добавлено
+	loadingMore  bool
+	hasMore      bool
+	chatsMu      sync.RWMutex // Мьютекс для защиты списка чатов
 }
 
 func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
@@ -536,17 +579,9 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	}
 
 	cw.window.Resize(fyne.NewSize(900, 700))
+
 	cw.window.SetCloseIntercept(func() {
-		if refreshTicker != nil {
-			refreshTicker.Stop()
-			refreshDone <- true
-		}
-
-		// Закрываем WebSocket соединение
-		disconnectWebSocket()
-
-		// Завершаем приложение
-		myApp.Quit()
+		shutdown(myApp)
 	})
 
 	// Статусная строка
@@ -554,14 +589,22 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 
 	// Список чатов
 	cw.chatsList = widget.NewList(
-		func() int { return len(cw.chats) },
+		func() int {
+			cw.chatsMu.RLock()
+			defer cw.chatsMu.RUnlock()
+			return len(cw.chats)
+		},
 		func() fyne.CanvasObject {
 			return container.NewHBox(
 				widget.NewIcon(theme.MailComposeIcon()),
 				widget.NewLabel("Chat"),
+				widget.NewLabel(""),
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
+			cw.chatsMu.RLock()
+			defer cw.chatsMu.RUnlock()
+
 			if id >= len(cw.chats) {
 				return
 			}
@@ -579,7 +622,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 				}
 			}
 			if title == "" {
-				title = fmt.Sprintf("Chat #%d", chat.ID)
+				title = fmt.Sprintf("Чат #%d", chat.ID)
 			}
 
 			label.SetText(title)
@@ -592,9 +635,14 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	)
 
 	cw.chatsList.OnSelected = func(id widget.ListItemID) {
-		if id < len(cw.chats) {
-			cw.selectChat(&cw.chats[id])
+		cw.chatsMu.RLock()
+		if id >= len(cw.chats) {
+			cw.chatsMu.RUnlock()
+			return
 		}
+		chat := cw.chats[id]
+		cw.chatsMu.RUnlock()
+		cw.selectChat(&chat)
 	}
 
 	// Список сообщений
@@ -708,9 +756,106 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	// Сохраняем ссылку на кнопку для управления видимостью
 	cw.loadMoreBtn = loadMoreBtn
 
-	go cw.loadChats()
+	cw.loadChats()
+
+	// Запускаем периодическое обновление списка чатов
+	go cw.startChatsRefreshRoutine()
 
 	cw.window.Show()
+}
+
+func (cw *ChatWindow) loadChats() {
+	// TODO при переносе в репозиторий сделать передачу лимитов и оффсета
+	chats, err := getUserChats(cw.tokens.AccessToken, 0, 0)
+	if err != nil {
+		cw.showError("Ошибка загрузки чатов", err)
+		return
+	}
+
+	cw.chats = chats
+	fyne.Do(func() {
+		cw.chatsList.Refresh()
+	})
+}
+
+// Периодическое обновление списка чатов (каждые 5 секунд)
+func (cw *ChatWindow) startChatsRefreshRoutine() {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-appShutdown:
+				fmt.Println("Chats refresh: получен сигнал завершения")
+				return
+			case <-ticker.C:
+				if cw.currentChat == nil {
+					continue
+				}
+				cw.refreshChats()
+			}
+		}
+	}()
+}
+
+// Обновление списка чатов
+func (cw *ChatWindow) refreshChats() {
+	if isShuttingDown() {
+		return
+	}
+
+	// TODO при переносе в репозиторий сделать передачу лимитов и оффсета
+	chats, err := getUserChats(cw.tokens.AccessToken, 0, 0)
+	if err != nil {
+		fmt.Printf("Ошибка обновления списка чатов: %v\n", err)
+		return
+	}
+
+	cw.chatsMu.Lock()
+	defer cw.chatsMu.Unlock()
+
+	// Сохраняем информацию о прочитанности
+	oldChats := make(map[uint64]bool)
+	for _, chat := range cw.chats {
+		oldChats[chat.ID] = chat.IsRead
+	}
+
+	// Обновляем список, сохраняя статус прочитанности
+	for i, newChat := range chats {
+		if isRead, exists := oldChats[newChat.ID]; exists {
+			chats[i].IsRead = isRead
+		}
+	}
+
+	cw.chats = chats
+
+	fyne.Do(func() {
+		cw.chatsList.Refresh()
+	})
+}
+
+// Обновление списка после создания нового чата
+func (cw *ChatWindow) refreshChatsAfterNewChat(newChat *Chat) {
+	cw.chatsMu.Lock()
+	defer cw.chatsMu.Unlock()
+
+	// Проверяем, есть ли уже такой чат
+	for _, chat := range cw.chats {
+		if chat.ID == newChat.ID {
+			return // Чат уже есть в списке
+		}
+	}
+
+	// Добавляем новый чат в начало списка
+	cw.chats = append([]Chat{*newChat}, cw.chats...)
+
+	fyne.Do(func() {
+		cw.chatsList.Refresh()
+	})
 }
 
 func (cw *ChatWindow) loadMoreMessages() {
@@ -789,21 +934,12 @@ func (cw *ChatWindow) loadMoreMessages() {
 	}()
 }
 
-func (cw *ChatWindow) loadChats() {
-	chats, err := getUserChats(cw.tokens.AccessToken, chatsLimit, 0)
-	if err != nil {
-		cw.showError("Ошибка загрузки чатов", err)
-		return
-	}
-
-	cw.chats = chats
-	fyne.Do(func() {
-		cw.chatsList.Refresh()
-	})
-}
-
 func (cw *ChatWindow) selectChat(chat *Chat) {
 	cw.currentChat = chat
+
+	// Помечаем чат как прочитанный
+	cw.markChatAsRead(chat.ID)
+
 	cw.messages = nil
 	cw.hasMore = true
 	cw.loadingMore = false
@@ -826,6 +962,23 @@ func (cw *ChatWindow) selectChat(chat *Chat) {
 			cw.showError("Ошибка WebSocket", err)
 		}
 	}()
+}
+
+func (cw *ChatWindow) markChatAsRead(chatID uint64) {
+	cw.chatsMu.Lock()
+	defer cw.chatsMu.Unlock()
+
+	for i, chat := range cw.chats {
+		if chat.ID == chatID {
+			// TODO нужно будет обращаться к ручке MarkChatRead помимо отметки о прочитанности в UI
+			cw.chats[i].IsRead = true
+			break
+		}
+	}
+
+	fyne.Do(func() {
+		cw.chatsList.Refresh()
+	})
 }
 
 func (cw *ChatWindow) loadMessages(chatID uint64, offset int) {
@@ -903,6 +1056,37 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 		return
 	}
 
+	// Проверяем, есть ли чат в списке
+	chatExists := false
+	cw.chatsMu.RLock()
+	for _, chat := range cw.chats {
+		if chat.ID == msg.ChatID {
+			chatExists = true
+			break
+		}
+	}
+	cw.chatsMu.RUnlock()
+
+	// Если чата нет в списке - обновляем весь список
+	if !chatExists {
+		go cw.refreshChats()
+	} else {
+		// Если чат есть, просто помечаем как непрочитанный
+		cw.chatsMu.Lock()
+		for i, chat := range cw.chats {
+			if chat.ID == msg.ChatID {
+				cw.chats[i].IsRead = false
+				break
+			}
+		}
+		cw.chatsMu.Unlock()
+
+		fyne.Do(func() {
+			cw.chatsList.Refresh()
+		})
+	}
+
+	// Если сообщение для текущего чата - добавляем его
 	if cw.currentChat != nil && msg.ChatID == cw.currentChat.ID {
 		messagesMu.Lock()
 		cw.messages = append(cw.messages, *msg)
@@ -912,62 +1096,68 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 			cw.messagesList.Refresh()
 			cw.messagesList.ScrollToBottom()
 		})
-	} else {
-		for i, chat := range cw.chats {
-			if chat.ID == msg.ChatID {
-				cw.chats[i].IsRead = false
-				fyne.Do(func() {
-					cw.chatsList.Refresh()
-				})
-				break
-			}
-		}
+
+		// Помечаем чат как прочитанный
+		cw.markChatAsRead(msg.ChatID)
 	}
 
+	// Показываем уведомление для сообщений из других чатов
 	if (cw.currentChat == nil || msg.ChatID != cw.currentChat.ID) && msg.Sender.ID != currentUser.ID {
-		chatTitle := fmt.Sprintf("Чат %d", msg.ChatID)
-		for _, chat := range cw.chats {
-			if chat.ID == msg.ChatID {
-				if chat.Title != "" {
-					chatTitle = chat.Title
-				} else if len(chat.Members) > 0 {
-					for _, m := range chat.Members {
-						if m.ID != currentUser.ID {
-							chatTitle = m.Username
-							break
-						}
-					}
-				}
-				break
-			}
-		}
+		chatTitle := cw.getChatTitle(msg.ChatID)
 		showNotification(cw.app, "Новое сообщение", fmt.Sprintf("[%s] %s: %s",
 			chatTitle, msg.Sender.Username, msg.Text))
 	}
 }
 
-func (cw *ChatWindow) logout() {
-	// Останавливаем автообновление
-	if refreshTicker != nil {
-		refreshTicker.Stop()
-		refreshDone <- true
+func (cw *ChatWindow) getChatTitle(chatID uint64) string {
+	cw.chatsMu.RLock()
+	defer cw.chatsMu.RUnlock()
+
+	for _, chat := range cw.chats {
+		if chat.ID == chatID {
+			if chat.Title != "" {
+				return chat.Title
+			}
+			if len(chat.Members) > 0 {
+				for _, m := range chat.Members {
+					if m.ID != currentUser.ID {
+						return m.Username
+					}
+				}
+			}
+			return fmt.Sprintf("Чат #%d", chat.ID)
+		}
 	}
+	return fmt.Sprintf("Чат #%d", chatID)
+}
 
-	// Закрываем WebSocket
-	disconnectWebSocket()
+func (cw *ChatWindow) logout() {
+	go func() {
+		// Останавливаем автообновление
+		if refreshTicker != nil {
+			refreshTicker.Stop()
+		}
+		if refreshDone != nil {
+			close(refreshDone) // Закрываем канал
+		}
 
-	// Выходим из системы на сервере
-	_ = logout(cw.tokens.AccessToken)
+		// Закрываем WebSocket
+		disconnectWebSocket()
 
-	// Удаляем файл с токенами
-	_ = os.Remove(tokenFile)
+		// Выходим из системы на сервере
+		_ = logout(cw.tokens.AccessToken)
 
-	fyne.Do(func() {
-		// Закрываем текущее окно чата
-		cw.window.Close()
+		// Удаляем файл с токенами
+		_ = os.Remove(tokenFile)
 
-		go authenticateAndRun(cw.app)
-	})
+		fyne.Do(func() {
+			// Закрываем текущее окно чата
+			cw.window.Close()
+
+			// Перезапускаем процесс аутентификации
+			go authenticateAndRun(cw.app)
+		})
+	}()
 }
 
 func (cw *ChatWindow) showError(title string, err error) {
@@ -1108,11 +1298,12 @@ func showCreateChatDialog(cw *ChatWindow) {
 
 			fyne.Do(func() {
 				status.SetText("Чат создан!")
-				go cw.loadChats()
 
-				if chat != nil {
-					cw.selectChat(chat)
-				}
+				// Обновляем список чатов
+				cw.refreshChatsAfterNewChat(chat)
+
+				// Открываем созданный чат
+				cw.selectChat(chat)
 
 				time.AfterFunc(1*time.Second, func() {
 					fyne.Do(func() {
@@ -1223,7 +1414,7 @@ func showAuthWindow(myApp fyne.App) {
 
 	// Устанавливаем обработчик закрытия окна авторизации
 	authWin.SetCloseIntercept(func() {
-		myApp.Quit()
+		shutdown(myApp)
 	})
 
 	// Создаем вкладки
@@ -1424,4 +1615,63 @@ func unique(ids []uint64) []uint64 {
 	}
 
 	return result
+}
+
+// --- Функция shutdown (добавьте после main) ---
+func shutdown(app fyne.App) {
+	fmt.Println("Завершение приложения...")
+
+	// Используем Once, чтобы закрыть канал только один раз
+	shutdownOnce.Do(func() {
+		// Сигнализируем всем горутинам о завершении
+		close(appShutdown)
+
+		// Останавливаем автообновление токенов
+		if refreshTicker != nil {
+			refreshTicker.Stop()
+		}
+
+		// Безопасно закрываем refreshDone
+		refreshMu.Lock()
+		if refreshDone != nil {
+			// Проверяем, не закрыт ли уже канал
+			select {
+			case <-refreshDone:
+				// Канал уже закрыт, ничего не делаем
+			default:
+				close(refreshDone)
+			}
+		}
+		refreshMu.Unlock()
+
+		// Закрываем WebSocket соединение
+		disconnectWebSocket()
+
+		// Ждем завершения всех горутин (с таймаутом)
+		done := make(chan struct{})
+		go func() {
+			wg.Wait()
+			close(done)
+		}()
+
+		select {
+		case <-done:
+			fmt.Println("Все горутины завершены")
+		case <-time.After(3 * time.Second):
+			fmt.Println("Таймаут ожидания горутин (принудительное завершение)")
+		}
+	})
+
+	// Завершаем приложение
+	app.Quit()
+}
+
+// --- Функция isShuttingDown (добавьте после shutdown) ---
+func isShuttingDown() bool {
+	select {
+	case <-appShutdown:
+		return true
+	default:
+		return false
+	}
 }

@@ -33,6 +33,7 @@ logs/
 *.db
 bench.txt
 tokens.json
+kfc
 
 # Environments
 .venv
