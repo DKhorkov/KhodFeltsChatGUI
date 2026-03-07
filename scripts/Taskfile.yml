@@ -1,0 +1,52 @@
+version: '3'
+
+tasks:
+  clean_up:
+    desc: "Clean up all folders and files."
+    dir: ../
+    aliases:
+      - clean
+    cmds:
+      #      - sudo rm -rf logs/
+      - sudo rm -rf coverage/
+      - sudo rm -rf tokens.json
+      - sudo rm -rf kfc
+
+  tests:
+    desc: "Run tests and save coverage to coverage folder."
+    aliases:
+      - test
+    dir: ../
+    cmds:
+      - task: create_postgres_folders
+      - sudo chmod -R 777 postgres_data
+      - sudo chmod -R 777 postgres_backups
+      - mkdir -p ./coverage
+      - |
+        printf "integration={{.integration}}\n\n"  # View flag value
+        if [ "{{.integration}}" == "true" ]; then
+          go test -v -shuffle=on -coverprofile ./coverage/coverage.out -coverpkg=$(go list ./... | grep -v -F -f .coverignore | paste -sd, -) ./... -tags=integration
+        else
+          go test -v -shuffle=on -coverprofile ./coverage/coverage.out -coverpkg=$(go list ./... | grep -v -F -f .coverignore | paste -sd, -) ./...
+        fi
+      - go tool cover -html ./coverage/coverage.out -o ./coverage/coverage.html
+    vars:
+      integration:
+        sh: echo "${integration:-false}"  # false by default
+
+  benchmarks:
+    desc: "Run benchmarks."
+    aliases:
+      - bench
+    dir: ../
+    cmd: go test -v ./... -bench=. -run=xxx -benchmem >> bench.txt
+
+  linters:
+    desc: "Run linters."
+    aliases:
+      - lint
+    dir: ../
+    cmds:
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+      - export PATH=$PATH:$(go env GOPATH)/bin
+      - golangci-lint run -v --fix

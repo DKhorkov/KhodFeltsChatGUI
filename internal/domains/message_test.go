@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/DKhorkov/kfc/internal/domains"
+	"github.com/DKhorkov/kfcGUI/internal/domains"
 )
 
 func TestMessage_NewMessage(t *testing.T) {

@@ -8,12 +8,11 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/DKhorkov/kfcGUI/internal/common"
+	"github.com/DKhorkov/kfcGUI/internal/config"
+	"github.com/DKhorkov/kfcGUI/internal/domains"
+	"github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/libs/logging"
-
-	"kfcGUI/internal/common"
-	"kfcGUI/internal/config"
-	"kfcGUI/internal/domains"
-	"kfcGUI/internal/errors"
 )
 
 var (
@@ -27,7 +26,11 @@ type AuthRepository struct {
 	httpClient *http.Client
 }
 
-func New(authConfig config.AuthConfig, logger logging.Logger, httpConfig config.HTTPConfig) *AuthRepository {
+func New(
+	authConfig config.AuthConfig,
+	logger logging.Logger,
+	httpConfig config.HTTPConfig,
+) *AuthRepository {
 	return &AuthRepository{
 		authConfig: authConfig,
 		logger:     logger,
@@ -47,7 +50,12 @@ func (r *AuthRepository) Register(ctx context.Context, user domains.User) (*doma
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, r.authConfig.RegisterURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		r.authConfig.RegisterURL,
+		bytes.NewReader(body),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +86,10 @@ func (r *AuthRepository) Register(ctx context.Context, user domains.User) (*doma
 	return createdUser, nil
 }
 
-func (r *AuthRepository) Login(ctx context.Context, email, password string) (*domains.TokensDTO, error) {
+func (r *AuthRepository) Login(
+	ctx context.Context,
+	email, password string,
+) (*domains.TokensDTO, error) {
 	input := domains.LoginDTO{
 		Email:    email,
 		Password: password,
@@ -89,7 +100,12 @@ func (r *AuthRepository) Login(ctx context.Context, email, password string) (*do
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, r.authConfig.LoginURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		r.authConfig.LoginURL,
+		bytes.NewReader(body),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +152,12 @@ func (r *AuthRepository) Login(ctx context.Context, email, password string) (*do
 }
 
 func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, r.authConfig.LogoutURL, nil)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		r.authConfig.LogoutURL,
+		http.NoBody,
+	)
 	if err != nil {
 		return err
 	}
@@ -167,8 +188,16 @@ func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
 	return nil
 }
 
-func (r *AuthRepository) RefreshTokens(ctx context.Context, refreshToken string) (*domains.TokensDTO, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, r.authConfig.RefreshTokensURL, nil)
+func (r *AuthRepository) RefreshTokens(
+	ctx context.Context,
+	refreshToken string,
+) (*domains.TokensDTO, error) {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPut,
+		r.authConfig.RefreshTokensURL,
+		http.NoBody,
+	)
 	if err != nil {
 		return nil, err
 	}

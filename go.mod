@@ -1,4 +1,4 @@
-module kfcGUI
+module github.com/DKhorkov/kfcGUI
 
 go 1.25
 
@@ -6,6 +6,7 @@ require (
 	fyne.io/fyne/v2 v2.7.2
 	github.com/DKhorkov/libs v1.14.10
 	github.com/gorilla/websocket v1.5.3
+	go.uber.org/mock v0.5.0
 )
 
 require (

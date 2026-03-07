@@ -2,7 +2,8 @@ package interfaces
 
 import (
 	"context"
-	"kfcGUI/internal/domains"
+
+	"github.com/DKhorkov/kfcGUI/internal/domains"
 )
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/auth_repository.go -package=mockrepositories -exclude_interfaces=UsersRepository,MessagesRepository,ChatsRepository,WebSocketsRepository

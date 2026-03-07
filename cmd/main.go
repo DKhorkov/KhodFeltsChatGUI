@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kfcGUI/internal/common"
 	"net"
 	"net/http"
 	"net/url"
@@ -24,6 +23,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/gorilla/websocket"
 )
 
@@ -97,7 +97,7 @@ type RegisterInput struct {
 }
 
 // --- Глобальные переменные ---
-// TODO подумать о переводе всех мьютексов и каналов на context.WithCancel
+// TODO подумать о переводе всех мьютексов и каналов на context.WithCancel.
 var (
 	httpClient    = &http.Client{Timeout: 10 * time.Second}
 	currentUser   *User
@@ -135,11 +135,13 @@ func authenticateAndRun(myApp fyne.App) {
 		user, err := getCurrentUser(tokens.AccessToken)
 		if err == nil && user != nil {
 			currentUser = user
+
 			startTokenRefreshRoutine()
 
 			fyne.Do(func() {
 				showMainChatWindow(myApp, tokens)
 			})
+
 			return
 		}
 
@@ -151,12 +153,14 @@ func authenticateAndRun(myApp fyne.App) {
 			user, err := getCurrentUser(newTokens.AccessToken)
 			if err == nil && user != nil {
 				currentUser = user
+
 				startTokenRefreshRoutine()
 
 				fyne.Do(func() {
-					//mainWindow.Close()
+					// mainWindow.Close()
 					showMainChatWindow(myApp, newTokens)
 				})
+
 				return
 			}
 		}
@@ -191,32 +195,33 @@ func saveTokensToFile(tokens *TokenPair) error {
 		return err
 	}
 
-	return os.WriteFile(tokenFile, data, 0600)
+	return os.WriteFile(tokenFile, data, 0o600)
 }
 
 func startTokenRefreshRoutine() {
 	refreshTicker = time.NewTicker(refreshInterval)
 	refreshDone = make(chan struct{}) // Используем struct{}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-appShutdown:
 				fmt.Println("Token refresh: приложение завершается")
+
 				return
 			case <-refreshDone:
 				fmt.Println("Token refresh: получен сигнал завершения")
+
 				return
 			case <-refreshTicker.C:
 				if isShuttingDown() {
 					return
 				}
+
 				refreshTokenRoutine()
 			}
 		}
-	}()
+	})
 }
 
 func refreshTokenRoutine() {
@@ -227,6 +232,7 @@ func refreshTokenRoutine() {
 	newTokens, err := refreshTokens(currentTokens.RefreshToken)
 	if err != nil {
 		fmt.Printf("Ошибка обновления токенов: %v\n", err)
+
 		return
 	}
 
@@ -239,7 +245,7 @@ func refreshTokenRoutine() {
 // --- HTTP запросы к API ---
 
 func getCurrentUser(accessToken string) (*User, error) {
-	req, _ := http.NewRequest("GET", apiBase+"/users/me", nil)
+	req, _ := http.NewRequest(http.MethodGet, apiBase+"/users/me", nil)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)
@@ -256,11 +262,12 @@ func getCurrentUser(accessToken string) (*User, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 
 func refreshTokens(refreshToken string) (*TokenPair, error) {
-	req, _ := http.NewRequest("PUT", apiBase+"/sessions", nil)
+	req, _ := http.NewRequest(http.MethodPut, apiBase+"/sessions", nil)
 	req.Header.Set("Cookie", "refreshToken="+refreshToken)
 
 	resp, err := httpClient.Do(req)
@@ -279,6 +286,7 @@ func refreshTokens(refreshToken string) (*TokenPair, error) {
 		if cookie.Name == "accessToken" {
 			tokens.AccessToken = cookie.Value
 		}
+
 		if cookie.Name == "refreshToken" {
 			tokens.RefreshToken = cookie.Value
 		}
@@ -298,7 +306,7 @@ func login(email, password string) (*TokenPair, error) {
 	}
 	body, _ := json.Marshal(input)
 
-	req, _ := http.NewRequest("POST", apiBase+"/sessions", bytes.NewReader(body))
+	req, _ := http.NewRequest(http.MethodPost, apiBase+"/sessions", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := httpClient.Do(req)
@@ -309,6 +317,7 @@ func login(email, password string) (*TokenPair, error) {
 
 	if resp.StatusCode != http.StatusNoContent {
 		errorBody, _ := io.ReadAll(resp.Body)
+
 		return nil, fmt.Errorf("login failed (%s): %s", resp.Status, string(errorBody))
 	}
 
@@ -318,6 +327,7 @@ func login(email, password string) (*TokenPair, error) {
 		if cookie.Name == "accessToken" {
 			tokens.AccessToken = cookie.Value
 		}
+
 		if cookie.Name == "refreshToken" {
 			tokens.RefreshToken = cookie.Value
 		}
@@ -331,7 +341,7 @@ func login(email, password string) (*TokenPair, error) {
 }
 
 func logout(accessToken string) error {
-	req, _ := http.NewRequest("DELETE", apiBase+"/sessions", nil)
+	req, _ := http.NewRequest(http.MethodDelete, apiBase+"/sessions", nil)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)
@@ -343,11 +353,16 @@ func logout(accessToken string) error {
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("logout failed: %s", resp.Status)
 	}
+
 	return nil
 }
 
 func getUserChats(accessToken string, limit, offset int) ([]Chat, error) {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/chats?limit=%d&offset=%d", apiBase, limit, offset), nil)
+	req, _ := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/chats?limit=%d&offset=%d", apiBase, limit, offset),
+		nil,
+	)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)
@@ -364,11 +379,16 @@ func getUserChats(accessToken string, limit, offset int) ([]Chat, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&chats); err != nil {
 		return nil, err
 	}
+
 	return chats, nil
 }
 
 func getChatMessages(accessToken string, chatID uint64, limit, offset int) ([]Message, error) {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/chats/%d/messages?limit=%d&offset=%d", apiBase, chatID, limit, offset), nil)
+	req, _ := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/chats/%d/messages?limit=%d&offset=%d", apiBase, chatID, limit, offset),
+		nil,
+	)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)
@@ -385,6 +405,7 @@ func getChatMessages(accessToken string, chatID uint64, limit, offset int) ([]Me
 	if err := json.NewDecoder(resp.Body).Decode(&messages); err != nil {
 		return nil, err
 	}
+
 	return messages, nil
 }
 
@@ -394,13 +415,13 @@ func createChat(accessToken string, chatType string, memberIDs []uint64) (*Chat,
 		members[i] = MemberInput{ID: id}
 	}
 
-	bodyMap := map[string]interface{}{
+	bodyMap := map[string]any{
 		"type":    chatType,
 		"members": members,
 	}
 	body, _ := json.Marshal(bodyMap)
 
-	req, _ := http.NewRequest("POST", apiBase+"/chats", bytes.NewReader(body))
+	req, _ := http.NewRequest(http.MethodPost, apiBase+"/chats", bytes.NewReader(body))
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -412,6 +433,7 @@ func createChat(accessToken string, chatType string, memberIDs []uint64) (*Chat,
 
 	if resp.StatusCode != http.StatusCreated {
 		errorBody, _ := io.ReadAll(resp.Body)
+
 		return nil, fmt.Errorf("API error (%s): %s", resp.Status, string(errorBody))
 	}
 
@@ -419,11 +441,12 @@ func createChat(accessToken string, chatType string, memberIDs []uint64) (*Chat,
 	if err := json.NewDecoder(resp.Body).Decode(&chat); err != nil {
 		return nil, err
 	}
+
 	return &chat, nil
 }
 
 func searchUsers(accessToken, query string, limit, offset int) ([]User, error) {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/users?username=%s&limit=%d&offset=%d",
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/users?username=%s&limit=%d&offset=%d",
 		apiBase, url.QueryEscape(query), limit, offset), nil)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
@@ -441,10 +464,11 @@ func searchUsers(accessToken, query string, limit, offset int) ([]User, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
 		return nil, err
 	}
+
 	return users, nil
 }
 
-// --- WebSocket подключение ---
+// --- WebSocket подключение ---.
 func connectWebSocket(accessToken string, onMessage func(*Message)) error {
 	wsMutex.Lock()
 	defer wsMutex.Unlock()
@@ -468,10 +492,7 @@ func connectWebSocket(accessToken string, onMessage func(*Message)) error {
 
 	wsConn = conn
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		// Канал для сигнала завершения чтения
 		readDone := make(chan struct{})
 
@@ -484,19 +505,22 @@ func connectWebSocket(accessToken string, onMessage func(*Message)) error {
 				select {
 				case <-appShutdown:
 					fmt.Println("WebSocket reader: получен сигнал завершения")
+
 					return
 				default:
 				}
 
 				var msg Message
-				err := conn.ReadJSON(&msg)
 
+				err := conn.ReadJSON(&msg)
 				if err != nil {
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure) ||
 						errors.Is(err, net.ErrClosed) {
 						return
 					}
+
 					fmt.Printf("WebSocket ошибка: %v\n", err)
+
 					return
 				}
 
@@ -519,7 +543,7 @@ func connectWebSocket(accessToken string, onMessage func(*Message)) error {
 			wsConn = nil
 		}
 		wsMutex.Unlock()
-	}()
+	})
 
 	return nil
 }
@@ -594,6 +618,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 		func() int {
 			cw.chatsMu.RLock()
 			defer cw.chatsMu.RUnlock()
+
 			return len(cw.chats)
 		},
 		func() fyne.CanvasObject {
@@ -609,6 +634,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			if id >= len(cw.chats) {
 				return
 			}
+
 			chat := cw.chats[id]
 			container := item.(*fyne.Container)
 			label := container.Objects[1].(*widget.Label)
@@ -618,15 +644,18 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 				for _, m := range chat.Members {
 					if m.ID != currentUser.ID {
 						title = m.Username
+
 						break
 					}
 				}
 			}
+
 			if title == "" {
 				title = fmt.Sprintf("Чат #%d", chat.ID)
 			}
 
 			label.SetText(title)
+
 			if !chat.IsRead {
 				label.TextStyle = fyne.TextStyle{Bold: true}
 			} else {
@@ -637,10 +666,13 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 
 	cw.chatsList.OnSelected = func(id widget.ListItemID) {
 		cw.chatsMu.RLock()
+
 		if id >= len(cw.chats) {
 			cw.chatsMu.RUnlock()
+
 			return
 		}
+
 		chat := cw.chats[id]
 		cw.chatsMu.RUnlock()
 		cw.selectChat(&chat)
@@ -650,10 +682,18 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	cw.messagesList = widget.NewList(
 		func() int { return len(cw.messages) },
 		func() fyne.CanvasObject {
-			sender := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+			sender := widget.NewLabelWithStyle(
+				"",
+				fyne.TextAlignLeading,
+				fyne.TextStyle{Bold: true},
+			)
 			message := widget.NewLabel("")
 			message.Wrapping = fyne.TextWrapWord
-			time_ := widget.NewLabelWithStyle("", fyne.TextAlignTrailing, fyne.TextStyle{Italic: true})
+			time_ := widget.NewLabelWithStyle(
+				"",
+				fyne.TextAlignTrailing,
+				fyne.TextStyle{Italic: true},
+			)
 
 			return container.NewVBox(
 				container.NewBorder(nil, nil, sender, time_),
@@ -679,6 +719,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			} else {
 				sender.SetText(msg.Sender.Username)
 			}
+
 			message.SetText(msg.Text)
 			time_.SetText(msg.CreatedAt.Format(common.DateTimeFormat))
 		},
@@ -798,21 +839,20 @@ func (cw *ChatWindow) loadChats() {
 	chats, err := getUserChats(cw.tokens.AccessToken, 0, 0)
 	if err != nil {
 		cw.showError("Ошибка загрузки чатов", err)
+
 		return
 	}
 
 	cw.chats = chats
+
 	fyne.Do(func() {
 		cw.chatsList.Refresh()
 	})
 }
 
-// Периодическое обновление списка чатов (каждые 5 секунд)
+// Периодическое обновление списка чатов (каждые 5 секунд).
 func (cw *ChatWindow) startChatsRefreshRoutine() {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 
@@ -820,18 +860,20 @@ func (cw *ChatWindow) startChatsRefreshRoutine() {
 			select {
 			case <-appShutdown:
 				fmt.Println("Chats refresh: получен сигнал завершения")
+
 				return
 			case <-ticker.C:
 				if cw.currentChat == nil {
 					continue
 				}
+
 				cw.refreshChats()
 			}
 		}
-	}()
+	})
 }
 
-// Обновление списка чатов
+// Обновление списка чатов.
 func (cw *ChatWindow) refreshChats() {
 	if isShuttingDown() {
 		return
@@ -841,6 +883,7 @@ func (cw *ChatWindow) refreshChats() {
 	chats, err := getUserChats(cw.tokens.AccessToken, 0, 0)
 	if err != nil {
 		fmt.Printf("Ошибка обновления списка чатов: %v\n", err)
+
 		return
 	}
 
@@ -867,7 +910,7 @@ func (cw *ChatWindow) refreshChats() {
 	})
 }
 
-// Обновление списка после создания нового чата
+// Обновление списка после создания нового чата.
 func (cw *ChatWindow) refreshChatsAfterNewChat(newChat *Chat) {
 	cw.chatsMu.Lock()
 	defer cw.chatsMu.Unlock()
@@ -894,6 +937,7 @@ func (cw *ChatWindow) loadMoreMessages() {
 
 	cw.loadingMore = true
 	cw.statusLabel.SetText("Загрузка истории...")
+
 	if cw.loadMoreBtn != nil {
 		cw.loadMoreBtn.Disable()
 	}
@@ -901,15 +945,22 @@ func (cw *ChatWindow) loadMoreMessages() {
 	offset := len(cw.messages)
 
 	go func() {
-		messages, err := getChatMessages(cw.tokens.AccessToken, cw.currentChat.ID, messagesLimit, offset)
+		messages, err := getChatMessages(
+			cw.tokens.AccessToken,
+			cw.currentChat.ID,
+			messagesLimit,
+			offset,
+		)
 		if err != nil {
 			fyne.Do(func() {
 				cw.statusLabel.SetText("Ошибка загрузки истории")
+
 				cw.loadingMore = false
 				if cw.loadMoreBtn != nil {
 					cw.loadMoreBtn.Enable()
 				}
 			})
+
 			return
 		}
 
@@ -919,9 +970,11 @@ func (cw *ChatWindow) loadMoreMessages() {
 			if len(messages) == 0 {
 				cw.hasMore = false
 				cw.statusLabel.SetText("Вся история загружена")
+
 				if cw.loadMoreBtn != nil {
 					cw.loadMoreBtn.Hide()
 				}
+
 				time.AfterFunc(2*time.Second, func() {
 					fyne.Do(func() {
 						cw.statusLabel.SetText("")
@@ -930,6 +983,7 @@ func (cw *ChatWindow) loadMoreMessages() {
 			} else {
 				// Добавляем старые сообщения в начало
 				messagesMu.Lock()
+
 				cw.messages = append(messages, cw.messages...)
 				messagesMu.Unlock()
 
@@ -955,6 +1009,7 @@ func (cw *ChatWindow) loadMoreMessages() {
 					})
 				})
 			}
+
 			cw.loadingMore = false
 			if cw.loadMoreBtn != nil && cw.hasMore {
 				cw.loadMoreBtn.Enable()
@@ -989,7 +1044,7 @@ func (cw *ChatWindow) selectChat(chat *Chat) {
 	go cw.loadMessages(chat.ID, 0)
 }
 
-// --- Обновленный closeChat (без currentChatID) ---
+// --- Обновленный closeChat (без currentChatID) ---.
 func (cw *ChatWindow) closeChat() {
 	if cw.currentChat == nil {
 		return
@@ -1007,6 +1062,7 @@ func (cw *ChatWindow) closeChat() {
 		cw.loadMoreBtn.Enable()
 		cw.loadMoreBtn.Hide()
 	}
+
 	if cw.closeChatBtn != nil {
 		cw.closeChatBtn.Hide()
 	}
@@ -1033,6 +1089,7 @@ func (cw *ChatWindow) markChatAsRead(chatID uint64) {
 		if chat.ID == chatID {
 			// TODO нужно будет обращаться к ручке MarkChatRead помимо отметки о прочитанности в UI
 			cw.chats[i].IsRead = true
+
 			break
 		}
 	}
@@ -1046,12 +1103,14 @@ func (cw *ChatWindow) loadMessages(chatID uint64, offset int) {
 	if cw.loadingMore {
 		return
 	}
+
 	cw.loadingMore = true
 
 	messages, err := getChatMessages(cw.tokens.AccessToken, chatID, messagesLimit, offset)
 	if err != nil {
 		cw.showError("Ошибка загрузки сообщений", err)
 		cw.loadingMore = false
+
 		return
 	}
 
@@ -1064,9 +1123,11 @@ func (cw *ChatWindow) loadMessages(chatID uint64, offset int) {
 
 	fyne.Do(func() {
 		cw.messagesList.Refresh()
+
 		if offset == 0 && len(cw.messages) > 0 {
 			cw.messagesList.ScrollToBottom()
 		}
+
 		cw.loadingMore = false
 
 		// Если загружено меньше лимита, значит больше нет сообщений
@@ -1095,6 +1156,7 @@ func (cw *ChatWindow) sendMessage() {
 	}
 
 	messagesMu.Lock()
+
 	cw.messages = append(cw.messages, localMsg)
 	messagesMu.Unlock()
 
@@ -1106,7 +1168,7 @@ func (cw *ChatWindow) sendMessage() {
 		err := sendWSMessage(cw.currentChat.ID, text)
 		if err != nil {
 			fyne.Do(func() {
-				dialog.ShowError(fmt.Errorf("Не удалось отправить сообщение: %v", err), cw.window)
+				dialog.ShowError(fmt.Errorf("Не удалось отправить сообщение: %w", err), cw.window)
 			})
 		}
 	}()
@@ -1119,13 +1181,17 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 
 	// Проверяем, есть ли чат в списке
 	chatExists := false
+
 	cw.chatsMu.RLock()
+
 	for _, chat := range cw.chats {
 		if chat.ID == msg.ChatID {
 			chatExists = true
+
 			break
 		}
 	}
+
 	cw.chatsMu.RUnlock()
 
 	// Если чата нет в списке - обновляем весь список
@@ -1138,6 +1204,7 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 			for i, chat := range cw.chats {
 				if chat.ID == msg.ChatID {
 					cw.chats[i].IsRead = false
+
 					break
 				}
 			}
@@ -1152,6 +1219,7 @@ func (cw *ChatWindow) onNewMessage(msg *Message) {
 	// Если сообщение для текущего чата - добавляем его
 	if cw.currentChat != nil && msg.ChatID == cw.currentChat.ID {
 		messagesMu.Lock()
+
 		cw.messages = append(cw.messages, *msg)
 		messagesMu.Unlock()
 
@@ -1179,6 +1247,7 @@ func (cw *ChatWindow) getChatTitle(chatID uint64) string {
 			if chat.Title != "" {
 				return chat.Title
 			}
+
 			if len(chat.Members) > 0 {
 				for _, m := range chat.Members {
 					if m.ID != currentUser.ID {
@@ -1186,9 +1255,11 @@ func (cw *ChatWindow) getChatTitle(chatID uint64) string {
 					}
 				}
 			}
+
 			return fmt.Sprintf("Чат #%d", chat.ID)
 		}
 	}
+
 	return fmt.Sprintf("Чат #%d", chatID)
 }
 
@@ -1198,6 +1269,7 @@ func (cw *ChatWindow) logout() {
 		if refreshTicker != nil {
 			refreshTicker.Stop()
 		}
+
 		if refreshDone != nil {
 			close(refreshDone) // Закрываем канал
 		}
@@ -1276,7 +1348,9 @@ func showCreateChatDialog(cw *ChatWindow) {
 	)
 
 	selectedUsers := make(map[uint64]bool)
+
 	var users []User
+
 	status := widget.NewLabel("")
 
 	searchBtn := widget.NewButton("Найти", func() {
@@ -1291,6 +1365,7 @@ func showCreateChatDialog(cw *ChatWindow) {
 				fyne.Do(func() {
 					dialog.ShowError(err, win)
 				})
+
 				return
 			}
 
@@ -1327,7 +1402,7 @@ func showCreateChatDialog(cw *ChatWindow) {
 	createBtn.OnTapped = func() {
 		var memberIDs []uint64
 
-		for _, part := range strings.Split(membersEntry.Text, ",") {
+		for part := range strings.SplitSeq(membersEntry.Text, ",") {
 			if id, err := strconv.ParseUint(strings.TrimSpace(part), 10, 64); err == nil {
 				memberIDs = append(memberIDs, id)
 			}
@@ -1341,6 +1416,7 @@ func showCreateChatDialog(cw *ChatWindow) {
 
 		if len(memberIDs) == 0 {
 			status.SetText("Укажите хотя бы одного участника")
+
 			return
 		}
 
@@ -1354,6 +1430,7 @@ func showCreateChatDialog(cw *ChatWindow) {
 					createBtn.Enable()
 					status.SetText("Ошибка: " + err.Error())
 				})
+
 				return
 			}
 
@@ -1426,6 +1503,7 @@ func showSearchUsersDialog(cw *ChatWindow) {
 		}
 
 		statusLabel.SetText("Поиск...")
+
 		usersList.Length = func() int { return 0 }
 		usersList.Refresh()
 
@@ -1435,6 +1513,7 @@ func showSearchUsersDialog(cw *ChatWindow) {
 				fyne.Do(func() {
 					statusLabel.SetText("Ошибка: " + err.Error())
 				})
+
 				return
 			}
 
@@ -1487,16 +1566,20 @@ func showAuthWindow(myApp fyne.App) {
 	// Вход
 	loginEmail := widget.NewEntry()
 	loginEmail.SetPlaceHolder("Email")
+
 	loginPassword := widget.NewPasswordEntry()
 	loginPassword.SetPlaceHolder("Пароль")
 
 	// Регистрация
 	registerEmail := widget.NewEntry()
 	registerEmail.SetPlaceHolder("Email")
+
 	registerUsername := widget.NewEntry()
 	registerUsername.SetPlaceHolder("Имя пользователя (от 5 символов)")
+
 	registerPassword := widget.NewPasswordEntry()
 	registerPassword.SetPlaceHolder("Пароль")
+
 	registerConfirm := widget.NewPasswordEntry()
 	registerConfirm.SetPlaceHolder("Подтверждение пароля")
 
@@ -1508,10 +1591,12 @@ func showAuthWindow(myApp fyne.App) {
 	loginBtn := widget.NewButton("Войти", func() {
 		if loginEmail.Text == "" || loginPassword.Text == "" {
 			statusLabel.SetText("Заполните все поля")
+
 			return
 		}
 
 		progress.Hidden = false
+
 		statusLabel.SetText("")
 
 		go func() {
@@ -1519,8 +1604,10 @@ func showAuthWindow(myApp fyne.App) {
 			if err != nil {
 				fyne.Do(func() {
 					progress.Hidden = true
+
 					statusLabel.SetText("Ошибка: " + err.Error())
 				})
+
 				return
 			}
 
@@ -1528,8 +1615,10 @@ func showAuthWindow(myApp fyne.App) {
 			if err != nil {
 				fyne.Do(func() {
 					progress.Hidden = true
+
 					statusLabel.SetText("Ошибка получения пользователя: " + err.Error())
 				})
+
 				return
 			}
 
@@ -1558,20 +1647,24 @@ func showAuthWindow(myApp fyne.App) {
 		if registerEmail.Text == "" || registerUsername.Text == "" ||
 			registerPassword.Text == "" || registerConfirm.Text == "" {
 			statusLabel.SetText("Заполните все поля")
+
 			return
 		}
 
 		if registerPassword.Text != registerConfirm.Text {
 			statusLabel.SetText("Пароли не совпадают")
+
 			return
 		}
 
 		if len(registerUsername.Text) < 5 {
 			statusLabel.SetText("Имя пользователя должно быть не менее 5 символов")
+
 			return
 		}
 
 		progress.Hidden = false
+
 		statusLabel.SetText("Регистрация...")
 
 		go func() {
@@ -1580,13 +1673,16 @@ func showAuthWindow(myApp fyne.App) {
 			if err != nil {
 				fyne.Do(func() {
 					progress.Hidden = true
+
 					statusLabel.SetText("Ошибка регистрации: " + err.Error())
 				})
+
 				return
 			}
 
 			fyne.Do(func() {
 				progress.Hidden = true
+
 				statusLabel.SetText("Регистрация успешна! Теперь войдите.")
 
 				// Очищаем поля регистрации
@@ -1636,7 +1732,7 @@ func showAuthWindow(myApp fyne.App) {
 	authWin.Show()
 }
 
-// Новая функция только для регистрации (без автоматического логина)
+// Новая функция только для регистрации (без автоматического логина).
 func registerUser(email, username, password string) error {
 	input := RegisterInput{
 		Email:    email,
@@ -1645,7 +1741,7 @@ func registerUser(email, username, password string) error {
 	}
 	body, _ := json.Marshal(input)
 
-	req, _ := http.NewRequest("POST", apiBase+"/users", bytes.NewReader(body))
+	req, _ := http.NewRequest(http.MethodPost, apiBase+"/users", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := httpClient.Do(req)
@@ -1656,6 +1752,7 @@ func registerUser(email, username, password string) error {
 
 	if resp.StatusCode != http.StatusCreated {
 		errorBody, _ := io.ReadAll(resp.Body)
+
 		return fmt.Errorf("registration failed (%s): %s", resp.Status, string(errorBody))
 	}
 
@@ -1671,6 +1768,7 @@ func unique(ids []uint64) []uint64 {
 	for _, id := range ids {
 		if !seen[id] {
 			seen[id] = true
+
 			result = append(result, id)
 		}
 	}
@@ -1678,7 +1776,7 @@ func unique(ids []uint64) []uint64 {
 	return result
 }
 
-// --- Функция shutdown (добавьте после main) ---
+// --- Функция shutdown (добавьте после main) ---.
 func shutdown(app fyne.App) {
 	fmt.Println("Завершение приложения...")
 
@@ -1710,6 +1808,7 @@ func shutdown(app fyne.App) {
 
 		// Ждем завершения всех горутин (с таймаутом)
 		done := make(chan struct{})
+
 		go func() {
 			wg.Wait()
 			close(done)
@@ -1727,7 +1826,7 @@ func shutdown(app fyne.App) {
 	app.Quit()
 }
 
-// --- Функция isShuttingDown (добавьте после shutdown) ---
+// --- Функция isShuttingDown (добавьте после shutdown) ---.
 func isShuttingDown() bool {
 	select {
 	case <-appShutdown:

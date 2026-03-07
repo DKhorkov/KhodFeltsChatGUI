@@ -11,7 +11,7 @@ package mockrepositories
 
 import (
 	context "context"
-	domains "kfcGUI/internal/domains"
+	domains "github.com/DKhorkov/kfcGUI/internal/domains"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
