@@ -9,10 +9,8 @@ import (
 	"net/http"
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
-	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
-	"github.com/DKhorkov/libs/logging"
 )
 
 var (
@@ -21,20 +19,18 @@ var (
 )
 
 type AuthRepository struct {
-	authConfig config.AuthConfig
-	logger     logging.Logger
+	Repository
 	httpClient *http.Client
+	baseURL    string
 }
 
-func New(
-	authConfig config.AuthConfig,
-	logger logging.Logger,
-	httpConfig config.HTTPConfig,
+func NewAuthRepository(
+	httpClient *http.Client,
+	baseURL string,
 ) *AuthRepository {
 	return &AuthRepository{
-		authConfig: authConfig,
-		logger:     logger,
-		httpClient: &http.Client{Timeout: httpConfig.Timeout},
+		httpClient: httpClient,
+		baseURL:    baseURL,
 	}
 }
 
@@ -53,7 +49,7 @@ func (r *AuthRepository) Register(ctx context.Context, user domains.User) (*doma
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		r.authConfig.RegisterURL,
+		fmt.Sprintf("%s/users", r.baseURL),
 		bytes.NewReader(body),
 	)
 	if err != nil {
@@ -78,12 +74,12 @@ func (r *AuthRepository) Register(ctx context.Context, user domains.User) (*doma
 		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrRegister, data, resp.Status)
 	}
 
-	var createdUser *domains.User
-	if err = json.Unmarshal(data, createdUser); err != nil {
+	var createdUser domains.User
+	if err = json.Unmarshal(data, &createdUser); err != nil {
 		return nil, err
 	}
 
-	return createdUser, nil
+	return &createdUser, nil
 }
 
 func (r *AuthRepository) Login(
@@ -103,7 +99,7 @@ func (r *AuthRepository) Login(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		r.authConfig.LoginURL,
+		fmt.Sprintf("%s/sessions", r.baseURL),
 		bytes.NewReader(body),
 	)
 	if err != nil {
@@ -155,7 +151,7 @@ func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
-		r.authConfig.LogoutURL,
+		fmt.Sprintf("%s/sessions", r.baseURL),
 		http.NoBody,
 	)
 	if err != nil {
@@ -195,7 +191,7 @@ func (r *AuthRepository) RefreshTokens(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPut,
-		r.authConfig.RefreshTokensURL,
+		fmt.Sprintf("%s/sessions", r.baseURL),
 		http.NoBody,
 	)
 	if err != nil {
@@ -246,15 +242,4 @@ func (r *AuthRepository) RefreshTokens(
 	}
 
 	return &tokens, nil
-}
-
-func (r *AuthRepository) closeBody(ctx context.Context, body io.ReadCloser) {
-	if err := body.Close(); err != nil {
-		logging.LogErrorContext(
-			ctx,
-			r.logger,
-			"failed to close response body",
-			err,
-		)
-	}
 }

@@ -7,15 +7,7 @@ func New() Config {
 }
 
 type Config struct {
-	Auth AuthConfig
 	HTTP HTTPConfig
-}
-
-type AuthConfig struct {
-	RegisterURL      string
-	LoginURL         string
-	LogoutURL        string
-	RefreshTokensURL string
 }
 
 type HTTPConfig struct {
