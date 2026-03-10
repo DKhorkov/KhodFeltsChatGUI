@@ -45,3 +45,7 @@ func (r *TokensRepository) Load(_ context.Context) (*domains.TokensDTO, error) {
 
 	return &tokens, nil
 }
+
+func (r *TokensRepository) Delete(_ context.Context) error {
+	return os.Remove(filename)
+}

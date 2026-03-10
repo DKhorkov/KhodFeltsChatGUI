@@ -1,1 +1,172 @@
 package repositories
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/DKhorkov/kfcGUI/internal/common"
+	"github.com/DKhorkov/kfcGUI/internal/domains"
+	"github.com/DKhorkov/kfcGUI/internal/errors"
+)
+
+type ChatsRepository struct {
+	Repository
+	httpClient *http.Client
+	baseURL    string
+}
+
+func NewChatsRepository(httpClient *http.Client, baseURL string) *ChatsRepository {
+	return &ChatsRepository{
+		httpClient: httpClient,
+		baseURL:    baseURL,
+	}
+}
+
+func (r *ChatsRepository) GetUserChats(
+	ctx context.Context,
+	accessToken string,
+	limit int,
+	offset int,
+) ([]domains.Chat, error) {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		fmt.Sprintf("%s/chats?limit=%d&offset=%d", r.baseURL, limit, offset),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.closeBody(ctx, resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrGetUserChats, data, resp.Status)
+	}
+
+	var chats []domains.Chat
+	if err = json.Unmarshal(data, &chats); err != nil {
+		return nil, err
+	}
+
+	return chats, nil
+}
+
+func (r *ChatsRepository) CreateChat(ctx context.Context, accessToken string, chat domains.Chat) (*domains.Chat, error) {
+	if !chat.IsValid() {
+		return nil, fmt.Errorf("%w: chat is not valid: %v+", errors.ErrCreateChat, chat)
+	}
+
+	body, err := json.Marshal(chat)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		fmt.Sprintf("%s/chats", r.baseURL),
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer r.closeBody(ctx, resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrCreateChat, data, resp.Status)
+	}
+
+	var createdChat domains.Chat
+	if err = json.Unmarshal(data, &createdChat); err != nil {
+		return nil, err
+	}
+
+	return &createdChat, nil
+}
+
+func (r *ChatsRepository) GetChatMessages(
+	ctx context.Context,
+	accessToken string,
+	chatID int,
+	limit int,
+	offset int,
+) ([]domains.Message, error) {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		fmt.Sprintf("%s/chats/%d/messages?limit=%d&offset=%d", r.baseURL, chatID, limit, offset),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.closeBody(ctx, resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrGetChatMessages, data, resp.Status)
+	}
+
+	var messages []domains.Message
+	if err = json.Unmarshal(data, &messages); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}
