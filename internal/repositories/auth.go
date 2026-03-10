@@ -20,6 +20,7 @@ var (
 
 type AuthRepository struct {
 	Repository
+
 	httpClient *http.Client
 	baseURL    string
 }
@@ -49,7 +50,7 @@ func (r *AuthRepository) Register(ctx context.Context, user domains.User) (*doma
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		fmt.Sprintf("%s/users", r.baseURL),
+		r.baseURL+"/users",
 		bytes.NewReader(body),
 	)
 	if err != nil {
@@ -99,7 +100,7 @@ func (r *AuthRepository) Login(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		fmt.Sprintf("%s/sessions", r.baseURL),
+		r.baseURL+"/sessions",
 		bytes.NewReader(body),
 	)
 	if err != nil {
@@ -151,7 +152,7 @@ func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
-		fmt.Sprintf("%s/sessions", r.baseURL),
+		r.baseURL+"/sessions",
 		http.NoBody,
 	)
 	if err != nil {
@@ -191,7 +192,7 @@ func (r *AuthRepository) RefreshTokens(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPut,
-		fmt.Sprintf("%s/sessions", r.baseURL),
+		r.baseURL+"/sessions",
 		http.NoBody,
 	)
 	if err != nil {

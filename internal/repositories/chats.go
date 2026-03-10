@@ -15,6 +15,7 @@ import (
 
 type ChatsRepository struct {
 	Repository
+
 	httpClient *http.Client
 	baseURL    string
 }
@@ -29,14 +30,13 @@ func NewChatsRepository(httpClient *http.Client, baseURL string) *ChatsRepositor
 func (r *ChatsRepository) GetUserChats(
 	ctx context.Context,
 	accessToken string,
-	limit int,
-	offset int,
+	limit, offset int,
 ) ([]domains.Chat, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		fmt.Sprintf("%s/chats?limit=%d&offset=%d", r.baseURL, limit, offset),
-		nil,
+		http.NoBody,
 	)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,11 @@ func (r *ChatsRepository) GetUserChats(
 	return chats, nil
 }
 
-func (r *ChatsRepository) CreateChat(ctx context.Context, accessToken string, chat domains.Chat) (*domains.Chat, error) {
+func (r *ChatsRepository) CreateChat(
+	ctx context.Context,
+	accessToken string,
+	chat domains.Chat,
+) (*domains.Chat, error) {
 	if !chat.IsValid() {
 		return nil, fmt.Errorf("%w: chat is not valid: %v+", errors.ErrCreateChat, chat)
 	}
@@ -85,7 +89,7 @@ func (r *ChatsRepository) CreateChat(ctx context.Context, accessToken string, ch
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		fmt.Sprintf("%s/chats", r.baseURL),
+		r.baseURL+"/chats",
 		bytes.NewReader(body),
 	)
 	if err != nil {
@@ -127,15 +131,13 @@ func (r *ChatsRepository) CreateChat(ctx context.Context, accessToken string, ch
 func (r *ChatsRepository) GetChatMessages(
 	ctx context.Context,
 	accessToken string,
-	chatID int,
-	limit int,
-	offset int,
+	chatID, limit, offset int,
 ) ([]domains.Message, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		fmt.Sprintf("%s/chats/%d/messages?limit=%d&offset=%d", r.baseURL, chatID, limit, offset),
-		nil,
+		http.NoBody,
 	)
 	if err != nil {
 		return nil, err

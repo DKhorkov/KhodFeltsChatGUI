@@ -245,7 +245,7 @@ func refreshTokenRoutine() {
 // --- HTTP запросы к API ---
 
 func getCurrentUser(accessToken string) (*User, error) {
-	req, _ := http.NewRequest(http.MethodGet, apiBase+"/users/me", nil)
+	req, _ := http.NewRequest(http.MethodGet, apiBase+"/users/me", http.NoBody)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)
@@ -267,7 +267,7 @@ func getCurrentUser(accessToken string) (*User, error) {
 }
 
 func refreshTokens(refreshToken string) (*TokenPair, error) {
-	req, _ := http.NewRequest(http.MethodPut, apiBase+"/sessions", nil)
+	req, _ := http.NewRequest(http.MethodPut, apiBase+"/sessions", http.NoBody)
 	req.Header.Set("Cookie", "refreshToken="+refreshToken)
 
 	resp, err := httpClient.Do(req)
@@ -341,7 +341,7 @@ func login(email, password string) (*TokenPair, error) {
 }
 
 func logout(accessToken string) error {
-	req, _ := http.NewRequest(http.MethodDelete, apiBase+"/sessions", nil)
+	req, _ := http.NewRequest(http.MethodDelete, apiBase+"/sessions", http.NoBody)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)
@@ -361,7 +361,7 @@ func getUserChats(accessToken string, limit, offset int) ([]Chat, error) {
 	req, _ := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/chats?limit=%d&offset=%d", apiBase, limit, offset),
-		nil,
+		http.NoBody,
 	)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
@@ -387,7 +387,7 @@ func getChatMessages(accessToken string, chatID uint64, limit, offset int) ([]Me
 	req, _ := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/chats/%d/messages?limit=%d&offset=%d", apiBase, chatID, limit, offset),
-		nil,
+		http.NoBody,
 	)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
@@ -447,7 +447,7 @@ func createChat(accessToken string, chatType string, memberIDs []uint64) (*Chat,
 
 func searchUsers(accessToken, query string, limit, offset int) ([]User, error) {
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/users?username=%s&limit=%d&offset=%d",
-		apiBase, url.QueryEscape(query), limit, offset), nil)
+		apiBase, url.QueryEscape(query), limit, offset), http.NoBody)
 	req.Header.Set("Cookie", "accessToken="+accessToken)
 
 	resp, err := httpClient.Do(req)

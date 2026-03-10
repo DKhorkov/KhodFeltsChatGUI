@@ -12,7 +12,7 @@ const (
 	permission = 0o600
 	filename   = "tokens.json"
 
-	// JSON view variables
+	// JSON view variables.
 	prefix = ""
 	indent = "  "
 )

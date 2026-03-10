@@ -29,7 +29,11 @@ type UsersRepository interface {
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/chats_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,WebSocketsRepository
 type ChatsRepository interface {
-	GetUserChats(ctx context.Context, accessToken string, limit int, offset int) ([]domains.Chat, error)
+	GetUserChats(ctx context.Context, accessToken string, limit, offset int) ([]domains.Chat, error)
 	CreateChat(ctx context.Context, accessToken string, chat domains.Chat) (*domains.Chat, error)
-	GetChatMessages(ctx context.Context, accessToken string, chatID int, limit int, offset int) ([]domains.Message, error)
+	GetChatMessages(
+		ctx context.Context,
+		accessToken string,
+		chatID, limit, offset int,
+	) ([]domains.Message, error)
 }

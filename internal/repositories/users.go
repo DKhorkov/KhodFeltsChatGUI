@@ -14,6 +14,7 @@ import (
 
 type UsersRepository struct {
 	Repository
+
 	httpClient *http.Client
 	baseURL    string
 }
@@ -28,13 +29,11 @@ func NewUsersRepository(
 	}
 }
 
-func (r *UsersRepository) GetCurrentUser(ctx context.Context, accessToken string) (*domains.User, error) {
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf("%s/users/me", r.baseURL),
-		nil,
-	)
+func (r *UsersRepository) GetCurrentUser(
+	ctx context.Context,
+	accessToken string,
+) (*domains.User, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, r.baseURL+"/users/me", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -69,19 +68,18 @@ func (r *UsersRepository) GetCurrentUser(ctx context.Context, accessToken string
 	return &user, nil
 }
 
-func (r *UsersRepository) SearchUsers(ctx context.Context, username string, limit, offset int) ([]domains.User, error) {
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf(
-			"%s/users?username=%s&limit=%d&offset=%d",
-			r.baseURL,
-			url.QueryEscape(username),
-			limit,
-			offset,
-		),
-		nil,
-	)
+func (r *UsersRepository) SearchUsers(
+	ctx context.Context,
+	username string,
+	limit, offset int,
+) ([]domains.User, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf(
+		"%s/users?username=%s&limit=%d&offset=%d",
+		r.baseURL,
+		url.QueryEscape(username),
+		limit,
+		offset,
+	), http.NoBody)
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
