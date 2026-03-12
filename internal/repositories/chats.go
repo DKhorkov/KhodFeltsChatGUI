@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
@@ -18,6 +19,7 @@ type ChatsRepository struct {
 
 	httpClient *http.Client
 	baseURL    string
+	mu         sync.RWMutex
 }
 
 func NewChatsRepository(httpClient *http.Client, baseURL string) *ChatsRepository {
@@ -32,6 +34,9 @@ func (r *ChatsRepository) GetUserChats(
 	accessToken string,
 	limit, offset int,
 ) ([]domains.Chat, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
@@ -77,6 +82,9 @@ func (r *ChatsRepository) CreateChat(
 	accessToken string,
 	chat domains.Chat,
 ) (*domains.Chat, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	if !chat.IsValid() {
 		return nil, fmt.Errorf("%w: chat is not valid: %v+", errors.ErrCreateChat, chat)
 	}
@@ -133,6 +141,9 @@ func (r *ChatsRepository) GetChatMessages(
 	accessToken string,
 	chatID, limit, offset int,
 ) ([]domains.Message, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,

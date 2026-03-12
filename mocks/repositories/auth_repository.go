@@ -86,16 +86,16 @@ func (mr *MockAuthRepositoryMockRecorder) RefreshTokens(ctx, refreshToken any) *
 }
 
 // Register mocks base method.
-func (m *MockAuthRepository) Register(ctx context.Context, user domains.User) (*domains.User, error) {
+func (m *MockAuthRepository) Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, user)
+	ret := m.ctrl.Call(m, "Register", ctx, registerData)
 	ret0, _ := ret[0].(*domains.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockAuthRepositoryMockRecorder) Register(ctx, user any) *gomock.Call {
+func (mr *MockAuthRepositoryMockRecorder) Register(ctx, registerData any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAuthRepository)(nil).Register), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAuthRepository)(nil).Register), ctx, registerData)
 }

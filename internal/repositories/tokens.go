@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 )
@@ -17,13 +18,18 @@ const (
 	indent = "  "
 )
 
-type TokensRepository struct{}
+type TokensRepository struct {
+	mu sync.RWMutex
+}
 
 func NewTokensRepository() TokensRepository {
 	return TokensRepository{}
 }
 
 func (r *TokensRepository) Save(_ context.Context, tokens *domains.TokensDTO) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	data, err := json.MarshalIndent(tokens, prefix, indent)
 	if err != nil {
 		return err
@@ -33,6 +39,9 @@ func (r *TokensRepository) Save(_ context.Context, tokens *domains.TokensDTO) er
 }
 
 func (r *TokensRepository) Load(_ context.Context) (*domains.TokensDTO, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -47,5 +56,8 @@ func (r *TokensRepository) Load(_ context.Context) (*domains.TokensDTO, error) {
 }
 
 func (r *TokensRepository) Delete(_ context.Context) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	return os.Remove(filename)
 }

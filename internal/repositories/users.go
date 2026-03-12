@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
@@ -17,6 +18,7 @@ type UsersRepository struct {
 
 	httpClient *http.Client
 	baseURL    string
+	mu         sync.RWMutex
 }
 
 func NewUsersRepository(
@@ -33,6 +35,9 @@ func (r *UsersRepository) GetCurrentUser(
 	ctx context.Context,
 	accessToken string,
 ) (*domains.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, r.baseURL+"/users/me", http.NoBody)
 	if err != nil {
 		return nil, err
@@ -73,13 +78,21 @@ func (r *UsersRepository) SearchUsers(
 	username string,
 	limit, offset int,
 ) ([]domains.User, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf(
-		"%s/users?username=%s&limit=%d&offset=%d",
-		r.baseURL,
-		url.QueryEscape(username),
-		limit,
-		offset,
-	), http.NoBody)
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		fmt.Sprintf(
+			"%s/users?username=%s&limit=%d&offset=%d",
+			r.baseURL,
+			url.QueryEscape(username),
+			limit,
+			offset,
+		),
+		http.NoBody,
+	)
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {

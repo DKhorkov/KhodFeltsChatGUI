@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
@@ -23,6 +24,7 @@ type AuthRepository struct {
 
 	httpClient *http.Client
 	baseURL    string
+	mu         sync.Mutex
 }
 
 func NewAuthRepository(
@@ -35,14 +37,14 @@ func NewAuthRepository(
 	}
 }
 
-func (r *AuthRepository) Register(ctx context.Context, user domains.User) (*domains.User, error) {
-	input := domains.RegisterDTO{
-		Email:    user.Email,
-		Username: user.Username,
-		Password: user.Password,
-	}
+func (r *AuthRepository) Register(
+	ctx context.Context,
+	registerData domains.RegisterDTO,
+) (*domains.User, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-	body, err := json.Marshal(input)
+	body, err := json.Marshal(registerData)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +89,9 @@ func (r *AuthRepository) Login(
 	ctx context.Context,
 	email, password string,
 ) (*domains.TokensDTO, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	input := domains.LoginDTO{
 		Email:    email,
 		Password: password,
@@ -149,6 +154,9 @@ func (r *AuthRepository) Login(
 }
 
 func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
@@ -189,6 +197,9 @@ func (r *AuthRepository) RefreshTokens(
 	ctx context.Context,
 	refreshToken string,
 ) (*domains.TokensDTO, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPut,

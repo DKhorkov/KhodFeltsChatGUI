@@ -8,7 +8,7 @@ import (
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/auth_repository.go -package=mockrepositories -exclude_interfaces=TokensRepository,UsersRepository,ChatsRepository,WebSocketsRepository
 type AuthRepository interface {
-	Register(ctx context.Context, user domains.User) (*domains.User, error)
+	Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error)
 	Login(ctx context.Context, email, password string) (*domains.TokensDTO, error)
 	Logout(ctx context.Context, accessToken string) error
 	RefreshTokens(ctx context.Context, refreshToken string) (*domains.TokensDTO, error)
@@ -36,4 +36,12 @@ type ChatsRepository interface {
 		accessToken string,
 		chatID, limit, offset int,
 	) ([]domains.Message, error)
+}
+
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/websockets_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository
+type WebSocketsRepository interface {
+	Connect(ctx context.Context, accessToken string) error
+	Close() error
+	ReadMessage(ctx context.Context) (*domains.Message, error)
+	WriteMessage(ctx context.Context, message domains.Message) error
 }

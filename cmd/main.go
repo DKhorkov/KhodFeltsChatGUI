@@ -157,7 +157,6 @@ func authenticateAndRun(myApp fyne.App) {
 				startTokenRefreshRoutine()
 
 				fyne.Do(func() {
-					// mainWindow.Close()
 					showMainChatWindow(myApp, newTokens)
 				})
 
@@ -587,7 +586,6 @@ type ChatWindow struct {
 	currentChat  *Chat
 	chats        []Chat
 	messages     []Message
-	statusLabel  *widget.Label
 	loadMoreBtn  *widget.Button // Добавлено
 	closeChatBtn *widget.Button
 	loadingMore  bool
@@ -609,9 +607,6 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	cw.window.SetCloseIntercept(func() {
 		shutdown(myApp)
 	})
-
-	// Статусная строка
-	cw.statusLabel = widget.NewLabel("")
 
 	// Список чатов
 	cw.chatsList = widget.NewList(
@@ -936,7 +931,6 @@ func (cw *ChatWindow) loadMoreMessages() {
 	}
 
 	cw.loadingMore = true
-	cw.statusLabel.SetText("Загрузка истории...")
 
 	if cw.loadMoreBtn != nil {
 		cw.loadMoreBtn.Disable()
@@ -953,8 +947,6 @@ func (cw *ChatWindow) loadMoreMessages() {
 		)
 		if err != nil {
 			fyne.Do(func() {
-				cw.statusLabel.SetText("Ошибка загрузки истории")
-
 				cw.loadingMore = false
 				if cw.loadMoreBtn != nil {
 					cw.loadMoreBtn.Enable()
@@ -969,17 +961,10 @@ func (cw *ChatWindow) loadMoreMessages() {
 		fyne.Do(func() {
 			if len(messages) == 0 {
 				cw.hasMore = false
-				cw.statusLabel.SetText("Вся история загружена")
 
 				if cw.loadMoreBtn != nil {
 					cw.loadMoreBtn.Hide()
 				}
-
-				time.AfterFunc(2*time.Second, func() {
-					fyne.Do(func() {
-						cw.statusLabel.SetText("")
-					})
-				})
 			} else {
 				// Добавляем старые сообщения в начало
 				messagesMu.Lock()
@@ -988,7 +973,6 @@ func (cw *ChatWindow) loadMoreMessages() {
 				messagesMu.Unlock()
 
 				cw.messagesList.Refresh()
-				cw.statusLabel.SetText(fmt.Sprintf("Загружено %d сообщений", len(messages)))
 
 				// Скроллим к первым новым сообщениям (которые были до загрузки)
 				if len(messages) > 0 {
@@ -1002,12 +986,6 @@ func (cw *ChatWindow) loadMoreMessages() {
 						cw.loadMoreBtn.Hide()
 					}
 				}
-
-				time.AfterFunc(2*time.Second, func() {
-					fyne.Do(func() {
-						cw.statusLabel.SetText("")
-					})
-				})
 			}
 
 			cw.loadingMore = false
@@ -1072,13 +1050,6 @@ func (cw *ChatWindow) closeChat() {
 
 	// Снимаем выделение
 	cw.chatsList.UnselectAll()
-
-	cw.statusLabel.SetText("Чат закрыт")
-	time.AfterFunc(2*time.Second, func() {
-		fyne.Do(func() {
-			cw.statusLabel.SetText("")
-		})
-	})
 }
 
 func (cw *ChatWindow) markChatAsRead(chatID uint64) {

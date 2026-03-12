@@ -22,7 +22,7 @@ const (
 	writeDeadline = 2 * time.Second
 )
 
-type WebSocketRepository struct {
+type WebSocketsRepository struct {
 	baseURL      string
 	ws           *websocket.Conn
 	mu           sync.Mutex
@@ -30,8 +30,8 @@ type WebSocketRepository struct {
 	errChan      chan error            // Канал для критических ошибок чтения
 }
 
-func NewWebSocketRepository(baseURL string) *WebSocketRepository {
-	return &WebSocketRepository{
+func NewWebSocketsRepository(baseURL string) *WebSocketsRepository {
+	return &WebSocketsRepository{
 		baseURL: baseURL,
 		messagesChan: make(
 			chan *domains.Message,
@@ -41,7 +41,7 @@ func NewWebSocketRepository(baseURL string) *WebSocketRepository {
 	}
 }
 
-func (r *WebSocketRepository) readLoop() {
+func (r *WebSocketsRepository) readLoop() {
 	defer close(r.messagesChan)
 	defer close(r.errChan)
 
@@ -61,7 +61,7 @@ func (r *WebSocketRepository) readLoop() {
 	}
 }
 
-func (r *WebSocketRepository) Connect(ctx context.Context, accessToken string) error {
+func (r *WebSocketsRepository) Connect(ctx context.Context, accessToken string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -86,7 +86,7 @@ func (r *WebSocketRepository) Connect(ctx context.Context, accessToken string) e
 	return nil
 }
 
-func (r *WebSocketRepository) Close() error {
+func (r *WebSocketsRepository) Close() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -102,7 +102,7 @@ func (r *WebSocketRepository) Close() error {
 	return nil
 }
 
-func (r *WebSocketRepository) ReadMessage(ctx context.Context) (*domains.Message, error) {
+func (r *WebSocketsRepository) ReadMessage(ctx context.Context) (*domains.Message, error) {
 	if r.ws == nil {
 		return nil, fmt.Errorf("%w: connection was not enstablished", customerrors.ErrWebsocket)
 	}
@@ -128,7 +128,7 @@ func (r *WebSocketRepository) ReadMessage(ctx context.Context) (*domains.Message
 	}
 }
 
-func (r *WebSocketRepository) WriteMessage(ctx context.Context, message domains.Message) error {
+func (r *WebSocketsRepository) WriteMessage(ctx context.Context, message domains.Message) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
