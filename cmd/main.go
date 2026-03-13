@@ -1561,7 +1561,13 @@ func showAuthWindow(myApp fyne.App) {
 	// Логин
 	loginBtn := widget.NewButton("Войти", func() {
 		if loginEmail.Text == "" || loginPassword.Text == "" {
-			statusLabel.SetText("Заполните все поля")
+			// statusLabel.SetText("Заполните все поля")
+			errorWin := myApp.NewWindow("Error")
+			errorWin.Resize(fyne.NewSize(100, 100))
+
+			content := widget.NewLabel("Заполните все поля")
+			errorWin.SetContent(content)
+			errorWin.Show()
 
 			return
 		}
@@ -1596,7 +1602,7 @@ func showAuthWindow(myApp fyne.App) {
 			currentUser = user
 			currentTokens = tokens
 			saveTokensToFile(tokens)
-			startTokenRefreshRoutine()
+			startTokenRefreshRoutine() // TODO будет внутри Запуска showMainChatWindow вместе с другими горутинами обновления чатов и сообщений
 
 			fyne.Do(func() {
 				authWin.Close()
@@ -1656,15 +1662,15 @@ func showAuthWindow(myApp fyne.App) {
 
 				statusLabel.SetText("Регистрация успешна! Теперь войдите.")
 
+				// Заполняем поля входа тем же email
+				loginEmail.SetText(registerEmail.Text)
+				loginPassword.SetText("")
+
 				// Очищаем поля регистрации
 				registerEmail.SetText("")
 				registerUsername.SetText("")
 				registerPassword.SetText("")
 				registerConfirm.SetText("")
-
-				// Заполняем поля входа тем же email
-				loginEmail.SetText(registerEmail.Text)
-				loginPassword.SetText("")
 
 				// Переключаемся на вкладку входа
 				tabs.SelectIndex(0)

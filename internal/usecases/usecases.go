@@ -102,7 +102,42 @@ func (u *UseCases) Login(ctx context.Context, email, password string) (*domains.
 		return nil, err
 	}
 
+	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
+
+		return nil, err
+	}
+
 	return user, nil
+}
+
+func (u *UseCases) Logout(ctx context.Context) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return err
+	}
+
+	if err = u.auth.Logout(ctx, tokens.AccessToken); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to logout", err)
+
+		return err
+	}
+
+	if err = u.tokens.Delete(ctx); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to delete tokens", err)
+
+		return err
+	}
+
+	if err = u.ws.Close(); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to close websockets", err)
+
+		return err
+	}
+
+	return nil
 }
 
 func (u *UseCases) Register(
