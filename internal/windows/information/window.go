@@ -26,6 +26,8 @@ func (w *Window) Build(content fyne.CanvasObject) {
 	window := w.app.NewWindow(w.title)
 	window.Resize(fyne.NewSize(width, height))
 	window.SetContent(content)
+
+	w.window = window
 }
 
 func (w *Window) Show() {

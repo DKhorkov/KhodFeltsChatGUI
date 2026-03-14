@@ -69,6 +69,8 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 	tabs := w.buildTabs()
 
 	window.SetContent(tabs)
+
+	w.window = window
 }
 
 func (w *Window) Show() {
