@@ -46,8 +46,16 @@ type Window struct {
 	refreshChatsFunc func(chat domains.Chat)
 }
 
-func New(app fyne.App, useCases interfaces.UseCases, refreshChatsFunc func(chat domains.Chat)) *Window {
-	return &Window{app: app, useCases: useCases, refreshChatsFunc: refreshChatsFunc}
+func New(
+	app fyne.App,
+	useCases interfaces.UseCases,
+	refreshChatsFunc func(chat domains.Chat),
+) *Window {
+	return &Window{
+		app:              app,
+		useCases:         useCases,
+		refreshChatsFunc: refreshChatsFunc,
+	}
 }
 
 func (w *Window) Build(_ fyne.CanvasObject) {

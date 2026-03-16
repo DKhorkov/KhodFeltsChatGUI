@@ -169,7 +169,10 @@ func (w *Window) buildTabs() *container.AppTabs {
 		}
 
 		if len(registerUsernameEntry.Text) < 5 {
-			dialog.ShowError(errors.New("имя пользователя должно быть не менее 5 символов"), w.window)
+			dialog.ShowError(
+				errors.New("имя пользователя должно быть не менее 5 символов"),
+				w.window,
+			)
 
 			return
 		}
@@ -198,7 +201,11 @@ func (w *Window) buildTabs() *container.AppTabs {
 			fyne.Do(func() {
 				progressBar.Hidden = true
 
-				dialog.ShowInformation("Успешная регистрация", "Регистрация успешна! Теперь войдите.", w.window)
+				dialog.ShowInformation(
+					"Успешная регистрация",
+					"Регистрация успешна! Теперь войдите.",
+					w.window,
+				)
 
 				// Заполняем поля входа тем же email и паролем
 				loginEmailEntry.SetText(registerEmailEntry.Text)

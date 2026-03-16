@@ -248,6 +248,7 @@ func (u *UseCases) SearchUsers(
 
 	// Возвращаем всех юзеров кроме текущего
 	otherUsers := make([]domains.User, 0, len(users)-1)
+
 	for _, user := range users {
 		if user.ID != currentUser.ID {
 			otherUsers = append(otherUsers, user)
