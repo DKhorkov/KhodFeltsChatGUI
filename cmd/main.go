@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -656,6 +655,9 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 			} else {
 				label.TextStyle = fyne.TextStyle{}
 			}
+
+			// Принудительный рефреш для отображения нового чата жирным в списке
+			label.Refresh()
 		},
 	)
 
@@ -1300,12 +1302,6 @@ func showCreateChatDialog(cw *ChatWindow) {
 	typeEntry := widget.NewSelect([]string{"private", "group"}, nil)
 	typeEntry.SetSelected("private")
 
-	membersEntry := widget.NewEntry()
-	membersEntry.SetPlaceHolder("ID участников через запятую (например: 1,2,3)")
-
-	searchEntry := widget.NewEntry()
-	searchEntry.SetPlaceHolder("Поиск пользователей...")
-
 	usersList := widget.NewList(
 		func() int { return 0 },
 		func() fyne.CanvasObject {
@@ -1318,11 +1314,62 @@ func showCreateChatDialog(cw *ChatWindow) {
 		func(id widget.ListItemID, item fyne.CanvasObject) {},
 	)
 
+	// Изначально пустой, потому что пользователь еще не совершал поиск
+	foundUsersLabel := widget.NewLabel("")
+
 	selectedUsers := make(map[uint64]bool)
 
 	var users []User
 
 	status := widget.NewLabel("")
+
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Поиск пользователей...")
+	searchEntry.OnSubmitted = func(s string) {
+		if s == "" {
+			return
+		}
+
+		go func() {
+			foundUsers, err := searchUsers(cw.tokens.AccessToken, s, 20, 0)
+			if err != nil {
+				fyne.Do(func() {
+					dialog.ShowError(err, win)
+				})
+
+				return
+			}
+
+			users = foundUsers
+
+			fyne.Do(func() {
+				foundUsersLabel.SetText(foundUsersText(len(users)))
+
+				usersList.Length = func() int { return len(users) }
+				usersList.UpdateItem = func(id widget.ListItemID, item fyne.CanvasObject) {
+					container_ := item.(*fyne.Container)
+					check := container_.Objects[0].(*widget.Check)
+					username := container_.Objects[1].(*widget.Label)
+					email := container_.Objects[2].(*widget.Label)
+
+					user := users[id]
+					username.SetText(user.Username)
+					email.SetText("(" + user.Email + ")")
+
+					check.SetChecked(selectedUsers[user.ID])
+
+					check.OnChanged = func(checked bool) {
+						if checked {
+							selectedUsers[user.ID] = true
+						} else {
+							delete(selectedUsers, user.ID)
+						}
+					}
+				}
+				usersList.Refresh()
+			})
+		}()
+	}
 
 	searchBtn := widget.NewButton("Найти", func() {
 		query := searchEntry.Text
@@ -1343,6 +1390,8 @@ func showCreateChatDialog(cw *ChatWindow) {
 			users = foundUsers
 
 			fyne.Do(func() {
+				foundUsersLabel.SetText(foundUsersText(len(users)))
+
 				usersList.Length = func() int { return len(users) }
 				usersList.UpdateItem = func(id widget.ListItemID, item fyne.CanvasObject) {
 					container_ := item.(*fyne.Container)
@@ -1373,12 +1422,6 @@ func showCreateChatDialog(cw *ChatWindow) {
 	createBtn.OnTapped = func() {
 		var memberIDs []uint64
 
-		for part := range strings.SplitSeq(membersEntry.Text, ",") {
-			if id, err := strconv.ParseUint(strings.TrimSpace(part), 10, 64); err == nil {
-				memberIDs = append(memberIDs, id)
-			}
-		}
-
 		for id := range selectedUsers {
 			memberIDs = append(memberIDs, id)
 		}
@@ -1386,7 +1429,7 @@ func showCreateChatDialog(cw *ChatWindow) {
 		memberIDs = unique(memberIDs)
 
 		if len(memberIDs) == 0 {
-			status.SetText("Укажите хотя бы одного участника")
+			dialog.ShowError(errors.New("укажите хотя бы одного участника"), win)
 
 			return
 		}
@@ -1412,40 +1455,54 @@ func showCreateChatDialog(cw *ChatWindow) {
 				// Обновляем список чатов
 				cw.refreshChatsAfterNewChat(chat)
 
-				// Открываем созданный чат
-				cw.selectChat(chat)
-
-				time.AfterFunc(1*time.Second, func() {
-					fyne.Do(func() {
-						win.Close()
-					})
-				})
+				win.Close()
 			})
 		}()
 	}
 
-	tabs := container.NewAppTabs(
-		container.NewTabItem("Поиск", container.NewVBox(
-			searchEntry,
-			searchBtn,
-			widget.NewLabel("Выберите пользователей:"),
-			container.NewMax(usersList),
-		)),
-		container.NewTabItem("Ручной ввод", container.NewVBox(
-			widget.NewLabel("Введите ID участников:"),
-			membersEntry,
-		)),
-	)
-
-	win.SetContent(container.NewVBox(
+	chatTypeBox := container.NewHBox(
 		widget.NewLabel("Тип чата:"),
 		typeEntry,
-		tabs,
+	)
+
+	topContent := container.NewVBox(
+		chatTypeBox,
+		searchEntry,
+		searchBtn,
+		foundUsersLabel,
+	)
+	bottomContent := container.NewCenter(
 		createBtn,
 		status,
-	))
+	)
+
+	content := container.NewBorder(
+		topContent,
+		bottomContent,
+		nil,
+		nil,
+		usersList,
+	)
+
+	win.SetContent(content)
 
 	win.Show()
+}
+
+func foundUsersText(usersCount int) string {
+	// Исключения для чисел от 11 до 14
+	if usersCount%100 >= 11 && usersCount%100 <= 14 {
+		return fmt.Sprintf("Найдено %d пользователей:", usersCount)
+	}
+
+	switch usersCount % 10 {
+	case 1:
+		return fmt.Sprintf("Найден %d пользователь:", usersCount)
+	case 2, 3, 4:
+		return fmt.Sprintf("Найдено %d пользователя:", usersCount)
+	default:
+		return fmt.Sprintf("Найдено %d пользователей:", usersCount)
+	}
 }
 
 func showSearchUsersDialog(cw *ChatWindow) {
@@ -1480,52 +1537,61 @@ func showSearchUsersDialog(cw *ChatWindow) {
 		},
 	)
 
-	statusLabel := widget.NewLabel("")
+	// Изначально пустой, потому что пользователь еще не совершал поиск
+	foundUsersLabel := widget.NewLabel("")
 
 	searchEntry.OnSubmitted = func(s string) {
 		if s == "" {
 			return
 		}
 
-		statusLabel.SetText("Поиск...")
-
-		// usersList.Length = func() int { return 0 }
-		// usersList.Refresh()
-
 		go func() {
 			users, err = searchUsers(cw.tokens.AccessToken, s, 50, 0)
 			if err != nil {
 				fyne.Do(func() {
-					statusLabel.SetText("Ошибка: " + err.Error())
+					dialog.ShowError(err, win)
 				})
 
 				return
 			}
 
 			fyne.Do(func() {
-				statusLabel.SetText(fmt.Sprintf("Найдено пользователей: %d", len(users)))
+				foundUsersLabel.SetText(foundUsersText(len(users)))
 
-				// usersList.Length = func() int { return len(users) }
-				// usersList.UpdateItem = func(id widget.ListItemID, item fyne.CanvasObject) {
-				//	container_ := item.(*fyne.Container)
-				//	username := container_.Objects[1].(*widget.Label)
-				//	email := container_.Objects[2].(*widget.Label)
-				//
-				//	user := users[id]
-				//	username.SetText(user.Username)
-				//	email.SetText(user.Email)
-				//}
 				usersList.Refresh()
 			})
 		}()
 	}
 
+	searchBtn := widget.NewButton("Найти", func() {
+		query := searchEntry.Text
+		if query == "" {
+			return
+		}
+
+		go func() {
+			users, err = searchUsers(cw.tokens.AccessToken, query, 50, 0)
+			if err != nil {
+				fyne.Do(func() {
+					dialog.ShowError(err, win)
+				})
+
+				return
+			}
+
+			fyne.Do(func() {
+				foundUsersLabel.SetText(foundUsersText(len(users)))
+
+				usersList.Refresh()
+			})
+		}()
+	})
+
 	// Создаем верхнюю панель со всеми элементами управления
 	topContent := container.NewVBox(
-		widget.NewLabel("Поиск пользователей"),
 		searchEntry,
-		statusLabel,
-		widget.NewLabel("Результаты:"),
+		searchBtn,
+		foundUsersLabel,
 	)
 
 	// Устанавливаем Border: topContent сверху, usersList в центре (заполнит всё окно)

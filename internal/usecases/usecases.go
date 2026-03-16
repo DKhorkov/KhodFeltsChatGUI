@@ -183,6 +183,15 @@ func (u *UseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.
 		return nil, err
 	}
 
+	currentUser, err := u.users.GetCurrentUser(ctx, tokens.AccessToken)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get current user", err)
+
+		return nil, err
+	}
+
+	chat.Members = append(chat.Members, *currentUser)
+
 	createdChat, err := u.chats.CreateChat(ctx, tokens.AccessToken, chat)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to create chat", err)
@@ -216,6 +225,20 @@ func (u *UseCases) SearchUsers(
 	username string,
 	limit, offset int,
 ) ([]domains.User, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, err
+	}
+
+	currentUser, err := u.users.GetCurrentUser(ctx, tokens.AccessToken)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get current user", err)
+
+		return nil, err
+	}
+
 	users, err := u.users.SearchUsers(ctx, username, limit, offset)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to search users", err)
@@ -223,7 +246,15 @@ func (u *UseCases) SearchUsers(
 		return nil, err
 	}
 
-	return users, nil
+	// Возвращаем всех юзеров кроме текущего
+	otherUsers := make([]domains.User, 0, len(users)-1)
+	for _, user := range users {
+		if user.ID != currentUser.ID {
+			otherUsers = append(otherUsers, user)
+		}
+	}
+
+	return otherUsers, nil
 }
 
 func (u *UseCases) GetChatMessages(

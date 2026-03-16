@@ -2,9 +2,11 @@ package auth
 
 import (
 	"context"
+	"errors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
@@ -35,21 +37,19 @@ type Window struct {
 	app    fyne.App
 	window fyne.Window
 
-	useCases                            interfaces.UseCases
-	infoWindow, errorWindow, chatWindow interfaces.Window
+	useCases   interfaces.UseCases
+	chatWindow interfaces.Window
 }
 
 func New(
 	app fyne.App,
-	infoWindow, errorWindow, chatWindow interfaces.Window,
+	chatWindow interfaces.Window,
 	useCases interfaces.UseCases,
 ) *Window {
 	return &Window{
-		app:         app,
-		useCases:    useCases,
-		infoWindow:  infoWindow,
-		errorWindow: errorWindow,
-		chatWindow:  chatWindow,
+		app:        app,
+		useCases:   useCases,
+		chatWindow: chatWindow,
 	}
 }
 
@@ -100,8 +100,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 	loginButton := widget.NewButton(loginButtonName, func() {
 		if loginEmailEntry.Text == "" || loginPasswordEntry.Text == "" {
-			w.errorWindow.Build(widget.NewLabel("Заполните все поля"))
-			w.errorWindow.Show()
+			dialog.ShowError(errors.New("заполните все поля"), w.window)
 
 			return
 		}
@@ -119,8 +118,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					w.errorWindow.Build(widget.NewLabel("Ошибка: " + err.Error()))
-					w.errorWindow.Show()
+					dialog.ShowError(err, w.window)
 				})
 
 				return
@@ -159,22 +157,19 @@ func (w *Window) buildTabs() *container.AppTabs {
 	registerBtn := widget.NewButton(registerButtonName, func() {
 		if registerEmailEntry.Text == "" || registerUsernameEntry.Text == "" ||
 			registerPasswordEntry.Text == "" || registerConfirmPasswordEntry.Text == "" {
-			w.errorWindow.Build(widget.NewLabel("Заполните все поля"))
-			w.errorWindow.Show()
+			dialog.ShowError(errors.New("заполните все поля"), w.window)
 
 			return
 		}
 
 		if registerPasswordEntry.Text != registerConfirmPasswordEntry.Text {
-			w.errorWindow.Build(widget.NewLabel("Пароли не совпадают"))
-			w.errorWindow.Show()
+			dialog.ShowError(errors.New("пароли не совпадают"), w.window)
 
 			return
 		}
 
 		if len(registerUsernameEntry.Text) < 5 {
-			w.errorWindow.Build(widget.NewLabel("Имя пользователя должно быть не менее 5 символов"))
-			w.errorWindow.Show()
+			dialog.ShowError(errors.New("имя пользователя должно быть не менее 5 символов"), w.window)
 
 			return
 		}
@@ -194,8 +189,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					w.errorWindow.Build(widget.NewLabel("Ошибка регистрации: " + err.Error()))
-					w.errorWindow.Show()
+					dialog.ShowError(errors.New("Ошибка регистрации: "+err.Error()), w.window)
 				})
 
 				return
@@ -204,8 +198,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			fyne.Do(func() {
 				progressBar.Hidden = true
 
-				w.infoWindow.Build(widget.NewLabel("Регистрация успешна! Теперь войдите."))
-				w.infoWindow.Show()
+				dialog.ShowInformation("Успешная регистрация", "Регистрация успешна! Теперь войдите.", w.window)
 
 				// Заполняем поля входа тем же email и паролем
 				loginEmailEntry.SetText(registerEmailEntry.Text)

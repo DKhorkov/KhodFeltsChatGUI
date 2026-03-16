@@ -14,7 +14,7 @@ const (
 	minMembersCount = 1 // группа на одного
 )
 
-var chatTypes = []ChatType{
+var ChatTypes = []ChatType{
 	ChatTypePrivate,
 	ChatTypeGroup,
 }
@@ -32,7 +32,7 @@ type Chat struct {
 }
 
 func (c *Chat) IsValid() bool {
-	if !slices.Contains(chatTypes, c.Type) {
+	if !slices.Contains(ChatTypes, c.Type) {
 		return false
 	}
 
