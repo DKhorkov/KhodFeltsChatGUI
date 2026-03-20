@@ -1,6 +1,8 @@
 package information
 
 import (
+	"time"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -41,6 +43,12 @@ func (w *Window) Build(message fyne.CanvasObject) {
 
 func (w *Window) Show() {
 	w.window.Show()
+
+	time.AfterFunc(3*time.Second, func() {
+		fyne.Do(func() {
+			w.Close()
+		})
+	})
 }
 
 func (w *Window) Close() {

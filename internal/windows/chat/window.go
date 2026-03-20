@@ -55,9 +55,9 @@ type Window struct {
 	app    fyne.App
 	window fyne.Window
 
-	useCases                                        interfaces.UseCases
-	logger                                          logging.Logger
-	authWindow, createChatWindow, searchUsersWindow interfaces.Window
+	useCases                                                            interfaces.UseCases
+	logger                                                              logging.Logger
+	authWindow, createChatWindow, searchUsersWindow, notificationWindow interfaces.Window
 
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -81,17 +81,18 @@ type Window struct {
 
 func New(
 	app fyne.App,
-	authWindow, createChatWindow, searchUsersWindow interfaces.Window,
+	authWindow, createChatWindow, searchUsersWindow, notificationWindow interfaces.Window,
 	logger logging.Logger,
 	useCases interfaces.UseCases,
 ) *Window {
 	return &Window{
-		app:               app,
-		useCases:          useCases,
-		authWindow:        authWindow,
-		createChatWindow:  createChatWindow,
-		searchUsersWindow: searchUsersWindow,
-		logger:            logger,
+		app:                app,
+		useCases:           useCases,
+		authWindow:         authWindow,
+		createChatWindow:   createChatWindow,
+		searchUsersWindow:  searchUsersWindow,
+		notificationWindow: notificationWindow,
+		logger:             logger,
 	}
 }
 
@@ -313,47 +314,55 @@ func (w *Window) readMessage(message domains.Message) {
 		return
 	}
 
-	// Проверяем, есть ли чат в списке
-	chatExists := false
+	w.markChatUnreadAfterReceivingMessage(message)
 
-	w.chatsMu.RLock()
+	w.processMessage(message)
+}
 
-	for _, chat := range w.chats {
-		if chat.ID == message.ChatID {
-			chatExists = true
-
-			break
-		}
-	}
-
-	w.chatsMu.RUnlock()
-
+func (w *Window) markChatUnreadAfterReceivingMessage(message domains.Message) {
 	// Если чата нет в списке - обновляем весь список
-	if !chatExists {
+	if !w.chatExists(message) {
 		go func() {
 			if err := w.updateChats(); err != nil {
 				logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
 			}
 		}()
-	} else {
-		// Если чат есть и это НЕ текущий чат - помечаем как непрочитанный
-		if w.currentChat == nil || message.ChatID != w.currentChat.ID {
-			w.chatsMu.Lock()
-			for i := range w.chats {
-				if w.chats[i].ID == message.ChatID {
-					w.chats[i].IsRead = false
 
-					break
-				}
+		return
+	}
+
+	// Если чат есть и это НЕ текущий чат - помечаем как непрочитанный
+	if w.currentChat == nil || message.ChatID != w.currentChat.ID {
+		w.chatsMu.Lock()
+		for i := range w.chats {
+			if w.chats[i].ID == message.ChatID {
+				w.chats[i].IsRead = false
+
+				break
 			}
-			w.chatsMu.Unlock()
+		}
+		w.chatsMu.Unlock()
 
-			fyne.Do(func() {
-				w.chatsList.Refresh()
-			})
+		fyne.Do(func() {
+			w.chatsList.Refresh()
+		})
+	}
+}
+
+func (w *Window) chatExists(message domains.Message) bool {
+	w.chatsMu.RLock()
+	defer w.chatsMu.RUnlock()
+
+	for _, chat := range w.chats {
+		if chat.ID == message.ChatID {
+			return true
 		}
 	}
 
+	return false
+}
+
+func (w *Window) processMessage(message domains.Message) {
 	// Если сообщение для текущего чата - добавляем его
 	if w.currentChat != nil && message.ChatID == w.currentChat.ID {
 		w.messagesMu.Lock()
@@ -368,12 +377,24 @@ func (w *Window) readMessage(message domains.Message) {
 
 		// Помечаем чат как прочитанный
 		w.markChatAsRead(message.ChatID)
-	} else if message.Sender.ID != w.currentUser.ID {
+
+		return
+	}
+
+	if message.Sender.ID != w.currentUser.ID {
 		// Показываем уведомление для сообщений из других чатов
 		chatTitle := w.getChatTitle(message.ChatID)
 
-		showNotification(cw.app, "Новое сообщение", fmt.Sprintf("[%s] %s: %s",
-			chatTitle, message.Sender.Username, message.Text))
+		w.notificationWindow.Build(
+			widget.NewLabel(
+				fmt.Sprintf(
+					"[%s] %s: %s",
+					chatTitle,
+					message.Sender.Username,
+					message.Text),
+			),
+		)
+		w.notificationWindow.Show()
 	}
 }
 
