@@ -34,7 +34,8 @@ type ChatsRepository interface {
 	GetChatMessages(
 		ctx context.Context,
 		accessToken string,
-		chatID, limit, offset int,
+		chatID uint64,
+		limit, offset int,
 	) ([]domains.Message, error)
 }
 

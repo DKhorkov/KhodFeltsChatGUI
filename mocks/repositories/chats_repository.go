@@ -57,7 +57,7 @@ func (mr *MockChatsRepositoryMockRecorder) CreateChat(ctx, accessToken, chat any
 }
 
 // GetChatMessages mocks base method.
-func (m *MockChatsRepository) GetChatMessages(ctx context.Context, accessToken string, chatID, limit, offset int) ([]domains.Message, error) {
+func (m *MockChatsRepository) GetChatMessages(ctx context.Context, accessToken string, chatID uint64, limit, offset int) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChatMessages", ctx, accessToken, chatID, limit, offset)
 	ret0, _ := ret[0].([]domains.Message)

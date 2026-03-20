@@ -10,6 +10,7 @@ import (
 type UseCases interface {
 	// Auth
 	Authenticate(ctx context.Context) (*domains.User, error)
+	GetCurrentUser(ctx context.Context) (*domains.User, error)
 	Login(ctx context.Context, email, password string) (*domains.User, error)
 	Logout(ctx context.Context) error
 	Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error)
@@ -18,7 +19,7 @@ type UseCases interface {
 	// Messaging
 	SendMessage(ctx context.Context, message domains.Message) error
 	ReadMessage(ctx context.Context) (*domains.Message, error)
-	GetChatMessages(ctx context.Context, chatID, limit, offset int) ([]domains.Message, error)
+	GetChatMessages(ctx context.Context, chatID uint64, limit, offset int) ([]domains.Message, error)
 
 	// Chats
 	CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error)

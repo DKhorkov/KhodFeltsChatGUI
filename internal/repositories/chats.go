@@ -139,7 +139,8 @@ func (r *ChatsRepository) CreateChat(
 func (r *ChatsRepository) GetChatMessages(
 	ctx context.Context,
 	accessToken string,
-	chatID, limit, offset int,
+	chatID uint64,
+	limit, offset int,
 ) ([]domains.Message, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

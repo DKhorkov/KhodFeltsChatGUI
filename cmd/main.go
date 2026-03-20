@@ -586,7 +586,6 @@ type ChatWindow struct {
 	chats        []Chat
 	messages     []Message
 	loadMoreBtn  *widget.Button // Добавлено
-	closeChatBtn *widget.Button
 	loadingMore  bool
 	hasMore      bool
 	chatsMu      sync.RWMutex // Мьютекс для защиты списка чатов
@@ -743,7 +742,6 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	closeChatBtn := widget.NewButtonWithIcon("Закрыть чат", theme.CancelIcon(), func() {
 		cw.closeChat()
 	})
-	closeChatBtn.Hidden = true
 	closeChatBtn.Importance = widget.DangerImportance
 
 	// Кнопки управления
@@ -811,7 +809,6 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 
 	// Сохраняем ссылку на кнопку для управления видимостью
 	cw.loadMoreBtn = loadMoreBtn
-	cw.closeChatBtn = closeChatBtn
 
 	cw.loadChats()
 
@@ -1016,10 +1013,6 @@ func (cw *ChatWindow) selectChat(chat *Chat) {
 		cw.loadMoreBtn.Show()
 	}
 
-	if cw.closeChatBtn != nil {
-		cw.closeChatBtn.Show()
-	}
-
 	// Загружаем сообщения
 	go cw.loadMessages(chat.ID, 0)
 }
@@ -1041,10 +1034,6 @@ func (cw *ChatWindow) closeChat() {
 	if cw.loadMoreBtn != nil {
 		cw.loadMoreBtn.Enable()
 		cw.loadMoreBtn.Hide()
-	}
-
-	if cw.closeChatBtn != nil {
-		cw.closeChatBtn.Hide()
 	}
 
 	// Очищаем поле ввода

@@ -72,7 +72,7 @@ func (mr *MockUseCasesMockRecorder) CreateChat(ctx, chat any) *gomock.Call {
 }
 
 // GetChatMessages mocks base method.
-func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID, limit, offset int) ([]domains.Message, error) {
+func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID uint64, limit, offset int) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChatMessages", ctx, chatID, limit, offset)
 	ret0, _ := ret[0].([]domains.Message)
@@ -84,6 +84,21 @@ func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID, limit, offse
 func (mr *MockUseCasesMockRecorder) GetChatMessages(ctx, chatID, limit, offset any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockUseCases)(nil).GetChatMessages), ctx, chatID, limit, offset)
+}
+
+// GetCurrentUser mocks base method.
+func (m *MockUseCases) GetCurrentUser(ctx context.Context) (*domains.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentUser", ctx)
+	ret0, _ := ret[0].(*domains.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCurrentUser indicates an expected call of GetCurrentUser.
+func (mr *MockUseCasesMockRecorder) GetCurrentUser(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentUser", reflect.TypeOf((*MockUseCases)(nil).GetCurrentUser), ctx)
 }
 
 // GetUserChats mocks base method.
@@ -114,6 +129,20 @@ func (m *MockUseCases) Login(ctx context.Context, email, password string) (*doma
 func (mr *MockUseCasesMockRecorder) Login(ctx, email, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUseCases)(nil).Login), ctx, email, password)
+}
+
+// Logout mocks base method.
+func (m *MockUseCases) Logout(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Logout", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Logout indicates an expected call of Logout.
+func (mr *MockUseCasesMockRecorder) Logout(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockUseCases)(nil).Logout), ctx)
 }
 
 // ReadMessage mocks base method.

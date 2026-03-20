@@ -57,6 +57,22 @@ func (u *UseCases) Authenticate(ctx context.Context) (*domains.User, error) {
 	return user, nil
 }
 
+func (u *UseCases) GetCurrentUser(ctx context.Context) (*domains.User, error) {
+	tokens, err := u.RefreshTokens(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := u.users.GetCurrentUser(ctx, tokens.AccessToken)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get user by refreshed tokens", err)
+
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (u *UseCases) RefreshTokens(ctx context.Context) (*domains.TokensDTO, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
@@ -260,7 +276,8 @@ func (u *UseCases) SearchUsers(
 
 func (u *UseCases) GetChatMessages(
 	ctx context.Context,
-	chatID, limit, offset int,
+	chatID uint64,
+	limit, offset int,
 ) ([]domains.Message, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
