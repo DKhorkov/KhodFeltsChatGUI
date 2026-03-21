@@ -181,7 +181,12 @@ func (w *Window) startRefreshTokensGoroutine() {
 				return
 			case <-ticker.C:
 				if _, err := w.useCases.RefreshTokens(w.ctx); err != nil {
-					logging.LogErrorContext(w.ctx, w.logger, "Не удалось обновить токены пользователя", err)
+					logging.LogErrorContext(
+						w.ctx,
+						w.logger,
+						"Не удалось обновить токены пользователя",
+						err,
+					)
 				}
 			}
 		}
@@ -201,7 +206,12 @@ func (w *Window) startUpdateChatsGoroutine() {
 				return
 			case <-ticker.C:
 				if err := w.updateChats(); err != nil {
-					logging.LogErrorContext(w.ctx, w.logger, "Не удалось обновить список чатов", err)
+					logging.LogErrorContext(
+						w.ctx,
+						w.logger,
+						"Не удалось обновить список чатов",
+						err,
+					)
 				}
 			}
 		}
@@ -239,7 +249,10 @@ func (w *Window) startReadMessagesGoroutine() {
 				if err != nil {
 					// Соккет закрыт, отключаем горутину
 					if errors.Is(err, customerrors.ErrWebsocketClosed) {
-						logging.LogInfo(w.logger, "startReadMessagesGoroutine завершена из-за закрытия соединения")
+						logging.LogInfo(
+							w.logger,
+							"startReadMessagesGoroutine завершена из-за закрытия соединения",
+						)
 
 						return
 					}
@@ -256,7 +269,7 @@ func (w *Window) startReadMessagesGoroutine() {
 }
 
 func (w *Window) readMessage(message domains.Message) {
-	//отбраать соощение для юзера, который его отправил, не нужно
+	// отбраать соощение для юзера, который его отправил, не нужно
 	if message.Sender.ID == w.currentUser.ID {
 		return
 	}
@@ -610,14 +623,11 @@ func (w *Window) buildLeftPanel() *fyne.Container {
 }
 
 func (w *Window) logout() {
-	w.window.Close()
 	if err := w.useCases.Logout(w.ctx); err != nil {
 		logging.LogErrorContext(w.ctx, w.logger, "не удалось сделать Logout", err)
 	}
 
-	w.cancelFunc()
-
-	w.wg.Wait()
+	w.Close()
 
 	w.authWindow.Build(nil)
 	w.authWindow.Show()

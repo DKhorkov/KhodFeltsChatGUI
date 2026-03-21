@@ -19,7 +19,11 @@ type UseCases interface {
 	// Messaging
 	SendMessage(ctx context.Context, message domains.Message) error
 	ReadMessage(ctx context.Context) (*domains.Message, error)
-	GetChatMessages(ctx context.Context, chatID uint64, limit, offset int) ([]domains.Message, error)
+	GetChatMessages(
+		ctx context.Context,
+		chatID uint64,
+		limit, offset int,
+	) ([]domains.Message, error)
 
 	// Chats
 	CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error)
