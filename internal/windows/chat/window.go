@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/common"
@@ -32,10 +34,16 @@ const (
 	chatsListChatLabelText     = "chat"
 	chatsLabelText             = "Чаты"
 	currentUserSenderLabelText = "Вы"
+	messagesHeaderLabelText    = "Сообщения"
 
-	newChatButtonText = "Новый чат"
-	searchButtonText  = "Поиск"
-	logoutButtonText  = "Выйти"
+	newChatButtonText          = "Новый чат"
+	searchButtonText           = "Поиск"
+	logoutButtonText           = "Выйти"
+	loadMoreMessagesButtonText = "Загрузить историю"
+	closeChatButtonText        = "Закрыть чат"
+	sendMessageButtonText      = "Отправить"
+
+	messageEntryText = "Введите сообщение..."
 
 	chatsListChatLabelIndex       = 1
 	messagesListBorderIndex       = 0
@@ -49,6 +57,8 @@ const (
 
 	refreshTokensInterval = 5 * time.Minute
 	updateChatsInterval   = 5 * time.Second
+
+	panelsSplitOffset = 0.25
 )
 
 type Window struct {
@@ -76,6 +86,7 @@ type Window struct {
 	messagesList           *widget.List
 	messageEntry           *widget.Entry
 	loadMoreMessagesButton *widget.Button
+	sendMessageButton      *widget.Button
 	rightPanel             *fyne.Container
 }
 
@@ -104,14 +115,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 
 	// Устанавливаем обработчик закрытия окна чата
 	window.SetCloseIntercept(func() {
-		// Закрываем текущее окно
-		w.window.Close()
-
-		// Запускаем отмену конгтекста для остановки горутин
-		w.cancelFunc()
-
-		// Ожидаем завершения горутин
-		w.wg.Wait()
+		w.Close()
 
 		w.app.Quit()
 	})
@@ -135,76 +139,12 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 	w.buildMessagesList()
 
 	leftPanel := w.buildLeftPanel()
+	w.rightPanel = w.buildRightPanel()
 
-	//// Поле ввода
-	//messageEntry := widget.NewMultiLineEntry()
-	//messageEntry.SetPlaceHolder("Введите сообщение...")
-	//messageEntry.OnSubmitted = func(s string) {
-	//	w.sendMessage()
-	//}
-	//
-	//sendBtn := widget.NewButtonWithIcon("Отправить", theme.MailSendIcon(), func() {
-	//	w.sendMessage()
-	//})
-	//
-	//// Кнопка загрузки истории
-	//loadMoreBtn := widget.NewButtonWithIcon("Загрузить историю", theme.ContentAddIcon(), func() {
-	//	w.loadMoreMessages()
-	//})
-	//loadMoreBtn.Hidden = true
-	//
-	//// Кнопка закрытия чата
-	//closeChatBtn := widget.NewButtonWithIcon("Закрыть чат", theme.CancelIcon(), func() {
-	//	w.closeChat()
-	//})
-	//closeChatBtn.Importance = widget.DangerImportance
+	split := container.NewHSplit(leftPanel, w.rightPanel)
+	split.Offset = panelsSplitOffset
 
-	//// Верхняя панель для сообщений
-	//messagesHeader := container.NewHBox(
-	//	widget.NewLabelWithStyle("Сообщения", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-	//	layout.NewSpacer(), // Это сдвигает все последующие элементы вправо
-	//	loadMoreBtn,
-	//	layout.NewSpacer(), // Это сдвигает все последующие элементы вправо
-	//	closeChatBtn,
-	//)
-
-	//
-	//inputArea := container.NewBorder(nil, nil, nil, sendBtn, w.messageEntry)
-	//
-	//rightPanel := container.NewBorder(
-	//	messagesHeader,
-	//	inputArea,
-	//	nil, nil,
-	//	container.NewBorder(
-	//		nil, nil, nil, nil,
-	//		w.messagesList,
-	//	),
-	//)
-	//rightPanel.Hide() // скрываем, пока не выбран чат
-	//
-	//w.rightPanel = rightPanel
-	//
-	//split := container.NewHSplit(leftPanel, rightPanel)
-	//split.Offset = 0.25
-	//
-	//w.window.SetContent(split)
-	//
-	//// Сохраняем ссылку на кнопку для управления видимостью
-	//w.loadMoreBtn = loadMoreBtn
-	//w.closeChatBtn = closeChatBtn
-	//
-	//// Запускаем WebSocket соединение (одно для всех чатов)
-	//go func() {
-	//	err := connectWebSocket(w.tokens.AccessToken, func(msg *Message) {
-	//		w.onNewMessage(msg)
-	//	})
-	//	if err != nil {
-	//		w.showError("Ошибка WebSocket", err)
-	//	}
-	//}()
-	//
-	//// Запускаем периодическое обновление списка чатов
-	//go w.startChatsRefreshRoutine()
+	w.window.SetContent(split)
 
 	w.window = window
 }
@@ -218,7 +158,14 @@ func (w *Window) Show() {
 }
 
 func (w *Window) Close() {
+	// Закрываем текущее окно
 	w.window.Close()
+
+	// Запускаем отмену конгтекста для остановки горутин
+	w.cancelFunc()
+
+	// Ожидаем завершения горутин
+	w.wg.Wait()
 }
 
 func (w *Window) startRefreshTokensGoroutine() {
@@ -517,26 +464,22 @@ func (w *Window) selectChat(chat domains.Chat) {
 	w.messages = messages
 	w.messagesMu.Unlock()
 
-	fyne.Do(func() {
-		w.rightPanel.Show()
+	w.rightPanel.Show()
 
-		if w.loadMoreMessagesButton != nil {
-			switch w.hasMoreMessages {
-			case true:
-				w.loadMoreMessagesButton.Enable()
-				w.loadMoreMessagesButton.Show()
-			case false:
-				w.loadMoreMessagesButton.Disable()
-				w.loadMoreMessagesButton.Hide()
-			}
-		}
+	switch w.hasMoreMessages {
+	case true:
+		w.loadMoreMessagesButton.Enable()
+		w.loadMoreMessagesButton.Show()
+	case false:
+		w.loadMoreMessagesButton.Disable()
+		w.loadMoreMessagesButton.Hide()
+	}
 
-		if len(w.messages) > 0 {
-			w.messagesList.ScrollToBottom()
-		}
+	if len(w.messages) > 0 {
+		w.messagesList.ScrollToBottom()
+	}
 
-		w.messagesList.Refresh()
-	})
+	w.messagesList.Refresh()
 }
 
 func (w *Window) markChatAsRead(id uint64) {
@@ -678,4 +621,173 @@ func (w *Window) logout() {
 
 	w.authWindow.Build(nil)
 	w.authWindow.Show()
+}
+
+func (w *Window) buildRightPanel() *fyne.Container {
+	messageEntry := widget.NewMultiLineEntry()
+	messageEntry.SetPlaceHolder(messageEntryText)
+	messageEntry.OnSubmitted = func(s string) {
+		w.sendMessage()
+	}
+	w.messageEntry = messageEntry
+
+	sendMessageButton := widget.NewButtonWithIcon(
+		sendMessageButtonText,
+		theme.MailSendIcon(),
+		func() {
+			w.sendMessage()
+		},
+	)
+	sendMessageButton.Importance = widget.SuccessImportance
+	w.sendMessageButton = sendMessageButton
+
+	// Кнопка загрузки истории
+	loadMoreMessagesButton := widget.NewButtonWithIcon(
+		loadMoreMessagesButtonText,
+		theme.ContentAddIcon(),
+		func() {
+			w.loadMoreMessages()
+		},
+	)
+	loadMoreMessagesButton.Hidden = true
+	w.loadMoreMessagesButton = loadMoreMessagesButton
+
+	// Кнопка закрытия чата
+	closeChatButton := widget.NewButtonWithIcon(
+		closeChatButtonText,
+		theme.CancelIcon(),
+		func() {
+			w.closeChat()
+		},
+	)
+	closeChatButton.Importance = widget.DangerImportance
+
+	// Верхняя панель для сообщений
+	messagesHeader := container.NewHBox(
+		widget.NewLabelWithStyle(
+			messagesHeaderLabelText,
+			fyne.TextAlignCenter,
+			fyne.TextStyle{Bold: true},
+		),
+		layout.NewSpacer(), // Это сдвигает все последующие элементы вправо
+		loadMoreMessagesButton,
+		layout.NewSpacer(), // Это сдвигает все последующие элементы вправо
+		closeChatButton,
+	)
+
+	inputArea := container.NewBorder(
+		nil,
+		nil,
+		nil,
+		sendMessageButton,
+		w.messageEntry,
+	)
+
+	rightPanel := container.NewBorder(
+		messagesHeader,
+		inputArea,
+		nil,
+		nil,
+		w.messagesList,
+	)
+	rightPanel.Hide() // скрываем, пока не выбран чат
+
+	return rightPanel
+}
+
+func (w *Window) sendMessage() {
+	w.sendMessageButton.Disable()
+	defer w.sendMessageButton.Enable()
+
+	text := strings.TrimSpace(w.messageEntry.Text)
+	if text == "" || w.currentChat == nil {
+		return
+	}
+
+	message := domains.Message{
+		ChatID:    w.currentChat.ID,
+		Sender:    *w.currentUser,
+		Text:      text,
+		CreatedAt: time.Now().In(common.Timezone),
+		UpdatedAt: time.Now().In(common.Timezone),
+	}
+
+	w.messagesMu.Lock()
+	w.messages = append(w.messages, message)
+	w.messagesMu.Unlock()
+
+	if err := w.useCases.SendMessage(w.ctx, message); err != nil {
+		dialog.ShowError(err, w.window)
+	}
+
+	// Стираем отправленное сообщение из поля ввода
+	w.messageEntry.SetText("")
+	w.messagesList.Refresh()
+	w.messagesList.ScrollToBottom()
+}
+
+func (w *Window) loadMoreMessages() {
+	if !w.hasMoreMessages || w.currentChat == nil {
+		return
+	}
+
+	w.loadMoreMessagesButton.Disable()
+	w.loadMoreMessagesButton.Hide()
+
+	offset := len(w.messages)
+
+	messages, err := w.useCases.GetChatMessages(w.ctx, w.currentChat.ID, messagesLimit, offset)
+	if err != nil {
+		dialog.ShowError(err, w.window)
+		w.loadMoreMessagesButton.Enable()
+		w.loadMoreMessagesButton.Show()
+
+		return
+	}
+
+	// Больше нет сообщений в чате, скрываем кнопку подгрузки сообщений
+	if len(messages) == 0 {
+		w.hasMoreMessages = false
+
+		return
+	}
+
+	slices.Reverse(messages)
+
+	// Добавляем старые сообщения в начало
+	w.messagesMu.Lock()
+	w.messages = append(messages, w.messages...)
+	w.messagesMu.Unlock()
+
+	w.messagesList.Refresh()
+
+	// Скроллим к первым новым сообщениям (которые были до загрузки)
+	w.messagesList.ScrollTo(len(messages))
+
+	// Если загружено меньше лимита, значит больше нет сообщений
+	if len(messages) < messagesLimit {
+		w.hasMoreMessages = false
+
+		return
+	}
+
+	w.loadMoreMessagesButton.Enable()
+	w.loadMoreMessagesButton.Show()
+}
+
+func (w *Window) closeChat() {
+	if w.currentChat == nil {
+		return
+	}
+
+	w.rightPanel.Hide()
+	w.currentChat = nil
+	w.messages = nil
+	w.hasMoreMessages = true
+
+	// Очищаем поле ввода
+	w.messageEntry.SetText("")
+
+	// Снимаем выделение
+	w.chatsList.UnselectAll()
 }

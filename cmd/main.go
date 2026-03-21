@@ -590,6 +590,7 @@ type ChatWindow struct {
 	hasMore      bool
 	chatsMu      sync.RWMutex // Мьютекс для защиты списка чатов
 	rightPanel   *fyne.Container
+	sendBtn      *widget.Button
 }
 
 func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
@@ -731,6 +732,8 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 	sendBtn := widget.NewButtonWithIcon("Отправить", theme.MailSendIcon(), func() {
 		cw.sendMessage()
 	})
+	sendBtn.Importance = widget.SuccessImportance
+	cw.sendBtn = sendBtn
 
 	// Кнопка загрузки истории
 	loadMoreBtn := widget.NewButtonWithIcon("Загрузить историю", theme.ContentAddIcon(), func() {
@@ -793,10 +796,7 @@ func showMainChatWindow(myApp fyne.App, tokens *TokenPair) {
 		messagesHeader,
 		inputArea,
 		nil, nil,
-		container.NewBorder(
-			nil, nil, nil, nil,
-			cw.messagesList,
-		),
+		cw.messagesList,
 	)
 	rightPanel.Hide() // скрываем, пока не выбран чат
 
@@ -1028,13 +1028,6 @@ func (cw *ChatWindow) closeChat() {
 	cw.currentChat = nil
 	cw.messages = nil
 	cw.hasMore = true
-	cw.messagesList.Refresh()
-
-	// Скрываем кнопки
-	if cw.loadMoreBtn != nil {
-		cw.loadMoreBtn.Enable()
-		cw.loadMoreBtn.Hide()
-	}
 
 	// Очищаем поле ввода
 	cw.messageEntry.SetText("")
@@ -1103,6 +1096,9 @@ func (cw *ChatWindow) loadMessages(chatID uint64, offset int) {
 }
 
 func (cw *ChatWindow) sendMessage() {
+	cw.sendBtn.Disable()
+	defer cw.sendBtn.Enable()
+
 	text := strings.TrimSpace(cw.messageEntry.Text)
 	if text == "" || cw.currentChat == nil {
 		return
