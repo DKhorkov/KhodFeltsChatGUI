@@ -71,7 +71,7 @@ func (mr *MockTokensRepositoryMockRecorder) Load(ctx any) *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockTokensRepository) Save(ctx context.Context, tokens *domains.TokensDTO) error {
+func (m *MockTokensRepository) Save(ctx context.Context, tokens domains.TokensDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", ctx, tokens)
 	ret0, _ := ret[0].(error)

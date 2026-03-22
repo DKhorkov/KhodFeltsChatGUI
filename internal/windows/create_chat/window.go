@@ -1,4 +1,4 @@
-package searchUsers
+package createChat
 
 import (
 	"context"
@@ -56,6 +56,10 @@ func New(
 		useCases:         useCases,
 		refreshChatsFunc: refreshChatsFunc,
 	}
+}
+
+func (w *Window) SetRefreshChatsFunc(f func(chat domains.Chat)) {
+	w.refreshChatsFunc = f
 }
 
 func (w *Window) Build(_ fyne.CanvasObject) {

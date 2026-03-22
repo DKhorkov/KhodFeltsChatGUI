@@ -22,11 +22,11 @@ type TokensRepository struct {
 	mu sync.RWMutex
 }
 
-func NewTokensRepository() TokensRepository {
-	return TokensRepository{}
+func NewTokensRepository() *TokensRepository {
+	return &TokensRepository{}
 }
 
-func (r *TokensRepository) Save(_ context.Context, tokens *domains.TokensDTO) error {
+func (r *TokensRepository) Save(_ context.Context, tokens domains.TokensDTO) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

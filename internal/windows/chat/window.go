@@ -1,4 +1,4 @@
-package auth
+package chat
 
 import (
 	"context"
@@ -144,7 +144,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 	split := container.NewHSplit(leftPanel, w.rightPanel)
 	split.Offset = panelsSplitOffset
 
-	w.window.SetContent(split)
+	window.SetContent(split)
 
 	w.window = window
 }
@@ -166,6 +166,25 @@ func (w *Window) Close() {
 
 	// Ожидаем завершения горутин
 	w.wg.Wait()
+}
+
+func (w *Window) RefreshChats(chat domains.Chat) {
+	w.chatsMu.Lock()
+	defer w.chatsMu.Unlock()
+
+	// Проверяем, есть ли уже такой чат в списке
+	for _, c := range w.chats {
+		if c.ID == chat.ID {
+			return
+		}
+	}
+
+	// Добавляем новый чат в начало списка
+	w.chats = append([]domains.Chat{chat}, w.chats...)
+
+	fyne.Do(func() {
+		w.chatsList.Refresh()
+	})
 }
 
 func (w *Window) startRefreshTokensGoroutine() {

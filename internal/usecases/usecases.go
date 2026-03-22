@@ -24,8 +24,8 @@ func New(
 	tokens interfaces.TokensRepository,
 	ws interfaces.WebSocketsRepository,
 	logger logging.Logger,
-) UseCases {
-	return UseCases{
+) *UseCases {
+	return &UseCases{
 		users:  users,
 		chats:  chats,
 		auth:   auth,
@@ -88,7 +88,7 @@ func (u *UseCases) RefreshTokens(ctx context.Context) (*domains.TokensDTO, error
 		return nil, err
 	}
 
-	if err = u.tokens.Save(ctx, tokens); err != nil {
+	if err = u.tokens.Save(ctx, *tokens); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to save tokens", err)
 
 		return nil, err
@@ -105,7 +105,7 @@ func (u *UseCases) Login(ctx context.Context, email, password string) (*domains.
 		return nil, err
 	}
 
-	if err = u.tokens.Save(ctx, tokens); err != nil {
+	if err = u.tokens.Save(ctx, *tokens); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to save tokens", err)
 
 		return nil, err

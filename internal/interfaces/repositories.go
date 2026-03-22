@@ -16,7 +16,7 @@ type AuthRepository interface {
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/tokens_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,WebSocketsRepository
 type TokensRepository interface {
-	Save(ctx context.Context, tokens *domains.TokensDTO) error
+	Save(ctx context.Context, tokens domains.TokensDTO) error
 	Load(ctx context.Context) (*domains.TokensDTO, error)
 	Delete(_ context.Context) error
 }
