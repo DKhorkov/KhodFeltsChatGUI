@@ -63,8 +63,8 @@ func (w *Window) SetRefreshChatsFunc(f func(chat domains.Chat)) {
 }
 
 func (w *Window) Build(_ fyne.CanvasObject) {
-	win := w.app.NewWindow(title)
-	win.Resize(fyne.NewSize(width, height))
+	window := w.app.NewWindow(title)
+	window.Resize(fyne.NewSize(width, height))
 
 	availableChatTypes := make([]string, 0, len(domains.ChatTypes))
 	for _, chatType := range domains.ChatTypes {
@@ -128,7 +128,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 			users, err = w.useCases.SearchUsers(ctx, username, limit, offset)
 			if err != nil {
 				fyne.Do(func() {
-					dialog.ShowError(err, win)
+					dialog.ShowError(err, w.window)
 				})
 
 				return
@@ -154,7 +154,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 			users, err = w.useCases.SearchUsers(ctx, username, limit, offset)
 			if err != nil {
 				fyne.Do(func() {
-					dialog.ShowError(err, win)
+					dialog.ShowError(err, w.window)
 				})
 
 				return
@@ -209,7 +209,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 				// Обновляем список чатов
 				w.refreshChatsFunc(*chat)
 
-				win.Close()
+				w.window.Close()
 			})
 		}()
 	}
@@ -238,9 +238,9 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		usersList,
 	)
 
-	win.SetContent(content)
+	window.SetContent(content)
 
-	win.Show()
+	w.window = window
 }
 
 func (w *Window) Show() {
