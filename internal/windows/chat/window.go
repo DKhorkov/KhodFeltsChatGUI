@@ -55,7 +55,7 @@ const (
 
 	messagesLimit = 10 // Лимит сообщений за один запрос
 
-	refreshTokensInterval = 5 * time.Minute
+	refreshTokensInterval = 1 * time.Minute
 	updateChatsInterval   = 5 * time.Second
 
 	panelsSplitOffset = 0.25
