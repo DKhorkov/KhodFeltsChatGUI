@@ -10,7 +10,7 @@ tasks:
       #      - sudo rm -rf logs/
       - sudo rm -rf coverage/
       - sudo rm -rf tokens.json
-      - sudo rm -rf kfc
+      - sudo rm -rf bin/
 
   tests:
     desc: "Run tests and save coverage to coverage folder."
@@ -50,3 +50,48 @@ tasks:
       - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
       - export PATH=$PATH:$(go env GOPATH)/bin
       - golangci-lint run -v --fix
+
+  docker_rules:
+    desc: "Дает возможность использовать docker без sudo для fyne-cross"
+    cmds:
+      - sudo usermod -aG docker $USER
+      - newgrp docker
+
+  build:
+    desc: "Сборка GUI-приложения под все платформы через fyne-cross"
+    dir: ../
+    vars:
+      PACKAGE_PATH: ./cmd
+      APP_NAME: kfc
+      ICON_PATH: "./assets/icon.png"
+      APP_ID: "com.dkhorkov.kfc"
+      OUTPUT_DIR: ./bin
+    cmds:
+      - mkdir -p {{.OUTPUT_DIR}}
+
+      # 1. Установка инструмента (если еще нет)
+      - go install github.com/fyne-io/fyne-cross@latest
+
+      # --- LINUX ---
+      - fyne-cross linux -arch amd64 -app-id {{.APP_ID}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/linux-amd64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_linux_amd64
+      - fyne-cross linux -arch 386 -app-id {{.APP_ID}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/linux-386/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_linux_386
+      - fyne-cross linux -arch arm64 -app-id {{.APP_ID}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/linux-arm64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_linux_arm64
+
+      # --- WINDOWS ---
+      - fyne-cross windows -arch amd64 -app-id {{.APP_ID}} -name {{.APP_NAME}}_windows_amd64.exe -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/windows-amd64/{{.APP_NAME}}_windows_amd64.exe {{.OUTPUT_DIR}}/{{.APP_NAME}}_windows_amd64.exe
+      - fyne-cross windows -arch 386 -app-id {{.APP_ID}} -name {{.APP_NAME}}_windows_386.exe -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/windows-386/{{.APP_NAME}}_windows_386.exe {{.OUTPUT_DIR}}/{{.APP_NAME}}_windows_386.exe
+
+      # --- MACOS (Darwin) --- sdk  https://github.com/phracker/macosx-sdks/releases
+      - fyne-cross darwin -arch amd64 -app-id {{.APP_ID}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/darwin-amd64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_darwin_amd64
+      - fyne-cross darwin -arch arm64 -app-id {{.APP_ID}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - mv fyne-cross/bin/darwin-arm64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_darwin_arm64
+
+      - rm -rf ./fyne-cross
+
+      - echo "Все сборки готовы и находятся в папке {{.OUTPUT_DIR}}"

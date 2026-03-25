@@ -188,7 +188,11 @@ func (w *Window) RefreshChats(chat domains.Chat) {
 }
 
 func (w *Window) startRefreshTokensGoroutine() {
-	w.wg.Go(func() {
+	// TODO fyne-cross не умеет в wg.Go(). Перейти в дальнейшем
+	w.wg.Add(1)
+	go func() {
+		defer w.wg.Done()
+
 		ticker := time.NewTicker(refreshTokensInterval)
 		defer ticker.Stop()
 
@@ -209,11 +213,15 @@ func (w *Window) startRefreshTokensGoroutine() {
 				}
 			}
 		}
-	})
+	}()
 }
 
 func (w *Window) startUpdateChatsGoroutine() {
-	w.wg.Go(func() {
+	// TODO fyne-cross не умеет в wg.Go(). Перейти в дальнейшем
+	w.wg.Add(1)
+	go func() {
+		defer w.wg.Done()
+
 		ticker := time.NewTicker(updateChatsInterval)
 		defer ticker.Stop()
 
@@ -234,7 +242,7 @@ func (w *Window) startUpdateChatsGoroutine() {
 				}
 			}
 		}
-	})
+	}()
 }
 
 func (w *Window) updateChats() error {
@@ -274,7 +282,11 @@ func (w *Window) updateChats() error {
 }
 
 func (w *Window) startReadMessagesGoroutine() {
-	w.wg.Go(func() {
+	// TODO fyne-cross не умеет в wg.Go(). Перейти в дальнейшем
+	w.wg.Add(1)
+	go func() {
+		defer w.wg.Done()
+
 		for {
 			select {
 			case <-w.ctx.Done():
@@ -302,7 +314,7 @@ func (w *Window) startReadMessagesGoroutine() {
 				w.readMessage(*message)
 			}
 		}
-	})
+	}()
 }
 
 func (w *Window) readMessage(message domains.Message) {
@@ -522,11 +534,11 @@ func (w *Window) selectChat(chat domains.Chat) {
 		w.loadMoreMessagesButton.Hide()
 	}
 
+	w.messagesList.Refresh()
+
 	if len(w.messages) > 0 {
 		w.messagesList.ScrollToBottom()
 	}
-
-	w.messagesList.Refresh()
 }
 
 func (w *Window) markChatAsRead(id uint64) {

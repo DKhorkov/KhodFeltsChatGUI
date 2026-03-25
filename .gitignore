@@ -30,6 +30,7 @@ go.work.sum
 # Local files^
 *.log
 logs/
+bin/
 *.db
 bench.txt
 tokens.json
