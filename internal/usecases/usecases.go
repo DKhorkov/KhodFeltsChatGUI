@@ -48,12 +48,6 @@ func (u *UseCases) Authenticate(ctx context.Context) (*domains.User, error) {
 		return nil, err
 	}
 
-	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
-
-		return nil, err
-	}
-
 	return user, nil
 }
 
@@ -118,12 +112,6 @@ func (u *UseCases) Login(ctx context.Context, email, password string) (*domains.
 		return nil, err
 	}
 
-	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
-
-		return nil, err
-	}
-
 	return user, nil
 }
 
@@ -171,7 +159,20 @@ func (u *UseCases) Register(
 }
 
 func (u *UseCases) SendMessage(ctx context.Context, message domains.Message) error {
-	if err := u.ws.WriteMessage(ctx, message); err != nil {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return err
+	}
+
+	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
+
+		return err
+	}
+
+	if err = u.ws.WriteMessage(ctx, message); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to send message", err)
 
 		return err
@@ -181,6 +182,19 @@ func (u *UseCases) SendMessage(ctx context.Context, message domains.Message) err
 }
 
 func (u *UseCases) ReadMessage(ctx context.Context) (*domains.Message, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, err
+	}
+
+	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
+
+		return nil, err
+	}
+
 	message, err := u.ws.ReadMessage(ctx)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to read message", err)
@@ -198,15 +212,6 @@ func (u *UseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.
 
 		return nil, err
 	}
-
-	currentUser, err := u.users.GetCurrentUser(ctx, tokens.AccessToken)
-	if err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to get current user", err)
-
-		return nil, err
-	}
-
-	chat.Members = append(chat.Members, *currentUser)
 
 	createdChat, err := u.chats.CreateChat(ctx, tokens.AccessToken, chat)
 	if err != nil {
@@ -260,6 +265,10 @@ func (u *UseCases) SearchUsers(
 		logging.LogErrorContext(ctx, u.logger, "failed to search users", err)
 
 		return nil, err
+	}
+
+	if len(users) == 0 {
+		return users, nil
 	}
 
 	// Возвращаем всех юзеров кроме текущего

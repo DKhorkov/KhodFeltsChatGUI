@@ -13,9 +13,9 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
 	"github.com/DKhorkov/kfcGUI/internal/windows/auth"
 	"github.com/DKhorkov/kfcGUI/internal/windows/chat"
-	"github.com/DKhorkov/kfcGUI/internal/windows/create_chat"
+	createChat "github.com/DKhorkov/kfcGUI/internal/windows/create_chat"
 	"github.com/DKhorkov/kfcGUI/internal/windows/notification"
-	"github.com/DKhorkov/kfcGUI/internal/windows/search_users"
+	searchUsers "github.com/DKhorkov/kfcGUI/internal/windows/search_users"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
 )

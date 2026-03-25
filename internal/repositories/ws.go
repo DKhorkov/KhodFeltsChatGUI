@@ -33,11 +33,6 @@ type WebSocketsRepository struct {
 func NewWebSocketsRepository(baseURL string) *WebSocketsRepository {
 	return &WebSocketsRepository{
 		baseURL: baseURL,
-		messagesChan: make(
-			chan *domains.Message,
-			readMessagesBufferSize,
-		), // Буфер, чтобы не блокировать чтение
-		errChan: make(chan error, readErrorsBufferSize),
 	}
 }
 
@@ -48,11 +43,13 @@ func (r *WebSocketsRepository) readLoop() {
 	for {
 		var msg domains.Message
 		if err := r.ws.ReadJSON(&msg); err != nil {
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				r.errChan <- customerrors.ErrWebsocketClosed
 			} else {
 				r.errChan <- fmt.Errorf("%w: %w", customerrors.ErrWebsocket, err)
 			}
+
+			_ = r.Close()
 
 			return
 		}
@@ -69,6 +66,10 @@ func (r *WebSocketsRepository) Connect(ctx context.Context, accessToken string) 
 	if r.ws != nil {
 		return nil
 	}
+
+	// Создаем каналы
+	r.messagesChan = make(chan *domains.Message, readMessagesBufferSize) // Буфер, чтобы не блокировать чтение
+	r.errChan = make(chan error, readErrorsBufferSize)
 
 	header := http.Header{}
 	header.Add(common.CookieHeaderName, fmt.Sprintf("%s=%s", accessTokenCookieName, accessToken))
@@ -91,15 +92,15 @@ func (r *WebSocketsRepository) Close() error {
 	defer r.mu.Unlock()
 
 	// Безопасное закрытие вебсокета
-	if r.ws != nil {
-		err := r.ws.Close()
-
-		r.ws = nil
-
-		return err
+	if r.ws == nil {
+		return nil
 	}
 
-	return nil
+	err := r.ws.Close()
+
+	r.ws = nil
+
+	return err
 }
 
 func (r *WebSocketsRepository) ReadMessage(ctx context.Context) (*domains.Message, error) {
@@ -155,7 +156,7 @@ func (r *WebSocketsRepository) WriteMessage(ctx context.Context, message domains
 
 	// Пишем в сокет (он прервется сам, если наступит deadline)
 	if err := r.ws.WriteJSON(message); err != nil {
-		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) ||
+		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) ||
 			errors.Is(err, net.ErrClosed) {
 			return customerrors.ErrWebsocketClosed
 		}

@@ -244,9 +244,27 @@ func (w *Window) updateChats() error {
 	}
 
 	w.chatsMu.Lock()
-	defer w.chatsMu.Unlock()
-
 	w.chats = chats
+	w.chatsMu.Unlock()
+
+	// Если текущий открытый чат был удален, закрываем вкладку
+	if w.currentChat != nil {
+		chatDeleted := true
+
+		for _, chat := range chats {
+			if w.currentChat.ID == chat.ID {
+				chatDeleted = false
+
+				break
+			}
+		}
+
+		if chatDeleted {
+			fyne.Do(func() {
+				w.closeChat()
+			})
+		}
+	}
 
 	fyne.Do(func() {
 		w.chatsList.Refresh()
@@ -301,11 +319,9 @@ func (w *Window) readMessage(message domains.Message) {
 func (w *Window) markChatUnreadAfterReceivingMessage(message domains.Message) {
 	// Если чата нет в списке - обновляем весь список
 	if !w.chatExists(message) {
-		go func() {
-			if err := w.updateChats(); err != nil {
-				logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
-			}
-		}()
+		if err := w.updateChats(); err != nil {
+			logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
+		}
 
 		return
 	}
@@ -364,16 +380,18 @@ func (w *Window) processMessage(message domains.Message) {
 		// Показываем уведомление для сообщений из других чатов
 		chatTitle := w.getChatTitle(message.ChatID)
 
-		w.notificationWindow.Build(
-			widget.NewLabel(
-				fmt.Sprintf(
-					"[%s] %s: %s",
-					chatTitle,
-					message.Sender.Username,
-					message.Text),
-			),
-		)
-		w.notificationWindow.Show()
+		fyne.Do(func() {
+			w.notificationWindow.Build(
+				widget.NewLabel(
+					fmt.Sprintf(
+						"[%s] %s: %s",
+						chatTitle,
+						message.Sender.Username,
+						message.Text),
+				),
+			)
+			w.notificationWindow.Show()
+		})
 	}
 }
 
@@ -382,16 +400,18 @@ func (w *Window) getChatTitle(chatID uint64) string {
 	defer w.chatsMu.RUnlock()
 
 	for _, chat := range w.chats {
-		if chat.ID == chatID {
-			if chat.Title != nil && *chat.Title != "" {
-				return *chat.Title
-			}
+		if chat.ID != chatID {
+			continue
+		}
 
-			if len(chat.Members) > 0 {
-				for _, m := range chat.Members {
-					if m.ID != w.currentUser.ID {
-						return m.Username
-					}
+		if chat.Title != nil && *chat.Title != "" {
+			return *chat.Title
+		}
+
+		if chat.Type == domains.ChatTypePrivate {
+			for _, m := range chat.Members {
+				if m.ID != w.currentUser.ID {
+					return m.Username
 				}
 			}
 		}
@@ -428,17 +448,15 @@ func (w *Window) buildChatsList() {
 
 			chatTitle := fmt.Sprintf(chatTitleDefaultName, chat.ID)
 
-			if chat.Title != nil {
-				switch {
-				case *chat.Title != "":
-					chatTitle = *chat.Title
-				case len(chat.Members) > 0:
-					for _, m := range chat.Members {
-						if m.ID != w.currentUser.ID {
-							chatTitle = m.Username
+			switch {
+			case chat.Title != nil && *chat.Title != "":
+				chatTitle = *chat.Title
+			case chat.Type == domains.ChatTypePrivate:
+				for _, m := range chat.Members {
+					if m.ID != w.currentUser.ID {
+						chatTitle = m.Username
 
-							break
-						}
+						break
 					}
 				}
 			}
@@ -457,9 +475,6 @@ func (w *Window) buildChatsList() {
 	)
 
 	w.chatsList.OnSelected = func(id widget.ListItemID) {
-		w.chatsMu.RLock()
-		defer w.chatsMu.RUnlock()
-
 		if id >= len(w.chats) {
 			return
 		}
@@ -655,7 +670,7 @@ func (w *Window) logout() {
 func (w *Window) buildRightPanel() *fyne.Container {
 	messageEntry := widget.NewMultiLineEntry()
 	messageEntry.SetPlaceHolder(messageEntryText)
-	messageEntry.OnSubmitted = func(s string) {
+	messageEntry.OnSubmitted = func(_ string) {
 		w.sendMessage()
 	}
 	w.messageEntry = messageEntry
@@ -741,13 +756,16 @@ func (w *Window) sendMessage() {
 		UpdatedAt: time.Now().In(common.Timezone),
 	}
 
+	if err := w.useCases.SendMessage(w.ctx, message); err != nil {
+		dialog.ShowError(err, w.window)
+
+		return
+	}
+
+	// Обновляем список сообщбений только после успешной отправки на сервер
 	w.messagesMu.Lock()
 	w.messages = append(w.messages, message)
 	w.messagesMu.Unlock()
-
-	if err := w.useCases.SendMessage(w.ctx, message); err != nil {
-		dialog.ShowError(err, w.window)
-	}
 
 	// Стираем отправленное сообщение из поля ввода
 	w.messageEntry.SetText("")
