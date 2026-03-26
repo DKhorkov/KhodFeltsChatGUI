@@ -38,6 +38,8 @@ const (
 	offset = 0
 )
 
+var errNoChatMembersProvided = errors.New("укажите хотя бы одного участника")
+
 type Window struct {
 	app    fyne.App
 	window fyne.Window
@@ -173,7 +175,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		chatType := domains.ChatType(typeEntry.Selected)
 
 		if chatType == domains.ChatTypePrivate && len(selectedUsers) == 0 {
-			dialog.ShowError(errors.New("укажите хотя бы одного участника"), w.window)
+			dialog.ShowError(errNoChatMembersProvided, w.window)
 
 			return
 		}

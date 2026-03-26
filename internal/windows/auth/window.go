@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -33,6 +34,19 @@ const (
 
 	loginTabIndex    = 0
 	registerTabIndex = 1
+)
+
+var (
+	errInvalidPassword = errors.New(
+		"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву" +
+			" в верхнем и нижнем регистре, цифру и спецсимвол",
+	)
+	errInvalidUsername = errors.New(
+		"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
+	)
+	errInvalidEmail         = errors.New("некорректный email")
+	errPasswordDoesNotMatch = errors.New("пароли не совпадают")
+	errRegistration         = errors.New("ошибка регистрации")
 )
 
 type Window struct {
@@ -105,7 +119,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 	loginButton := widget.NewButton(loginButtonName, func() {
 		if !validation.ValidateValueByRule(loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
-			dialog.ShowError(errors.New("некорректный email"), w.window)
+			dialog.ShowError(errInvalidEmail, w.window)
 
 			return
 		}
@@ -114,12 +128,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			loginPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			dialog.ShowError(
-				errors.New(
-					"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
-				),
-				w.window,
-			)
+			dialog.ShowError(errInvalidPassword, w.window)
 
 			return
 		}
@@ -178,7 +187,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerEmailEntry.Text,
 			w.validationConfig.EmailRegExp,
 		) {
-			dialog.ShowError(errors.New("некорректный email"), w.window)
+			dialog.ShowError(errInvalidEmail, w.window)
 
 			return
 		}
@@ -187,12 +196,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerUsernameEntry.Text,
 			w.validationConfig.UsernameRegExps,
 		) {
-			dialog.ShowError(
-				errors.New(
-					"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
-				),
-				w.window,
-			)
+			dialog.ShowError(errInvalidUsername, w.window)
 
 			return
 		}
@@ -201,18 +205,13 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			dialog.ShowError(
-				errors.New(
-					"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
-				),
-				w.window,
-			)
+			dialog.ShowError(errInvalidPassword, w.window)
 
 			return
 		}
 
 		if registerPasswordEntry.Text != registerConfirmPasswordEntry.Text {
-			dialog.ShowError(errors.New("пароли не совпадают"), w.window)
+			dialog.ShowError(errPasswordDoesNotMatch, w.window)
 
 			return
 		}
@@ -232,7 +231,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					dialog.ShowError(errors.New("Ошибка регистрации: "+err.Error()), w.window)
+					dialog.ShowError(fmt.Errorf("%w: %s", errRegistration, err.Error()), w.window)
 				})
 
 				return
