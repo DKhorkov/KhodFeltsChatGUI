@@ -10,13 +10,5 @@ const (
 	DateTimeFormat = DateFormat + " 15:04:05"
 )
 
-var Timezone *time.Location
-
-func init() {
-	var err error
-
-	Timezone, err = time.LoadLocation("Europe/Moscow")
-	if err != nil {
-		panic(err)
-	}
-}
+// Timezone Получаем временную зону пользователя, чтобы отображать время сообщений по его местному времени.
+var Timezone = time.Now().Location()

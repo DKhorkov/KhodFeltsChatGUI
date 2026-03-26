@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 
+	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/libs/logging"
@@ -300,6 +301,12 @@ func (u *UseCases) GetChatMessages(
 		logging.LogErrorContext(ctx, u.logger, "failed to get chat messages", err)
 
 		return nil, err
+	}
+
+	// Устанавливаем время сообщений по местному времени польователя
+	for i := range messages {
+		messages[i].CreatedAt = messages[i].CreatedAt.In(common.Timezone)
+		messages[i].UpdatedAt = messages[i].UpdatedAt.In(common.Timezone)
 	}
 
 	return messages, nil

@@ -8,8 +8,10 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/libs/validation"
 )
 
 const (
@@ -37,19 +39,22 @@ type Window struct {
 	app    fyne.App
 	window fyne.Window
 
-	useCases   interfaces.UseCases
-	chatWindow interfaces.Window
+	useCases         interfaces.UseCases
+	chatWindow       interfaces.Window
+	validationConfig config.ValidationConfig
 }
 
 func New(
 	app fyne.App,
 	chatWindow interfaces.Window,
 	useCases interfaces.UseCases,
+	validationConfig config.ValidationConfig,
 ) *Window {
 	return &Window{
-		app:        app,
-		useCases:   useCases,
-		chatWindow: chatWindow,
+		app:              app,
+		useCases:         useCases,
+		chatWindow:       chatWindow,
+		validationConfig: validationConfig,
 	}
 }
 
@@ -99,8 +104,22 @@ func (w *Window) buildTabs() *container.AppTabs {
 	progressBar.Hidden = true
 
 	loginButton := widget.NewButton(loginButtonName, func() {
-		if loginEmailEntry.Text == "" || loginPasswordEntry.Text == "" {
-			dialog.ShowError(errors.New("заполните все поля"), w.window)
+		if !validation.ValidateValueByRule(loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
+			dialog.ShowError(errors.New("некорректный email"), w.window)
+
+			return
+		}
+
+		if !validation.ValidateValueByRules(
+			loginPasswordEntry.Text,
+			w.validationConfig.PasswordRegExps,
+		) {
+			dialog.ShowError(
+				errors.New(
+					"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
+				),
+				w.window,
+			)
 
 			return
 		}
@@ -155,24 +174,45 @@ func (w *Window) buildTabs() *container.AppTabs {
 	registerConfirmPasswordEntry.SetPlaceHolder(confirmPasswordEntryText)
 
 	registerBtn := widget.NewButton(registerButtonName, func() {
-		if registerEmailEntry.Text == "" || registerUsernameEntry.Text == "" ||
-			registerPasswordEntry.Text == "" || registerConfirmPasswordEntry.Text == "" {
-			dialog.ShowError(errors.New("заполните все поля"), w.window)
+		if !validation.ValidateValueByRule(
+			registerEmailEntry.Text,
+			w.validationConfig.EmailRegExp,
+		) {
+			dialog.ShowError(errors.New("некорректный email"), w.window)
+
+			return
+		}
+
+		if !validation.ValidateValueByRules(
+			registerUsernameEntry.Text,
+			w.validationConfig.UsernameRegExps,
+		) {
+			dialog.ShowError(
+				errors.New(
+					"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
+				),
+				w.window,
+			)
+
+			return
+		}
+
+		if !validation.ValidateValueByRules(
+			registerPasswordEntry.Text,
+			w.validationConfig.PasswordRegExps,
+		) {
+			dialog.ShowError(
+				errors.New(
+					"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
+				),
+				w.window,
+			)
 
 			return
 		}
 
 		if registerPasswordEntry.Text != registerConfirmPasswordEntry.Text {
 			dialog.ShowError(errors.New("пароли не совпадают"), w.window)
-
-			return
-		}
-
-		if len(registerUsernameEntry.Text) < 5 {
-			dialog.ShowError(
-				errors.New("имя пользователя должно быть не менее 5 символов"),
-				w.window,
-			)
 
 			return
 		}
