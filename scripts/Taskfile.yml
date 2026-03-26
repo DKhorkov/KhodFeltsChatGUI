@@ -18,9 +18,6 @@ tasks:
       - test
     dir: ../
     cmds:
-      - task: create_postgres_folders
-      - sudo chmod -R 777 postgres_data
-      - sudo chmod -R 777 postgres_backups
       - mkdir -p ./coverage
       - |
         printf "integration={{.integration}}\n\n"  # View flag value

@@ -39,7 +39,7 @@ func main() {
 	usersRepository := repositories.NewUsersRepository(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := repositories.NewChatsRepository(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := repositories.NewTokensRepository()
-	websocketsRepository := repositories.NewWebSocketsRepository(cfg.HTTP.WebsocketURL)
+	websocketsRepository := repositories.NewWebSocketsRepository(cfg.HTTP.WebsocketURL, logger)
 
 	useCases := usecases.New(
 		usersRepository,

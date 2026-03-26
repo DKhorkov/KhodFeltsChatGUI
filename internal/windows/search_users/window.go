@@ -2,7 +2,6 @@ package searchUsers
 
 import (
 	"context"
-	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -11,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/kfcGUI/internal/windows"
 )
 
 const (
@@ -98,7 +98,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 			}
 
 			fyne.Do(func() {
-				foundUsersLabel.SetText(w.foundUsersText(len(users)))
+				foundUsersLabel.SetText(windows.FoundUsersText(len(users)))
 
 				usersList.Refresh()
 			})
@@ -124,7 +124,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 			}
 
 			fyne.Do(func() {
-				foundUsersLabel.SetText(w.foundUsersText(len(users)))
+				foundUsersLabel.SetText(windows.FoundUsersText(len(users)))
 
 				usersList.Refresh()
 			})
@@ -140,11 +140,11 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 
 	// Устанавливаем Border: topContent сверху, usersList в центре (заполнит всё окно)
 	window.SetContent(container.NewBorder(
-		topContent, // Сверху (занимает минимум места)
-		nil,        // Снизу (пусто)
-		nil,        // Слева (пусто)
-		nil,        // Справа (пусто)
-		usersList,  // В центре (РАСТЯГИВАЕТСЯ на всё оставшееся место)
+		topContent,
+		nil,
+		nil,
+		nil,
+		usersList,
 	))
 
 	w.window = window
@@ -156,20 +156,4 @@ func (w *Window) Show() {
 
 func (w *Window) Close() {
 	w.window.Close()
-}
-
-func (w *Window) foundUsersText(usersCount int) string {
-	// Исключения для чисел от 11 до 14
-	if usersCount%100 >= 11 && usersCount%100 <= 14 {
-		return fmt.Sprintf("Найдено %d пользователей:", usersCount)
-	}
-
-	switch usersCount % 10 {
-	case 1:
-		return fmt.Sprintf("Найден %d пользователь:", usersCount)
-	case 2, 3, 4:
-		return fmt.Sprintf("Найдено %d пользователя:", usersCount)
-	default:
-		return fmt.Sprintf("Найдено %d пользователей:", usersCount)
-	}
 }

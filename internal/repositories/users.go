@@ -93,6 +93,9 @@ func (r *UsersRepository) SearchUsers(
 		),
 		http.NoBody,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {

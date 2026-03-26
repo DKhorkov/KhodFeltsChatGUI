@@ -58,6 +58,7 @@ func (r *ChatsRepository) GetUserChats(
 	if err != nil {
 		return nil, err
 	}
+
 	defer r.closeBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)

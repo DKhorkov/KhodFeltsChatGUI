@@ -173,8 +173,8 @@ func (w *Window) RefreshChats(chat domains.Chat) {
 	defer w.chatsMu.Unlock()
 
 	// Проверяем, есть ли уже такой чат в списке
-	for _, c := range w.chats {
-		if c.ID == chat.ID {
+	for i := range w.chats {
+		if w.chats[i].ID == chat.ID {
 			return
 		}
 	}
@@ -190,6 +190,7 @@ func (w *Window) RefreshChats(chat domains.Chat) {
 func (w *Window) startRefreshTokensGoroutine() {
 	// TODO fyne-cross не умеет в wg.Go(). Перейти в дальнейшем
 	w.wg.Add(1)
+
 	go func() {
 		defer w.wg.Done()
 
@@ -219,6 +220,7 @@ func (w *Window) startRefreshTokensGoroutine() {
 func (w *Window) startUpdateChatsGoroutine() {
 	// TODO fyne-cross не умеет в wg.Go(). Перейти в дальнейшем
 	w.wg.Add(1)
+
 	go func() {
 		defer w.wg.Done()
 
@@ -259,8 +261,8 @@ func (w *Window) updateChats() error {
 	if w.currentChat != nil {
 		chatDeleted := true
 
-		for _, chat := range chats {
-			if w.currentChat.ID == chat.ID {
+		for i := range chats {
+			if w.currentChat.ID == chats[i].ID {
 				chatDeleted = false
 
 				break
@@ -284,6 +286,7 @@ func (w *Window) updateChats() error {
 func (w *Window) startReadMessagesGoroutine() {
 	// TODO fyne-cross не умеет в wg.Go(). Перейти в дальнейшем
 	w.wg.Add(1)
+
 	go func() {
 		defer w.wg.Done()
 
@@ -360,8 +363,8 @@ func (w *Window) chatExists(message domains.Message) bool {
 	w.chatsMu.RLock()
 	defer w.chatsMu.RUnlock()
 
-	for _, chat := range w.chats {
-		if chat.ID == message.ChatID {
+	for i := range w.chats {
+		if w.chats[i].ID == message.ChatID {
 			return true
 		}
 	}
@@ -411,7 +414,7 @@ func (w *Window) getChatTitle(chatID uint64) string {
 	w.chatsMu.RLock()
 	defer w.chatsMu.RUnlock()
 
-	for _, chat := range w.chats {
+	for _, chat := range w.chats { //nolint:gocritic // простота чтения важнее
 		if chat.ID != chatID {
 			continue
 		}

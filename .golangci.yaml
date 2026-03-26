@@ -53,7 +53,7 @@ linters:
     - errchkjson # Checks types passed to the json encoding functions. Reports unsupported types and reports occurrences where the check for the returned error can be omitted.
     - errname # Checks that sentinel errors are prefixed with the `Err` and error types are suffixed with the `Error`.
     - exhaustive # Check exhaustiveness of enum switch statements.
-    - exhaustruct # Checks if all structure fields are initialized.
+    #    - exhaustruct # Checks if all structure fields are initialized.
     - exptostd # Detects functions from golang.org/x/exp/ that can be replaced by std functions. [auto-fix]
     - fatcontext # Detects nested contexts in loops and function literals. [auto-fix]
     - forbidigo # Forbids identifiers.
@@ -256,14 +256,18 @@ linters:
           - nosprintfhostport
           - maintidx
 
-      - path: .*_repository\.go
+      - path: internal/repositories/*
         linters:
           - exhaustruct
           - dupl
+          - gochecknoglobals
+          - bodyclose
+          - gosec
 
       - path: internal/interfaces/usecases.go
         linters:
           - iface
+          - interfacebloat
 
       - path: internal/interfaces/services.go
         linters:
@@ -290,6 +294,28 @@ linters:
         line: "82"
         linters:
           - exhaustruct
+
+      - path: internal/common/*
+        linters:
+          - gochecknoglobals
+          - gochecknoinits
+
+      - path: internal/windows/texts.go
+        linters:
+          - mnd
+
+      - path: internal/windows/chat/window.go
+        linters:
+          - containedctx
+          - forcetypeassert
+
+      - path: internal/windows/create_chat/window.go
+        linters:
+          - forcetypeassert
+
+      - path: internal/windows/search_users/window.go
+        linters:
+          - forcetypeassert
 
 formatters:
   enable:

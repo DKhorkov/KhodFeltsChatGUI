@@ -12,6 +12,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
+	"github.com/DKhorkov/libs/logging"
 	"github.com/gorilla/websocket"
 )
 
@@ -24,37 +25,17 @@ const (
 
 type WebSocketsRepository struct {
 	baseURL      string
+	logger       logging.Logger
 	ws           *websocket.Conn
 	mu           sync.Mutex
 	messagesChan chan *domains.Message // Буферизированный канал для входящих сообщений
 	errChan      chan error            // Канал для критических ошибок чтения
 }
 
-func NewWebSocketsRepository(baseURL string) *WebSocketsRepository {
+func NewWebSocketsRepository(baseURL string, logger logging.Logger) *WebSocketsRepository {
 	return &WebSocketsRepository{
 		baseURL: baseURL,
-	}
-}
-
-func (r *WebSocketsRepository) readLoop() {
-	defer close(r.messagesChan)
-	defer close(r.errChan)
-
-	for {
-		var msg domains.Message
-		if err := r.ws.ReadJSON(&msg); err != nil {
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				r.errChan <- customerrors.ErrWebsocketClosed
-			} else {
-				r.errChan <- fmt.Errorf("%w: %w", customerrors.ErrWebsocket, err)
-			}
-
-			_ = r.Close()
-
-			return
-		}
-
-		r.messagesChan <- &msg
+		logger:  logger,
 	}
 }
 
@@ -68,7 +49,10 @@ func (r *WebSocketsRepository) Connect(ctx context.Context, accessToken string) 
 	}
 
 	// Создаем каналы
-	r.messagesChan = make(chan *domains.Message, readMessagesBufferSize) // Буфер, чтобы не блокировать чтение
+	r.messagesChan = make(
+		chan *domains.Message,
+		readMessagesBufferSize,
+	) // Буфер, чтобы не блокировать чтение
 	r.errChan = make(chan error, readErrorsBufferSize)
 
 	header := http.Header{}
@@ -152,11 +136,20 @@ func (r *WebSocketsRepository) WriteMessage(ctx context.Context, message domains
 	}
 
 	// Сбрасываем дедлайн по выходу, чтобы сокет был "чистым" для других операций
-	defer r.ws.SetWriteDeadline(time.Time{})
+	defer func() {
+		if err := r.ws.SetWriteDeadline(time.Time{}); err != nil {
+			logging.LogError(r.logger, "failed to set ws write deadline", err)
+		}
+	}()
 
 	// Пишем в сокет (он прервется сам, если наступит deadline)
 	if err := r.ws.WriteJSON(message); err != nil {
-		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) ||
+		if websocket.IsCloseError(
+			err,
+			websocket.CloseNormalClosure,
+			websocket.CloseGoingAway,
+			websocket.CloseAbnormalClosure,
+		) ||
 			errors.Is(err, net.ErrClosed) {
 			return customerrors.ErrWebsocketClosed
 		}
@@ -165,4 +158,33 @@ func (r *WebSocketsRepository) WriteMessage(ctx context.Context, message domains
 	}
 
 	return nil
+}
+
+func (r *WebSocketsRepository) readLoop() {
+	defer close(r.messagesChan)
+	defer close(r.errChan)
+
+	for {
+		var msg domains.Message
+		if err := r.ws.ReadJSON(&msg); err != nil {
+			if websocket.IsCloseError(
+				err,
+				websocket.CloseNormalClosure,
+				websocket.CloseGoingAway,
+				websocket.CloseAbnormalClosure,
+			) {
+				r.errChan <- customerrors.ErrWebsocketClosed
+			} else {
+				r.errChan <- fmt.Errorf("%w: %w", customerrors.ErrWebsocket, err)
+			}
+
+			if err = r.Close(); err != nil {
+				logging.LogError(r.logger, "failed to close ws connection", err)
+			}
+
+			return
+		}
+
+		r.messagesChan <- &msg
+	}
 }

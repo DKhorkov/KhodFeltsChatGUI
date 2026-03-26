@@ -25,9 +25,9 @@ const (
 	registerButtonName = "Зарегистрироваться"
 
 	emailEntryText           = "Email"
-	passwordEntryText        = "Пароль"
+	passwordEntryText        = "Пароль" //nolint:gosec // наименование переменной
 	usernameEntryText        = "Имя пользователя (от 5 символов)"
-	confirmPasswordEntryText = "Подтверждение пароля"
+	confirmPasswordEntryText = "Подтверждение пароля" //nolint:gosec // наименование переменной
 
 	loginTabIndex    = 0
 	registerTabIndex = 1
