@@ -150,6 +150,10 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 }
 
 func (w *Window) Show() {
+	if w.window == nil {
+		return
+	}
+
 	w.startRefreshTokensGoroutine()
 	w.startUpdateChatsGoroutine()
 	w.startReadMessagesGoroutine()
@@ -158,6 +162,10 @@ func (w *Window) Show() {
 }
 
 func (w *Window) Close() {
+	if w.window == nil {
+		return
+	}
+
 	// Закрываем текущее окно
 	w.window.Close()
 
@@ -166,6 +174,8 @@ func (w *Window) Close() {
 
 	// Ожидаем завершения горутин
 	w.wg.Wait()
+
+	w.window = nil
 }
 
 func (w *Window) RefreshChats(chat domains.Chat) {

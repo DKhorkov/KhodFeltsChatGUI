@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	width  = 100
-	height = 150
+	width  = 300
+	height = 200
 )
 
 type Window struct {
@@ -31,9 +31,18 @@ func (w *Window) Build(content fyne.CanvasObject) {
 }
 
 func (w *Window) Show() {
+	if w.window == nil {
+		return
+	}
+
 	w.window.Show()
 }
 
 func (w *Window) Close() {
+	if w.window == nil {
+		return
+	}
+
 	w.window.Close()
+	w.window = nil
 }

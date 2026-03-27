@@ -151,9 +151,18 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 }
 
 func (w *Window) Show() {
+	if w.window == nil {
+		return
+	}
+
 	w.window.Show()
 }
 
 func (w *Window) Close() {
+	if w.window == nil {
+		return
+	}
+
 	w.window.Close()
+	w.window = nil
 }

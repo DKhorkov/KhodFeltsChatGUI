@@ -13,7 +13,7 @@ const (
 	title = "Новое сообщение"
 
 	width  = 300
-	height = 100
+	height = 200
 )
 
 type Window struct {
@@ -42,6 +42,10 @@ func (w *Window) Build(message fyne.CanvasObject) {
 }
 
 func (w *Window) Show() {
+	if w.window == nil {
+		return
+	}
+
 	w.window.Show()
 
 	time.AfterFunc(3*time.Second, func() {
@@ -52,5 +56,10 @@ func (w *Window) Show() {
 }
 
 func (w *Window) Close() {
+	if w.window == nil {
+		return
+	}
+
 	w.window.Close()
+	w.window = nil
 }
