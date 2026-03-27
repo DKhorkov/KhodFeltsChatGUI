@@ -15,13 +15,15 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name             string
 		refreshChatsFunc func(domains.Chat)
 	}{
 		{
 			name:             "create window with refresh function",
-			refreshChatsFunc: func(chat domains.Chat) {},
+			refreshChatsFunc: func(_ domains.Chat) {},
 		},
 		{
 			name:             "create window with nil refresh function",
@@ -31,6 +33,8 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -54,6 +58,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_SetRefreshChatsFunc(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		initialFunc func(domains.Chat)
@@ -61,23 +67,25 @@ func TestWindow_SetRefreshChatsFunc(t *testing.T) {
 	}{
 		{
 			name:        "set new refresh function",
-			initialFunc: func(chat domains.Chat) {},
-			newFunc:     func(chat domains.Chat) {},
+			initialFunc: func(_ domains.Chat) {},
+			newFunc:     func(_ domains.Chat) {},
 		},
 		{
 			name:        "set nil refresh function",
-			initialFunc: func(chat domains.Chat) {},
+			initialFunc: func(_ domains.Chat) {},
 			newFunc:     nil,
 		},
 		{
 			name:        "replace nil with function",
 			initialFunc: nil,
-			newFunc:     func(chat domains.Chat) {},
+			newFunc:     func(_ domains.Chat) {},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -97,6 +105,8 @@ func TestWindow_SetRefreshChatsFunc(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -107,6 +117,8 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -124,6 +136,8 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_SearchFunctionality(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		searchQuery   string
@@ -154,11 +168,8 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:        "search with empty query",
-			searchQuery: "",
-			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
-				// Не ожидаем вызова SearchUsers
-			},
+			name:          "search with empty query",
+			searchQuery:   "",
 			expectedError: false,
 		},
 		{
@@ -175,6 +186,8 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -205,6 +218,8 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 }
 
 func TestWindow_ChatTypeSelection(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name         string
 		selectedType string
@@ -224,6 +239,8 @@ func TestWindow_ChatTypeSelection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -242,6 +259,8 @@ func TestWindow_ChatTypeSelection(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -254,9 +273,6 @@ func TestWindow_Show(t *testing.T) {
 		},
 		{
 			name: "show without building",
-			setupWindow: func(w *Window) {
-				// Не вызываем Build
-			},
 		},
 		{
 			name: "show after close",
@@ -269,6 +285,8 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -288,6 +306,8 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -300,9 +320,6 @@ func TestWindow_Close(t *testing.T) {
 		},
 		{
 			name: "close without building",
-			setupWindow: func(w *Window) {
-				// Не создаем окно
-			},
 		},
 		{
 			name: "close already closed window",
@@ -315,6 +332,8 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -336,6 +355,8 @@ func TestWindow_Close(t *testing.T) {
 }
 
 func TestWindow_Constants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		constant any
@@ -415,13 +436,19 @@ func TestWindow_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.expected, tt.constant)
 		})
 	}
 }
 
 func TestWindow_ErrorNoChatMembers(t *testing.T) {
+	t.Parallel()
+
 	t.Run("error message should be correct", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "укажите хотя бы одного участника", errNoChatMembersProvided.Error())
 	})
 }
@@ -461,40 +488,6 @@ func findSearchEntry(window fyne.Window) *widget.Entry {
 	return entry
 }
 
-func findCreateChatButton(window fyne.Window) *widget.Button {
-	if window == nil || window.Content() == nil {
-		return nil
-	}
-
-	var button *widget.Button
-
-	var walk func(w fyne.CanvasObject)
-
-	walk = func(w fyne.CanvasObject) {
-		if b, ok := w.(*widget.Button); ok {
-			if b.Text == createChatButtonName {
-				button = b
-
-				return
-			}
-		}
-
-		if container, ok := w.(*fyne.Container); ok {
-			for _, child := range container.Objects {
-				walk(child)
-
-				if button != nil {
-					return
-				}
-			}
-		}
-	}
-
-	walk(window.Content())
-
-	return button
-}
-
 func findTypeSelect(window fyne.Window) *widget.Select {
 	if window == nil || window.Content() == nil {
 		return nil
@@ -528,7 +521,11 @@ func findTypeSelect(window fyne.Window) *widget.Select {
 }
 
 func TestWindow_Integration(t *testing.T) {
+	t.Parallel()
+
 	t.Run("full window lifecycle ", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

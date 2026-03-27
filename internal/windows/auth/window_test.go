@@ -14,6 +14,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name             string
 		chatWindow       interfaces.Window
@@ -33,6 +35,8 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -51,6 +55,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_SetChatWindow(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		initialChat interfaces.Window
@@ -75,6 +81,8 @@ func TestWindow_SetChatWindow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -89,6 +97,8 @@ func TestWindow_SetChatWindow(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -99,6 +109,8 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -116,6 +128,8 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -128,9 +142,6 @@ func TestWindow_Show(t *testing.T) {
 		},
 		{
 			name: "show without building",
-			setupWindow: func(w *Window) {
-				// Не вызываем Build
-			},
 		},
 		{
 			name: "show after close",
@@ -143,6 +154,8 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -162,6 +175,8 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -174,9 +189,6 @@ func TestWindow_Close(t *testing.T) {
 		},
 		{
 			name: "close without building",
-			setupWindow: func(w *Window) {
-				// Не создаем окно
-			},
 		},
 		{
 			name: "close already closed window",
@@ -189,6 +201,8 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -210,6 +224,8 @@ func TestWindow_Close(t *testing.T) {
 }
 
 func TestWindow_Constants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		constant any
@@ -284,12 +300,16 @@ func TestWindow_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.expected, tt.constant)
 		})
 	}
 }
 
 func TestWindow_ErrorMessages(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		err      error
@@ -324,13 +344,19 @@ func TestWindow_ErrorMessages(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.expected, tt.err.Error())
 		})
 	}
 }
 
 func TestWindow_Integration(t *testing.T) {
+	t.Parallel()
+
 	t.Run("full window lifecycle ", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

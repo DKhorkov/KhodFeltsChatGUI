@@ -15,6 +15,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -25,6 +27,8 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -41,6 +45,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -51,6 +57,8 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -68,6 +76,8 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_SearchFunctionality(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		searchQuery   string
@@ -98,11 +108,8 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name:        "search with empty query",
-			searchQuery: "",
-			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
-				// Не ожидаем вызова SearchUsers
-			},
+			name:          "search with empty query",
+			searchQuery:   "",
 			expectedError: false,
 		},
 		{
@@ -119,6 +126,8 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -153,6 +162,8 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 }
 
 func TestWindow_SearchButton(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		searchQuery string
@@ -172,14 +183,13 @@ func TestWindow_SearchButton(t *testing.T) {
 		{
 			name:        "search button click with empty query",
 			searchQuery: "",
-			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
-				// Не ожидаем вызова
-			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -210,6 +220,8 @@ func TestWindow_SearchButton(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -222,9 +234,6 @@ func TestWindow_Show(t *testing.T) {
 		},
 		{
 			name: "show without building",
-			setupWindow: func(w *Window) {
-				// Не вызываем Build
-			},
 		},
 		{
 			name: "show after close",
@@ -237,6 +246,8 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -256,6 +267,8 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -268,9 +281,6 @@ func TestWindow_Close(t *testing.T) {
 		},
 		{
 			name: "close without building",
-			setupWindow: func(w *Window) {
-				// Не создаем окно
-			},
 		},
 		{
 			name: "close already closed window",
@@ -283,6 +293,8 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -304,6 +316,8 @@ func TestWindow_Close(t *testing.T) {
 }
 
 func TestWindow_Constants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		constant any
@@ -368,12 +382,16 @@ func TestWindow_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.expected, tt.constant)
 		})
 	}
 }
 
 func TestWindow_UsersList(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		users      []domains.User
@@ -409,6 +427,8 @@ func TestWindow_UsersList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -507,7 +527,11 @@ func findSearchButton(window fyne.Window) *widget.Button {
 }
 
 func TestWindow_Integration(t *testing.T) {
+	t.Parallel()
+
 	t.Run("full window lifecycle", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

@@ -16,6 +16,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 	}{
@@ -26,6 +28,8 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -60,6 +64,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -69,7 +75,7 @@ func TestWindow_Build(t *testing.T) {
 	}{
 		{
 			name: "successful build",
-			setupMocks: func(mockUseCases *mockusecases.MockUseCases, mockLogger *mocks.MockLogger) {
+			setupMocks: func(mockUseCases *mockusecases.MockUseCases, _ *mocks.MockLogger) {
 				mockUseCases.EXPECT().
 					GetCurrentUser(gomock.Any()).
 					Return(&domains.User{
@@ -126,6 +132,8 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -163,6 +171,8 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -177,14 +187,13 @@ func TestWindow_Show(t *testing.T) {
 		},
 		{
 			name: "show without building",
-			setupWindow: func(w *Window) {
-				// Не вызываем Build
-			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -237,6 +246,8 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -251,9 +262,6 @@ func TestWindow_Close(t *testing.T) {
 		},
 		{
 			name: "close without building",
-			setupWindow: func(w *Window) {
-				// Не создаем окно
-			},
 		},
 		{
 			name: "close already closed window",
@@ -266,6 +274,8 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -315,6 +325,8 @@ func TestWindow_Close(t *testing.T) {
 }
 
 func TestWindow_Constants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		constant any
@@ -424,6 +436,8 @@ func TestWindow_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.expected, tt.constant)
 		})
 	}
@@ -431,7 +445,11 @@ func TestWindow_Constants(t *testing.T) {
 
 // Интеграционный тест полного цикла.
 func TestWindow_Integration(t *testing.T) {
+	t.Parallel()
+
 	t.Run("full window lifecycle", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

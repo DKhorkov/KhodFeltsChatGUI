@@ -13,6 +13,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		title    string
@@ -37,6 +39,8 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -54,6 +58,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		title       string
@@ -104,6 +110,8 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -126,7 +134,11 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_Build_MultipleBuilds(t *testing.T) {
+	t.Parallel()
+
 	t.Run("build multiple windows sequentially", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -150,6 +162,8 @@ func TestWindow_Build_MultipleBuilds(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -162,9 +176,6 @@ func TestWindow_Show(t *testing.T) {
 		},
 		{
 			name: "show without building",
-			setupWindow: func(w *Window) {
-				// Не вызываем Build
-			},
 		},
 		{
 			name: "show after close",
@@ -178,6 +189,8 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -198,6 +211,8 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -210,9 +225,6 @@ func TestWindow_Close(t *testing.T) {
 		},
 		{
 			name: "close without building",
-			setupWindow: func(w *Window) {
-				// Не создаем окно
-			},
 		},
 		{
 			name: "close already closed window",
@@ -234,6 +246,8 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -257,6 +271,8 @@ func TestWindow_Close(t *testing.T) {
 }
 
 func TestWindow_Constants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		constant any
@@ -276,13 +292,19 @@ func TestWindow_Constants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.expected, tt.constant)
 		})
 	}
 }
 
 func TestWindow_Integration(t *testing.T) {
+	t.Parallel()
+
 	t.Run("full window lifecycle", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -317,6 +339,8 @@ func TestWindow_Integration(t *testing.T) {
 }
 
 func TestWindow_Build_DifferentContentTypes(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		title   string
@@ -376,6 +400,8 @@ func TestWindow_Build_DifferentContentTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -393,7 +419,11 @@ func TestWindow_Build_DifferentContentTypes(t *testing.T) {
 }
 
 func TestWindow_ShowHideSequence(t *testing.T) {
+	t.Parallel()
+
 	t.Run("show, close, show again", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -437,7 +467,11 @@ func TestWindow_ShowHideSequence(t *testing.T) {
 }
 
 func TestWindow_MultipleInstances(t *testing.T) {
+	t.Parallel()
+
 	t.Run("create multiple independent windows", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -481,7 +515,11 @@ func TestWindow_MultipleInstances(t *testing.T) {
 
 // Дополнительный тест для проверки разных типов содержимого после перестроения.
 func TestWindow_RebuildWithDifferentContent(t *testing.T) {
+	t.Parallel()
+
 	t.Run("rebuild window with different content types", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -532,7 +570,11 @@ func TestWindow_RebuildWithDifferentContent(t *testing.T) {
 
 // Тест для проверки, что Close безопасно вызывается несколько раз.
 func TestWindow_SafeClose(t *testing.T) {
+	t.Parallel()
+
 	t.Run("close multiple times safely", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -565,7 +607,11 @@ func TestWindow_SafeClose(t *testing.T) {
 
 // Тест для проверки Show без Build.
 func TestWindow_ShowWithoutBuild(t *testing.T) {
+	t.Parallel()
+
 	t.Run("show without building should not panic", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -589,7 +635,11 @@ func TestWindow_ShowWithoutBuild(t *testing.T) {
 
 // Тест для проверки размера окна.
 func TestWindow_WindowSize(t *testing.T) {
+	t.Parallel()
+
 	t.Run("window size should match constants", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -605,6 +655,8 @@ func TestWindow_WindowSize(t *testing.T) {
 
 // Тест для проверки заголовка окна.
 func TestWindow_Title(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		title         string
@@ -634,6 +686,8 @@ func TestWindow_Title(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -649,7 +703,11 @@ func TestWindow_Title(t *testing.T) {
 
 // Тест для проверки, что Build пересоздает окно с новым содержимым.
 func TestWindow_BuildReplacesWindow(t *testing.T) {
+	t.Parallel()
+
 	t.Run("build should create new window", func(t *testing.T) {
+		t.Parallel()
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
