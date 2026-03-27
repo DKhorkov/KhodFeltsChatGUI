@@ -42,6 +42,7 @@ const (
 	loadMoreMessagesButtonText = "Загрузить историю"
 	closeChatButtonText        = "Закрыть чат"
 	sendMessageButtonText      = "Отправить"
+	changeThemeButtonText      = "Сменить тему"
 
 	messageEntryText = "Введите сообщение..."
 
@@ -672,6 +673,38 @@ func (w *Window) buildLeftPanel() *fyne.Container {
 		searchButton,
 	)
 
+	bottom := container.NewVBox(
+		widget.NewButtonWithIcon(
+			changeThemeButtonText,
+			theme.ColorPaletteIcon(),
+			func() {
+				var (
+					appTheme         fyne.Theme
+					newSettingsTheme domains.ThemeType
+				)
+
+				currentTheme := w.useCases.GetTheme(w.ctx)
+				switch currentTheme {
+				case domains.ThemeLight:
+					appTheme = theme.DarkTheme()
+					newSettingsTheme = domains.ThemeDark
+				case domains.ThemeDark:
+					appTheme = theme.LightTheme()
+					newSettingsTheme = domains.ThemeLight
+				}
+
+				if err := w.useCases.SetTheme(w.ctx, newSettingsTheme); err != nil {
+					dialog.ShowError(err, w.window)
+
+					return
+				}
+
+				w.app.Settings().SetTheme(appTheme)
+			},
+		),
+		logoutButton,
+	)
+
 	return container.NewBorder(
 		container.NewVBox(
 			widget.NewLabelWithStyle(
@@ -681,7 +714,7 @@ func (w *Window) buildLeftPanel() *fyne.Container {
 			),
 			widget.NewSeparator(),
 		),
-		logoutButton,
+		bottom,
 		nil,
 		nil,
 		container.NewBorder(

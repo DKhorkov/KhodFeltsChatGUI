@@ -101,6 +101,20 @@ func (mr *MockUseCasesMockRecorder) GetCurrentUser(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentUser", reflect.TypeOf((*MockUseCases)(nil).GetCurrentUser), ctx)
 }
 
+// GetTheme mocks base method.
+func (m *MockUseCases) GetTheme(ctx context.Context) domains.ThemeType {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTheme", ctx)
+	ret0, _ := ret[0].(domains.ThemeType)
+	return ret0
+}
+
+// GetTheme indicates an expected call of GetTheme.
+func (mr *MockUseCasesMockRecorder) GetTheme(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTheme", reflect.TypeOf((*MockUseCases)(nil).GetTheme), ctx)
+}
+
 // GetUserChats mocks base method.
 func (m *MockUseCases) GetUserChats(ctx context.Context, limit, offset int) ([]domains.Chat, error) {
 	m.ctrl.T.Helper()
@@ -217,4 +231,18 @@ func (m *MockUseCases) SendMessage(ctx context.Context, message domains.Message)
 func (mr *MockUseCasesMockRecorder) SendMessage(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockUseCases)(nil).SendMessage), ctx, message)
+}
+
+// SetTheme mocks base method.
+func (m *MockUseCases) SetTheme(ctx context.Context, theme domains.ThemeType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTheme", ctx, theme)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTheme indicates an expected call of SetTheme.
+func (mr *MockUseCasesMockRecorder) SetTheme(ctx, theme any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTheme", reflect.TypeOf((*MockUseCases)(nil).SetTheme), ctx, theme)
 }

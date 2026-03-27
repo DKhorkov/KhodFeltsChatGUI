@@ -11,7 +11,8 @@ import (
 
 const (
 	permission = 0o600
-	filename   = "tokens.json"
+
+	tokensFilename = "tokens.json"
 
 	// JSON view variables.
 	prefix = ""
@@ -35,14 +36,14 @@ func (r *TokensRepository) Save(_ context.Context, tokens domains.TokensDTO) err
 		return err
 	}
 
-	return os.WriteFile(filename, data, permission)
+	return os.WriteFile(tokensFilename, data, permission)
 }
 
 func (r *TokensRepository) Load(_ context.Context) (*domains.TokensDTO, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	data, err := os.ReadFile(filename)
+	data, err := os.ReadFile(tokensFilename)
 	if err != nil {
 		return nil, err
 	}
@@ -59,5 +60,5 @@ func (r *TokensRepository) Delete(_ context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return os.Remove(filename)
+	return os.Remove(tokensFilename)
 }

@@ -31,4 +31,8 @@ type UseCases interface {
 
 	// Users
 	SearchUsers(ctx context.Context, username string, limit, offset int) ([]domains.User, error)
+
+	// Settings
+	GetTheme(ctx context.Context) domains.ThemeType
+	SetTheme(ctx context.Context, theme domains.ThemeType) error
 }
