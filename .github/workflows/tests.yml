@@ -14,6 +14,10 @@ jobs:
           go-version: stable
       - name: Install Taskfile
         run: go install github.com/go-task/task/v3/cmd/task@latest
+      - name: Install system C-libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config
       - name: Install dependencies
         run: go get ./...
       - name: Run tests
