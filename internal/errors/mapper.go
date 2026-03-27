@@ -9,23 +9,38 @@ type Mapper struct {
 	mapping map[string]error
 }
 
-var defaultError = errors.New("Что-то пошло не так...")
+var (
+	errUserNotFound                           = errors.New("Такого пользователя не суествует")
+	errUserAlreadyExist                       = errors.New("Такой пользователь уже существует")
+	errEmailNotConfirmed                      = errors.New("Почтовый адрес не был подтвержён")
+	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
+	errWrongPassword                          = errors.New("Неверный логин или пароль")
+	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
+	errInvalidChat                            = errors.New("Неверный чат")
+	errUserNotIsMember                        = errors.New("У вас нет доступа к этому чату")
+	errChatNotFound                           = errors.New("Чат не найден")
+	errChatAlreadyExist                       = errors.New("Такой чат уже существует")
+	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
+	errValidationFailed                       = errors.New("Ошибка авторизации")
+)
+
+var errDefault = errors.New("Что-то пошло не так...")
 
 func New() *Mapper {
 	return &Mapper{
 		mapping: map[string]error{
-			"user not found":                                errors.New("Такого пользователя не суествует"),
-			"user already exists":                           errors.New("Такой пользователь уже существует"),
-			"email not confirmed":                           errors.New("Почтовый адрес не был подтвержён"),
-			"email already confirmed":                       errors.New("Этот почтовый адрес уже занят"),
-			"wrong password":                                errors.New("Неверный логин или пароль"),
-			"access token does not belong to refresh token": errors.New("Ошибка авторизации"),
-			"invalid chat":                                  errors.New("Неверный чат"),
-			"user is not a chat member":                     errors.New("У вас нет доступа к этому чату"),
-			"chat not found":                                errors.New("Чат не найден"),
-			"chat already exists":                           errors.New("Такой чат уже существует"),
-			"invalid jwt token":                             errors.New("Ошибка авторизации"),
-			"validation failed":                             errors.New("Ошибка авторизации"),
+			"user not found":                                errUserNotFound,
+			"user already exists":                           errUserAlreadyExist,
+			"email not confirmed":                           errEmailNotConfirmed,
+			"email already confirmed":                       errEmailAlreadyExist,
+			"wrong password":                                errWrongPassword,
+			"access token does not belong to refresh token": errAccessTokenDoesNotBelongToRefreshToken,
+			"invalid chat":                                  errInvalidChat,
+			"user is not a chat member":                     errUserNotIsMember,
+			"chat not found":                                errChatNotFound,
+			"chat already exists":                           errChatAlreadyExist,
+			"invalid jwt token":                             errInvalidJwtToken,
+			"validation failed":                             errValidationFailed,
 		},
 	}
 }
@@ -41,5 +56,5 @@ func (m *Mapper) Map(err error) error {
 		}
 	}
 
-	return defaultError
+	return errDefault
 }

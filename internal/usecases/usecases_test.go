@@ -10,6 +10,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
+	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockrepositories "github.com/DKhorkov/kfcGUI/mocks/repositories"
 	"github.com/DKhorkov/libs/logging/mocks"
 	"github.com/DKhorkov/libs/pointers"
@@ -23,8 +24,14 @@ func TestUseCases_Authenticate(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockUsersRepository, *mockrepositories.MockAuthRepository, *mocks.MockLogger)
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mockrepositories.MockAuthRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedUser  *domains.User
 		expectedError error
 	}{
@@ -35,6 +42,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -83,6 +91,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				_ *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -91,6 +100,8 @@ func TestUseCases_Authenticate(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("tokens not found"),
@@ -102,6 +113,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -117,6 +129,8 @@ func TestUseCases_Authenticate(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to refresh tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("refresh failed"),
@@ -128,6 +142,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -157,6 +172,8 @@ func TestUseCases_Authenticate(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to get user by refreshed tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("user not found"),
@@ -175,12 +192,21 @@ func TestUseCases_Authenticate(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger)
+				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			user, err := uc.Authenticate(context.Background())
 
@@ -201,10 +227,16 @@ func TestUseCases_Login(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		email         string
-		password      string
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockUsersRepository, *mockrepositories.MockAuthRepository, *mocks.MockLogger)
+		name       string
+		email      string
+		password   string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mockrepositories.MockAuthRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedUser  *domains.User
 		expectedError error
 	}{
@@ -217,6 +249,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
 					Login(gomock.Any(), "john@example.com", "password123").
@@ -260,6 +293,7 @@ func TestUseCases_Login(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
 					Login(gomock.Any(), "wrong@example.com", "wrong").
@@ -268,6 +302,8 @@ func TestUseCases_Login(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to login", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("invalid credentials"),
@@ -281,6 +317,7 @@ func TestUseCases_Login(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
 					Login(gomock.Any(), "john@example.com", "password123").
@@ -299,6 +336,8 @@ func TestUseCases_Login(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to save tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("save failed"),
@@ -312,6 +351,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
 					Login(gomock.Any(), "john@example.com", "password123").
@@ -334,6 +374,8 @@ func TestUseCases_Login(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to get user by accessToken", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("user not found"),
@@ -352,12 +394,21 @@ func TestUseCases_Login(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger)
+				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			user, err := uc.Login(context.Background(), tt.email, tt.password)
 
@@ -376,8 +427,14 @@ func TestUseCases_Logout(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockAuthRepository, *mockrepositories.MockWebSocketsRepository, *mocks.MockLogger)
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockAuthRepository,
+			*mockrepositories.MockWebSocketsRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedError error
 	}{
 		{
@@ -387,6 +444,7 @@ func TestUseCases_Logout(t *testing.T) {
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -416,6 +474,7 @@ func TestUseCases_Logout(t *testing.T) {
 				_ *mockrepositories.MockAuthRepository,
 				_ *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -424,6 +483,8 @@ func TestUseCases_Logout(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("tokens not found"),
 		},
@@ -434,6 +495,7 @@ func TestUseCases_Logout(t *testing.T) {
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -449,6 +511,8 @@ func TestUseCases_Logout(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to logout", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("logout failed"),
 		},
@@ -459,6 +523,7 @@ func TestUseCases_Logout(t *testing.T) {
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -478,6 +543,8 @@ func TestUseCases_Logout(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to delete tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("delete failed"),
 		},
@@ -488,6 +555,7 @@ func TestUseCases_Logout(t *testing.T) {
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -511,6 +579,8 @@ func TestUseCases_Logout(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to close websockets", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("close failed"),
 		},
@@ -528,12 +598,21 @@ func TestUseCases_Logout(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockAuth, mockWS, mockLogger)
+				tt.setupMocks(mockTokens, mockAuth, mockWS, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			err := uc.Logout(context.Background())
 
@@ -552,9 +631,13 @@ func TestUseCases_Register(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		registerData  domains.RegisterDTO
-		setupMocks    func(*mockrepositories.MockAuthRepository, *mocks.MockLogger)
+		name         string
+		registerData domains.RegisterDTO
+		setupMocks   func(
+			*mockrepositories.MockAuthRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedUser  *domains.User
 		expectedError error
 	}{
@@ -565,7 +648,11 @@ func TestUseCases_Register(t *testing.T) {
 				Email:    "john@example.com",
 				Password: "password123",
 			},
-			setupMocks: func(mockAuth *mockrepositories.MockAuthRepository, _ *mocks.MockLogger) {
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
 				mockAuth.EXPECT().
 					Register(gomock.Any(), domains.RegisterDTO{
 						Username: "john_doe",
@@ -596,7 +683,11 @@ func TestUseCases_Register(t *testing.T) {
 				Email:    "existing@example.com",
 				Password: "password123",
 			},
-			setupMocks: func(mockAuth *mockrepositories.MockAuthRepository, mockLogger *mocks.MockLogger) {
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
 				mockAuth.EXPECT().
 					Register(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("user already exists"))
@@ -604,6 +695,8 @@ func TestUseCases_Register(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to register user", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("user already exists"),
@@ -622,12 +715,21 @@ func TestUseCases_Register(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockAuth, mockLogger)
+				tt.setupMocks(mockAuth, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			user, err := uc.Register(context.Background(), tt.registerData)
 
@@ -648,10 +750,15 @@ func TestUseCases_GetUserChats(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		limit         int
-		offset        int
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockChatsRepository, *mocks.MockLogger)
+		name       string
+		limit      int
+		offset     int
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockChatsRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedChats []domains.Chat
 		expectedError error
 	}{
@@ -663,6 +770,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -692,6 +800,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -700,6 +809,8 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedChats: nil,
 			expectedError: errors.New("tokens not found"),
@@ -712,6 +823,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -727,6 +839,8 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to get user chats", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedChats: nil,
 			expectedError: errors.New("chats not found"),
@@ -745,12 +859,21 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger)
+				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			chats, err := uc.GetUserChats(context.Background(), tt.limit, tt.offset)
 
@@ -771,11 +894,16 @@ func TestUseCases_SearchUsers(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		username      string
-		limit         int
-		offset        int
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockUsersRepository, *mocks.MockLogger)
+		name       string
+		username   string
+		limit      int
+		offset     int
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedUsers []domains.User
 		expectedError error
 	}{
@@ -788,6 +916,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -859,6 +988,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -909,6 +1039,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -943,6 +1074,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockUsersRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -951,6 +1083,8 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUsers: nil,
 			expectedError: errors.New("tokens not found"),
@@ -964,6 +1098,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -979,6 +1114,8 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to get current user", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUsers: nil,
 			expectedError: errors.New("user not found"),
@@ -992,6 +1129,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1017,6 +1155,8 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to search users", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUsers: nil,
 			expectedError: errors.New("search failed"),
@@ -1035,12 +1175,21 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockLogger)
+				tt.setupMocks(mockTokens, mockUsers, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			users, err := uc.SearchUsers(context.Background(), tt.username, tt.limit, tt.offset)
 
@@ -1059,11 +1208,16 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name             string
-		chatID           uint64
-		limit            int
-		offset           int
-		setupMocks       func(*mockrepositories.MockTokensRepository, *mockrepositories.MockChatsRepository, *mocks.MockLogger)
+		name       string
+		chatID     uint64
+		limit      int
+		offset     int
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockChatsRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedMessages []domains.Message
 		expectedError    error
 	}{
@@ -1076,6 +1230,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1117,6 +1272,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1125,6 +1281,8 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedMessages: nil,
 			expectedError:    errors.New("tokens not found"),
@@ -1138,6 +1296,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1153,6 +1312,8 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to get chat messages", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedMessages: nil,
 			expectedError:    errors.New("messages not found"),
@@ -1166,6 +1327,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1195,12 +1357,21 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger)
+				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			messages, err := uc.GetChatMessages(
 				context.Background(),
@@ -1226,9 +1397,14 @@ func TestUseCases_SendMessage(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		message       domains.Message
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockWebSocketsRepository, *mocks.MockLogger)
+		name       string
+		message    domains.Message
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockWebSocketsRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedError error
 	}{
 		{
@@ -1251,6 +1427,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1282,6 +1459,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1290,6 +1468,8 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("tokens not found"),
 		},
@@ -1302,6 +1482,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1317,6 +1498,8 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to connect to websockets", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("connection failed"),
 		},
@@ -1329,6 +1512,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1348,6 +1532,8 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to send message", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedError: errors.New("write failed"),
 		},
@@ -1360,6 +1546,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1391,6 +1578,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1427,12 +1615,21 @@ func TestUseCases_SendMessage(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockWS, mockLogger)
+				tt.setupMocks(mockTokens, mockWS, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			err := uc.SendMessage(context.Background(), tt.message)
 
@@ -1451,8 +1648,12 @@ func TestUseCases_ReadMessage(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name            string
-		setupMocks      func(*mockrepositories.MockTokensRepository, *mockrepositories.MockWebSocketsRepository, *mocks.MockLogger)
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockWebSocketsRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper)
 		expectedMessage *domains.Message
 		expectedError   error
 	}{
@@ -1462,6 +1663,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1513,6 +1715,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1521,6 +1724,8 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedMessage: nil,
 			expectedError:   errors.New("tokens not found"),
@@ -1531,6 +1736,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1546,6 +1752,8 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to connect to websockets", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedMessage: nil,
 			expectedError:   errors.New("connection failed"),
@@ -1556,6 +1764,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1575,6 +1784,8 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to read message", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedMessage: nil,
 			expectedError:   errors.New("read failed"),
@@ -1585,6 +1796,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1622,12 +1834,21 @@ func TestUseCases_ReadMessage(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockWS, mockLogger)
+				tt.setupMocks(mockTokens, mockWS, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			message, err := uc.ReadMessage(context.Background())
 
@@ -1648,9 +1869,13 @@ func TestUseCases_CreateChat(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		chat          domains.Chat
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockChatsRepository, *mocks.MockLogger)
+		name       string
+		chat       domains.Chat
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockChatsRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper)
 		expectedChat  *domains.Chat
 		expectedError error
 	}{
@@ -1665,6 +1890,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1705,6 +1931,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1720,6 +1947,8 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to create chat", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedChat:  nil,
 			expectedError: errors.New("chat name is required"),
@@ -1733,6 +1962,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1741,6 +1971,8 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedChat:  nil,
 			expectedError: errors.New("tokens not found"),
@@ -1754,6 +1986,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1769,6 +2002,8 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to create chat", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedChat:  nil,
 			expectedError: errors.New("chat already exists"),
@@ -1784,6 +2019,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1831,12 +2067,21 @@ func TestUseCases_CreateChat(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger)
+				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			createdChat, err := uc.CreateChat(context.Background(), tt.chat)
 
@@ -1857,8 +2102,14 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
-		name          string
-		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockUsersRepository, *mockrepositories.MockAuthRepository, *mocks.MockLogger)
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mockrepositories.MockAuthRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedUser  *domains.User
 		expectedError error
 	}{
@@ -1869,6 +2120,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1917,6 +2169,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1932,6 +2185,8 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to refresh tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("refresh failed"),
@@ -1943,6 +2198,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				_ *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1951,6 +2207,8 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("tokens not found"),
@@ -1962,6 +2220,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockUsers *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -1991,6 +2250,8 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to get user by refreshed tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("user not found"),
@@ -2002,6 +2263,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				_ *mockrepositories.MockUsersRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2027,6 +2289,10 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to save tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedUser:  nil,
 			expectedError: errors.New("save failed"),
@@ -2045,12 +2311,21 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger)
+				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			user, err := uc.GetCurrentUser(context.Background())
 
@@ -2069,8 +2344,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		setupMocks     func(*mockrepositories.MockTokensRepository, *mockrepositories.MockAuthRepository, *mocks.MockLogger)
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockAuthRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
 		expectedTokens *domains.TokensDTO
 		expectedError  error
 	}{
@@ -2080,6 +2360,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2114,6 +2395,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2122,9 +2404,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("tokens file not found"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "failed to refresh tokens - invalid refresh token",
@@ -2132,6 +2418,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2147,9 +2434,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to refresh tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("refresh token expired"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "failed to refresh tokens - network error",
@@ -2157,6 +2448,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2172,9 +2464,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to refresh tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("connection timeout"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "failed to save refreshed tokens",
@@ -2182,6 +2478,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2207,9 +2504,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to save tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("failed to write to file"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "load returns empty tokens",
@@ -2217,6 +2518,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2232,9 +2534,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to refresh tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("refresh token is empty"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "refresh returns empty tokens",
@@ -2242,6 +2548,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2276,6 +2583,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2291,6 +2599,10 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to refresh tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(context.Canceled).
+					Times(1)
 			},
 			expectedTokens: nil,
 			expectedError:  context.Canceled,
@@ -2301,6 +2613,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2335,6 +2648,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2343,9 +2657,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("invalid JSON format"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "save tokens with permission denied",
@@ -2353,6 +2671,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2378,9 +2697,13 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockLogger.EXPECT().
 					ErrorContext(gomock.Any(), "failed to save tokens", gomock.Any()).
 					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).Return(errors.New("test")).
+					Times(1)
 			},
 			expectedTokens: nil,
-			expectedError:  errors.New("permission denied"),
+			expectedError:  errors.New("test"),
 		},
 		{
 			name: "refresh tokens with same tokens returned",
@@ -2388,6 +2711,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockAuth *mockrepositories.MockAuthRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
@@ -2430,12 +2754,21 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockAuth, mockLogger)
+				tt.setupMocks(mockTokens, mockAuth, mockLogger, mockErrorMapper)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockWS,
+				mockLogger,
+				mockErrorMapper,
+			)
 
 			tokens, err := uc.RefreshTokens(context.Background())
 
