@@ -59,6 +59,8 @@ const (
 	updateChatsInterval   = 5 * time.Second
 
 	panelsSplitOffset = 0.25
+
+	additionalMessageHeight = 30
 )
 
 type Window struct {
@@ -88,6 +90,8 @@ type Window struct {
 	loadMoreMessagesButton *widget.Button
 	sendMessageButton      *widget.Button
 	rightPanel             *fyne.Container
+
+	minMessageSize float32
 }
 
 func New(
@@ -518,6 +522,7 @@ func (w *Window) selectChat(chat domains.Chat) {
 
 	w.messages = nil
 	w.hasMoreMessages = true
+	w.minMessageSize = 0
 
 	messages, err := w.useCases.GetChatMessages(w.ctx, chat.ID, messagesLimit, 0)
 	if err != nil {
@@ -620,8 +625,16 @@ func (w *Window) buildMessagesList() {
 				senderLabel.SetText(message.Sender.Username)
 			}
 
-			messageLabel.SetText(message.Text)
 			timeLabel.SetText(message.CreatedAt.Format(common.DateTimeFormat))
+
+			messageLabel.SetText(message.Text)
+
+			// Динамически подгоняем высоту итемов, чтобы все помещалось
+			if messageLabel.MinSize().Height > w.minMessageSize {
+				w.minMessageSize = messageLabel.MinSize().Height
+			}
+
+			w.messagesList.SetItemHeight(id, w.minMessageSize+additionalMessageHeight)
 		},
 	)
 }
@@ -856,6 +869,7 @@ func (w *Window) closeChat() {
 	w.currentChat = nil
 	w.messages = nil
 	w.hasMoreMessages = true
+	w.minMessageSize = 0
 
 	// Очищаем поле ввода
 	w.messageEntry.SetText("")
