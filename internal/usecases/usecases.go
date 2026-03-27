@@ -10,13 +10,13 @@ import (
 )
 
 type UseCases struct {
-	users    interfaces.UsersRepository
-	chats    interfaces.ChatsRepository
-	auth     interfaces.AuthRepository
-	tokens   interfaces.TokensRepository
-	settings interfaces.SettingsRepository
-	ws       interfaces.WebSocketsRepository
-	logger   logging.Logger
+	users        interfaces.UsersRepository
+	chats        interfaces.ChatsRepository
+	auth         interfaces.AuthRepository
+	tokens       interfaces.TokensRepository
+	settings     interfaces.SettingsRepository
+	ws           interfaces.WebSocketsRepository
+	logger       logging.Logger
 	errorsMapper interfaces.ErrorsMapper
 }
 
@@ -31,13 +31,13 @@ func New(
 	errorsMapper interfaces.ErrorsMapper,
 ) *UseCases {
 	return &UseCases{
-		users:    users,
-		chats:    chats,
-		auth:     auth,
-		tokens:   tokens,
-		settings: settings,
-		ws:       ws,
-		logger:   logger,
+		users:        users,
+		chats:        chats,
+		auth:         auth,
+		tokens:       tokens,
+		settings:     settings,
+		ws:           ws,
+		logger:       logger,
 		errorsMapper: errorsMapper,
 	}
 }

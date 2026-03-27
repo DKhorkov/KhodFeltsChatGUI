@@ -193,10 +193,10 @@ func TestUseCases_Authenticate(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -207,7 +207,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			user, err := uc.Authenticate(context.Background())
@@ -397,10 +397,10 @@ func TestUseCases_Login(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -411,7 +411,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			user, err := uc.Login(context.Background(), tt.email, tt.password)
@@ -603,10 +603,10 @@ func TestUseCases_Logout(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockAuth, mockWS, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockAuth, mockWS, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -617,7 +617,7 @@ func TestUseCases_Logout(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			err := uc.Logout(context.Background())
@@ -722,10 +722,10 @@ func TestUseCases_Register(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockAuth, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockAuth, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -736,7 +736,7 @@ func TestUseCases_Register(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			user, err := uc.Register(context.Background(), tt.registerData)
@@ -868,10 +868,10 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -882,7 +882,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			chats, err := uc.GetUserChats(context.Background(), tt.limit, tt.offset)
@@ -1186,10 +1186,10 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockUsers, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -1200,7 +1200,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			users, err := uc.SearchUsers(context.Background(), tt.username, tt.limit, tt.offset)
@@ -1370,10 +1370,10 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -1384,7 +1384,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			messages, err := uc.GetChatMessages(
@@ -1630,10 +1630,10 @@ func TestUseCases_SendMessage(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockWS, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockWS, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -1644,7 +1644,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			err := uc.SendMessage(context.Background(), tt.message)
@@ -1851,10 +1851,10 @@ func TestUseCases_ReadMessage(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockWS, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockWS, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -1865,7 +1865,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			message, err := uc.ReadMessage(context.Background())
@@ -2086,10 +2086,10 @@ func TestUseCases_CreateChat(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -2100,7 +2100,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			createdChat, err := uc.CreateChat(context.Background(), tt.chat)
@@ -2332,10 +2332,10 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -2346,7 +2346,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			user, err := uc.GetCurrentUser(context.Background())
@@ -2777,10 +2777,10 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
-			mockErrorMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockAuth, mockLogger, mockErrorMapper)
+				tt.setupMocks(mockTokens, mockAuth, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
@@ -2791,7 +2791,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
-				mockErrorMapper,
+				mockErrorsMapper,
 			)
 
 			tokens, err := uc.RefreshTokens(context.Background())
@@ -2875,6 +2875,7 @@ func TestUseCases_GetTheme(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockSettings, mockLogger)
@@ -2888,6 +2889,7 @@ func TestUseCases_GetTheme(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
+				mockErrorsMapper,
 			)
 
 			ctx := context.Background()
@@ -3075,6 +3077,7 @@ func TestUseCases_SetTheme(t *testing.T) {
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockSettings, mockLogger)
@@ -3088,6 +3091,7 @@ func TestUseCases_SetTheme(t *testing.T) {
 				mockSettings,
 				mockWS,
 				mockLogger,
+				mockErrorsMapper,
 			)
 
 			ctx := context.Background()
