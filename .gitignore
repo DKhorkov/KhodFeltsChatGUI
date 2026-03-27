@@ -29,6 +29,7 @@ go.work.sum
 
 # Local files^
 *.log
+sdk/MacOSX11.3.sdk
 logs/
 bin/
 *.db
