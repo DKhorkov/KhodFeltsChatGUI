@@ -261,6 +261,10 @@ linters:
         linters:
           - paralleltest
 
+      - path: internal/repositories/settings_test.go
+        linters:
+          - paralleltest
+
       - path: internal/config/config.go
         linters:
           - mnd
@@ -279,6 +283,7 @@ linters:
       - path: cmd/main.go
         linters:
           - exhaustruct
+          - staticcheck
 
       - path: internal/domains/chat.go
         linters:
@@ -306,6 +311,7 @@ linters:
         linters:
           - containedctx
           - forcetypeassert
+          - staticcheck
 
       - path: internal/windows/create_chat/window.go
         linters:

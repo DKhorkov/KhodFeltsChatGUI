@@ -170,6 +170,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -180,7 +181,15 @@ func TestUseCases_Authenticate(t *testing.T) {
 				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			user, err := uc.Authenticate(context.Background())
 
@@ -347,6 +356,7 @@ func TestUseCases_Login(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -357,7 +367,15 @@ func TestUseCases_Login(t *testing.T) {
 				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			user, err := uc.Login(context.Background(), tt.email, tt.password)
 
@@ -523,6 +541,7 @@ func TestUseCases_Logout(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -533,7 +552,15 @@ func TestUseCases_Logout(t *testing.T) {
 				tt.setupMocks(mockTokens, mockAuth, mockWS, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			err := uc.Logout(context.Background())
 
@@ -617,6 +644,7 @@ func TestUseCases_Register(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -627,7 +655,15 @@ func TestUseCases_Register(t *testing.T) {
 				tt.setupMocks(mockAuth, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			user, err := uc.Register(context.Background(), tt.registerData)
 
@@ -740,6 +776,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -750,7 +787,15 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				tt.setupMocks(mockTokens, mockChats, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			chats, err := uc.GetUserChats(context.Background(), tt.limit, tt.offset)
 
@@ -1030,6 +1075,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -1040,7 +1086,15 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				tt.setupMocks(mockTokens, mockUsers, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			users, err := uc.SearchUsers(context.Background(), tt.username, tt.limit, tt.offset)
 
@@ -1190,6 +1244,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -1200,7 +1255,15 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 				tt.setupMocks(mockTokens, mockChats, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			messages, err := uc.GetChatMessages(
 				context.Background(),
@@ -1422,6 +1485,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -1432,7 +1496,15 @@ func TestUseCases_SendMessage(t *testing.T) {
 				tt.setupMocks(mockTokens, mockWS, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			err := uc.SendMessage(context.Background(), tt.message)
 
@@ -1617,6 +1689,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -1627,7 +1700,15 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				tt.setupMocks(mockTokens, mockWS, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			message, err := uc.ReadMessage(context.Background())
 
@@ -1826,6 +1907,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -1836,7 +1918,15 @@ func TestUseCases_CreateChat(t *testing.T) {
 				tt.setupMocks(mockTokens, mockChats, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			createdChat, err := uc.CreateChat(context.Background(), tt.chat)
 
@@ -2040,6 +2130,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -2050,7 +2141,15 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 				tt.setupMocks(mockTokens, mockUsers, mockAuth, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			user, err := uc.GetCurrentUser(context.Background())
 
@@ -2425,6 +2524,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
@@ -2435,7 +2535,15 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 				tt.setupMocks(mockTokens, mockAuth, mockLogger)
 			}
 
-			uc := usecases.New(mockUsers, mockChats, mockAuth, mockTokens, mockWS, mockLogger)
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
 
 			tokens, err := uc.RefreshTokens(context.Background())
 
@@ -2447,6 +2555,301 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.expectedTokens, tokens)
+		})
+	}
+}
+
+func TestUseCases_GetTheme(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		setupMocks func(*mockrepositories.MockSettingsRepository, *mocks.MockLogger)
+		expected   domains.ThemeType
+	}{
+		{
+			name: "successful get light theme",
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeLight,
+					}, nil)
+			},
+			expected: domains.ThemeLight,
+		},
+		{
+			name: "successful get dark theme",
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeDark,
+					}, nil)
+			},
+			expected: domains.ThemeDark,
+		},
+		{
+			name: "load error - return default light theme",
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("settings file not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load settings", gomock.Any()).
+					Times(1)
+			},
+			expected: domains.ThemeLight,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockSettings, mockLogger)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
+
+			ctx := context.Background()
+			result := uc.GetTheme(ctx)
+
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestUseCases_SetTheme(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		theme         domains.ThemeType
+		setupMocks    func(*mockrepositories.MockSettingsRepository, *mocks.MockLogger)
+		expectedError error
+	}{
+		{
+			name:  "successful set light theme when settings exist",
+			theme: domains.ThemeLight,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeDark,
+					}, nil)
+
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeLight,
+					}).
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "successful set dark theme when settings exist",
+			theme: domains.ThemeDark,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeLight,
+					}, nil)
+
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeDark,
+					}).
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "successful set theme when settings do not exist - create new settings",
+			theme: domains.ThemeDark,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("settings not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load settings", gomock.Any()).
+					Times(1)
+
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeDark,
+					}).
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "failed to save after loading existing settings",
+			theme: domains.ThemeDark,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeLight,
+					}, nil)
+
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeDark,
+					}).
+					Return(errors.New("save failed"))
+			},
+			expectedError: errors.New("save failed"),
+		},
+		{
+			name:  "failed to save when creating new settings",
+			theme: domains.ThemeLight,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("settings not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load settings", gomock.Any()).
+					Times(1)
+
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeLight,
+					}).
+					Return(errors.New("save failed"))
+			},
+			expectedError: errors.New("save failed"),
+		},
+		{
+			name:  "set same theme - should update",
+			theme: domains.ThemeDark,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeDark,
+					}, nil)
+
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeDark,
+					}).
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "set theme after multiple operations",
+			theme: domains.ThemeLight,
+			setupMocks: func(
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+			) {
+				// Первая загрузка
+				mockSettings.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.Settings{
+						Theme: domains.ThemeDark,
+					}, nil)
+
+				// Сохранение
+				mockSettings.EXPECT().
+					Save(gomock.Any(), domains.Settings{
+						Theme: domains.ThemeLight,
+					}).
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockSettings, mockLogger)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+			)
+
+			ctx := context.Background()
+			err := uc.SetTheme(ctx, tt.theme)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
