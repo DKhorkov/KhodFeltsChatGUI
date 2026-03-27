@@ -242,20 +242,6 @@ linters:
           - cyclop
           - nestif
 
-      - path: internal/repositories/auth_repository.go
-        linters:
-          - gocritic
-
-      - path: internal/repositories/emails_repository_test.go
-        linters:
-          - testpackage
-
-      - path: internal/config/config.go
-        linters:
-          - mnd
-          - nosprintfhostport
-          - maintidx
-
       - path: internal/repositories/*
         linters:
           - exhaustruct
@@ -263,6 +249,23 @@ linters:
           - gochecknoglobals
           - bodyclose
           - gosec
+          - testpackage
+          - errchkjson
+
+      - path: internal/repositories/repository_test.go
+        linters:
+          - nonamedreturns
+          - staticcheck
+
+      - path: internal/repositories/tokens_test.go
+        linters:
+          - paralleltest
+
+      - path: internal/config/config.go
+        linters:
+          - mnd
+          - nosprintfhostport
+          - maintidx
 
       - path: internal/interfaces/usecases.go
         linters:
@@ -283,15 +286,6 @@ linters:
 
       - path: internal/domains/message.go
         line: "17"
-        linters:
-          - exhaustruct
-
-      - path: internal/services/users_service.go
-        linters:
-          - dupl
-
-      - path: internal/services/chats_service.go
-        line: "82"
         linters:
           - exhaustruct
 

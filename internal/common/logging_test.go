@@ -8,6 +8,8 @@ import (
 )
 
 func TestCreateLogsDir(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		setup         func() // подготовка перед тестом
@@ -18,11 +20,11 @@ func TestCreateLogsDir(t *testing.T) {
 			name: "logs directory does not exist - should create it",
 			setup: func() {
 				// Удаляем директорию, если она существует
-				os.RemoveAll(common.LogsDir)
+				_ = os.RemoveAll(common.LogsDir)
 			},
 			cleanup: func() {
 				// Удаляем созданную директорию
-				os.RemoveAll(common.LogsDir)
+				_ = os.RemoveAll(common.LogsDir)
 			},
 			expectedExist: true,
 		},
@@ -30,11 +32,11 @@ func TestCreateLogsDir(t *testing.T) {
 			name: "logs directory already exists - should not fail",
 			setup: func() {
 				// Создаем директорию заранее
-				os.MkdirAll(common.LogsDir, os.ModePerm)
+				_ = os.MkdirAll(common.LogsDir, os.ModePerm)
 			},
 			cleanup: func() {
 				// Удаляем директорию после теста
-				os.RemoveAll(common.LogsDir)
+				_ = os.RemoveAll(common.LogsDir)
 			},
 			expectedExist: true,
 		},
@@ -42,13 +44,13 @@ func TestCreateLogsDir(t *testing.T) {
 			name: "logs directory exists as file - should not fail",
 			setup: func() {
 				// Создаем файл вместо директории
-				os.RemoveAll(common.LogsDir)
+				_ = os.RemoveAll(common.LogsDir)
 				f, _ := os.Create(common.LogsDir)
-				f.Close()
+				_ = f.Close()
 			},
 			cleanup: func() {
 				// Удаляем файл после теста
-				os.RemoveAll(common.LogsDir)
+				_ = os.RemoveAll(common.LogsDir)
 			},
 			expectedExist: true, // функция не удаляет файл, просто пытается создать директорию
 		},
@@ -56,6 +58,8 @@ func TestCreateLogsDir(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Подготовка
 			if tt.setup != nil {
 				tt.setup()
@@ -82,6 +86,8 @@ func TestCreateLogsDir(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		constant any
@@ -106,6 +112,8 @@ func TestConstants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if tt.constant != tt.expected {
 				t.Errorf("%s = %v, expected %v", tt.name, tt.constant, tt.expected)
 			}

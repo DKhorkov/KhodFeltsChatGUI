@@ -8,6 +8,8 @@ import (
 )
 
 func TestFoundUsersText(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		usersCount int
@@ -191,6 +193,8 @@ func TestFoundUsersText(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			result := windows.FoundUsersText(tt.usersCount)
 			assert.Equal(t, tt.expected, result)
 		})

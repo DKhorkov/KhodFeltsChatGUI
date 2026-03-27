@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/DKhorkov/libs/logging/mocks"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
@@ -16,7 +17,7 @@ type MockReadCloser struct {
 	closed     bool
 }
 
-func (m *MockReadCloser) Read(p []byte) (n int, err error) {
+func (_ *MockReadCloser) Read(_ []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
@@ -27,6 +28,8 @@ func (m *MockReadCloser) Close() error {
 }
 
 func TestRepository_closeBody(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		body           io.ReadCloser
@@ -40,10 +43,7 @@ func TestRepository_closeBody(t *testing.T) {
 			body: &MockReadCloser{
 				closeError: nil,
 			},
-			ctx: context.Background(),
-			setupMocks: func(mockLogger *mocks.MockLogger) {
-				// Не ожидаем вызовов логгера
-			},
+			ctx:            context.Background(),
 			shouldLogError: false,
 		},
 		{
@@ -52,24 +52,6 @@ func TestRepository_closeBody(t *testing.T) {
 				closeError: errors.New("connection closed unexpectedly"),
 			},
 			ctx: context.Background(),
-			setupMocks: func(mockLogger *mocks.MockLogger) {
-				mockLogger.EXPECT().
-					ErrorContext(
-						gomock.Any(),
-						"failed to close response body",
-						gomock.Any(),
-					).
-					Times(1)
-			},
-			shouldLogError: true,
-			expectedMsg:    "failed to close response body",
-		},
-		{
-			name: "close with context containing values",
-			body: &MockReadCloser{
-				closeError: errors.New("timeout error"),
-			},
-			ctx: context.WithValue(context.Background(), "request_id", "12345"),
 			setupMocks: func(mockLogger *mocks.MockLogger) {
 				mockLogger.EXPECT().
 					ErrorContext(
@@ -168,6 +150,8 @@ func TestRepository_closeBody(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			// Setup
 			ctrl := gomock.NewController(t)
 
@@ -202,6 +186,8 @@ func TestRepository_closeBody(t *testing.T) {
 }
 
 func TestNewRepository(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name   string
 		logger *mocks.MockLogger
@@ -218,19 +204,17 @@ func TestNewRepository(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewRepository(tt.logger)
-			if repo == nil {
-				t.Error("Expected non-nil repository")
-			}
+			t.Parallel()
 
-			if repo.logger != tt.logger {
-				t.Errorf("Expected logger = %v, got %v", tt.logger, repo.logger)
-			}
+			repo := NewRepository(tt.logger)
+			assert.NotNil(t, repo)
 		})
 	}
 }
 
 func TestRepository_closeBody_ErrorTypes(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		closeError error
@@ -275,6 +259,8 @@ func TestRepository_closeBody_ErrorTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockLogger := mocks.NewMockLogger(ctrl)

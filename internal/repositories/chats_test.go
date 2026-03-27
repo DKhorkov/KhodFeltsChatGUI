@@ -19,7 +19,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+var validToken = "valid token"
+
 func TestChatsRepository_GetUserChats(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -33,7 +37,7 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 	}{
 		{
 			name:        "successful get user chats",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			limit:       10,
 			offset:      0,
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
@@ -57,7 +61,7 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 					Do(gomock.Any()).
 					DoAndReturn(func(req *http.Request) (*http.Response, error) {
 						cookie, err := req.Cookie(accessTokenCookieName)
-						if err != nil || cookie.Value != "valid_token" {
+						if err != nil || cookie.Value != validToken {
 							return nil, errors.New("invalid cookie")
 						}
 
@@ -95,7 +99,7 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 		},
 		{
 			name:        "empty chats list",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			limit:       10,
 			offset:      0,
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
@@ -114,7 +118,7 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 		},
 		{
 			name:        "with pagination - large offset",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			limit:       20,
 			offset:      100,
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
@@ -233,6 +237,8 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
@@ -261,6 +267,8 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 }
 
 func TestChatsRepository_CreateChat(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -273,7 +281,7 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 	}{
 		{
 			name:        "successful create chat",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			chat: domains.Chat{
 				Title:     pointers.New("New Chat"),
 				Type:      domains.ChatTypePrivate,
@@ -300,7 +308,7 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 						}
 
 						cookie, err := req.Cookie(accessTokenCookieName)
-						if err != nil || cookie.Value != "valid_token" {
+						if err != nil || cookie.Value != validToken {
 							return nil, errors.New("invalid cookie")
 						}
 
@@ -345,7 +353,7 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 				CreatedAt: now,
 				UpdatedAt: now,
 			},
-			setupMocks:    func(mockClient *mockhttp.MockHTTPClient) {},
+			setupMocks:    func(_ *mockhttp.MockHTTPClient) {},
 			expectedChat:  nil,
 			expectedError: internalerrors.ErrCreateChat,
 		},
@@ -442,6 +450,8 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
@@ -465,6 +475,8 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 }
 
 func TestChatsRepository_GetChatMessages(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -479,7 +491,7 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 	}{
 		{
 			name:        "successful get messages",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			chatID:      1,
 			limit:       20,
 			offset:      0,
@@ -538,7 +550,7 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 						}
 
 						cookie, err := req.Cookie(accessTokenCookieName)
-						if err != nil || cookie.Value != "valid_token" {
+						if err != nil || cookie.Value != validToken {
 							return nil, errors.New("invalid cookie")
 						}
 
@@ -827,6 +839,8 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)

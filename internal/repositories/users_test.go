@@ -18,6 +18,8 @@ import (
 )
 
 func TestUsersRepository_GetCurrentUser(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		accessToken   string
@@ -90,7 +92,7 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 		},
 		{
 			name:        "invalid json response",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -139,7 +141,7 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 		},
 		{
 			name:        "empty response body",
-			accessToken: "valid_token",
+			accessToken: validToken,
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -156,6 +158,8 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
@@ -184,6 +188,8 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 }
 
 func TestUsersRepository_SearchUsers(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		username      string
@@ -405,6 +411,8 @@ func TestUsersRepository_SearchUsers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)

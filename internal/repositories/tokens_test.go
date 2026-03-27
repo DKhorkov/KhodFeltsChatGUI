@@ -27,12 +27,12 @@ func TestTokensRepository_Save(t *testing.T) {
 			},
 			setup: func() error {
 				// Удаляем файл перед тестом, если существует
-				os.Remove(filename)
+				_ = os.Remove(filename)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
@@ -53,7 +53,7 @@ func TestTokensRepository_Save(t *testing.T) {
 				return os.WriteFile(filename, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
@@ -64,12 +64,12 @@ func TestTokensRepository_Save(t *testing.T) {
 				RefreshToken: "",
 			},
 			setup: func() error {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
@@ -80,12 +80,12 @@ func TestTokensRepository_Save(t *testing.T) {
 				RefreshToken: "refresh!@#$%^&*()_+{}[]",
 			},
 			setup: func() error {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
@@ -96,12 +96,12 @@ func TestTokensRepository_Save(t *testing.T) {
 				RefreshToken: string(make([]byte, 10000)),
 			},
 			setup: func() error {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
@@ -178,7 +178,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				return os.WriteFile(filename, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected: &domains.TokensDTO{
 				AccessToken:  "access_token_123",
@@ -202,7 +202,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				return os.WriteFile(filename, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected: &domains.TokensDTO{
 				AccessToken:  "",
@@ -226,7 +226,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				return os.WriteFile(filename, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected: &domains.TokensDTO{
 				AccessToken:  "token!@#$%^&*()",
@@ -250,7 +250,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				return os.WriteFile(filename, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected: &domains.TokensDTO{
 				AccessToken:  "токен_доступа_привет",
@@ -261,12 +261,12 @@ func TestTokensRepository_Load(t *testing.T) {
 		{
 			name: "load when file does not exist",
 			setup: func() error {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected:    nil,
 			expectedErr: true,
@@ -277,7 +277,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				return os.WriteFile(filename, []byte("{invalid json}"), permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected:    nil,
 			expectedErr: true,
@@ -288,7 +288,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				return os.WriteFile(filename, []byte(""), permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expected:    nil,
 			expectedErr: true,
@@ -345,19 +345,19 @@ func TestTokensRepository_Delete(t *testing.T) {
 			},
 			cleanup: func() {
 				// Файл должен быть удален, но на всякий случай удаляем
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
 		{
 			name: "delete when file does not exist",
 			setup: func() error {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: true,
 		},
@@ -388,7 +388,7 @@ func TestTokensRepository_Delete(t *testing.T) {
 				return os.WriteFile(filename, data2, permission)
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 			expectedErr: false,
 		},
@@ -448,7 +448,7 @@ func TestTokensRepository_Concurrency(t *testing.T) {
 				{"save", domains.TokensDTO{AccessToken: "token3", RefreshToken: "refresh3"}},
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 		},
 		{
@@ -463,15 +463,15 @@ func TestTokensRepository_Concurrency(t *testing.T) {
 				{"load", domains.TokensDTO{}},
 			},
 			cleanup: func() {
-				os.Remove(filename)
+				_ = os.Remove(filename)
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.name, func(_ *testing.T) {
 			// Cleanup before test
-			os.Remove(filename)
+			_ = os.Remove(filename)
 
 			// Cleanup after test
 			if tt.cleanup != nil {

@@ -19,6 +19,8 @@ import (
 )
 
 func TestAuthRepository_Register(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 
 	tests := []struct {
@@ -180,6 +182,8 @@ func TestAuthRepository_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
@@ -203,6 +207,8 @@ func TestAuthRepository_Register(t *testing.T) {
 }
 
 func TestAuthRepository_Login(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		email          string
@@ -360,6 +366,8 @@ func TestAuthRepository_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
@@ -383,6 +391,8 @@ func TestAuthRepository_Login(t *testing.T) {
 }
 
 func TestAuthRepository_Logout(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		accessToken   string
@@ -473,6 +483,8 @@ func TestAuthRepository_Logout(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
@@ -494,6 +506,8 @@ func TestAuthRepository_Logout(t *testing.T) {
 }
 
 func TestAuthRepository_RefreshTokens(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		refreshToken   string
@@ -656,6 +670,8 @@ func TestAuthRepository_RefreshTokens(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
