@@ -11,18 +11,19 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
+	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
 type UsersRepository struct {
 	Repository
 
-	httpClient *http.Client
+	httpClient interfaces.HTTPClient
 	baseURL    string
 	mu         sync.RWMutex
 }
 
 func NewUsersRepository(
-	httpClient *http.Client,
+	httpClient interfaces.HTTPClient,
 	baseURL string,
 ) *UsersRepository {
 	return &UsersRepository{

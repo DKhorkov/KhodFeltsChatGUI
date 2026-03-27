@@ -12,6 +12,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
+	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
 var (
@@ -22,13 +23,13 @@ var (
 type AuthRepository struct {
 	Repository
 
-	httpClient *http.Client
+	httpClient interfaces.HTTPClient
 	baseURL    string
 	mu         sync.Mutex
 }
 
 func NewAuthRepository(
-	httpClient *http.Client,
+	httpClient interfaces.HTTPClient,
 	baseURL string,
 ) *AuthRepository {
 	return &AuthRepository{

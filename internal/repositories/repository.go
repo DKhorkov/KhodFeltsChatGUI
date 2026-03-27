@@ -18,6 +18,10 @@ func NewRepository(logger logging.Logger) *Repository {
 }
 
 func (r *Repository) closeBody(ctx context.Context, body io.ReadCloser) {
+	if body == nil {
+		return
+	}
+
 	if err := body.Close(); err != nil {
 		logging.LogErrorContext(
 			ctx,

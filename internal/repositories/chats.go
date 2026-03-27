@@ -12,17 +12,18 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
+	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
 type ChatsRepository struct {
 	Repository
 
-	httpClient *http.Client
+	httpClient interfaces.HTTPClient
 	baseURL    string
 	mu         sync.RWMutex
 }
 
-func NewChatsRepository(httpClient *http.Client, baseURL string) *ChatsRepository {
+func NewChatsRepository(httpClient interfaces.HTTPClient, baseURL string) *ChatsRepository {
 	return &ChatsRepository{
 		httpClient: httpClient,
 		baseURL:    baseURL,
