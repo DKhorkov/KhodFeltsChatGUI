@@ -22,9 +22,8 @@ var (
 	errChatAlreadyExist                       = errors.New("Такой чат уже существует")
 	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
 	errValidationFailed                       = errors.New("Ошибка авторизации")
+	errDefault                                = errors.New("Что-то пошло не так...")
 )
-
-var errDefault = errors.New("Что-то пошло не так...")
 
 func New() *Mapper {
 	return &Mapper{
