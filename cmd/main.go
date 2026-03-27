@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/config"
+	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/repositories"
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
 	"github.com/DKhorkov/kfcGUI/internal/windows/auth"
@@ -39,6 +40,7 @@ func main() {
 	usersRepository := repositories.NewUsersRepository(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := repositories.NewChatsRepository(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := repositories.NewTokensRepository()
+	settingsRepository := repositories.NewSettingsRepository()
 	websocketsRepository := repositories.NewWebSocketsRepository(cfg.HTTP.WebsocketURL, logger)
 
 	useCases := usecases.New(
@@ -46,12 +48,18 @@ func main() {
 		chatsRepository,
 		authRepository,
 		tokensRepository,
+		settingsRepository,
 		websocketsRepository,
 		logger,
 	)
 
+	appTheme := theme.LightTheme()
+	if useCases.GetTheme(context.Background()) == domains.ThemeDark {
+		appTheme = theme.DarkTheme()
+	}
+
 	kfc := app.New()
-	kfc.Settings().SetTheme(theme.DefaultTheme())
+	kfc.Settings().SetTheme(appTheme)
 
 	authWindow := auth.New(kfc, nil, useCases, cfg.Validation)
 	notificationWindow := notification.New(kfc, useCases)

@@ -10,12 +10,13 @@ import (
 )
 
 type UseCases struct {
-	users  interfaces.UsersRepository
-	chats  interfaces.ChatsRepository
-	auth   interfaces.AuthRepository
-	tokens interfaces.TokensRepository
-	ws     interfaces.WebSocketsRepository
-	logger logging.Logger
+	users    interfaces.UsersRepository
+	chats    interfaces.ChatsRepository
+	auth     interfaces.AuthRepository
+	tokens   interfaces.TokensRepository
+	settings interfaces.SettingsRepository
+	ws       interfaces.WebSocketsRepository
+	logger   logging.Logger
 }
 
 func New(
@@ -23,16 +24,18 @@ func New(
 	chats interfaces.ChatsRepository,
 	auth interfaces.AuthRepository,
 	tokens interfaces.TokensRepository,
+	settings interfaces.SettingsRepository,
 	ws interfaces.WebSocketsRepository,
 	logger logging.Logger,
 ) *UseCases {
 	return &UseCases{
-		users:  users,
-		chats:  chats,
-		auth:   auth,
-		tokens: tokens,
-		ws:     ws,
-		logger: logger,
+		users:    users,
+		chats:    chats,
+		auth:     auth,
+		tokens:   tokens,
+		settings: settings,
+		ws:       ws,
+		logger:   logger,
 	}
 }
 
@@ -310,4 +313,33 @@ func (u *UseCases) GetChatMessages(
 	}
 
 	return messages, nil
+}
+
+func (u *UseCases) GetTheme(ctx context.Context) domains.ThemeType {
+	settings, err := u.settings.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load settings", err)
+
+		return domains.ThemeLight // default theme
+	}
+
+	return settings.Theme
+}
+
+func (u *UseCases) SetTheme(ctx context.Context, theme domains.ThemeType) error {
+	defaultSettings := domains.Settings{
+		Theme: theme,
+	}
+
+	// Пытаемся загрузить настройки, если существуют. Иначе сохраняем дефолтные
+	settings, err := u.settings.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load settings", err)
+
+		return u.settings.Save(ctx, defaultSettings)
+	}
+
+	settings.Theme = theme
+
+	return u.settings.Save(ctx, *settings)
 }
