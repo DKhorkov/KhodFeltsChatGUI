@@ -10,12 +10,13 @@ import (
 )
 
 type UseCases struct {
-	users  interfaces.UsersRepository
-	chats  interfaces.ChatsRepository
-	auth   interfaces.AuthRepository
-	tokens interfaces.TokensRepository
-	ws     interfaces.WebSocketsRepository
-	logger logging.Logger
+	users        interfaces.UsersRepository
+	chats        interfaces.ChatsRepository
+	auth         interfaces.AuthRepository
+	tokens       interfaces.TokensRepository
+	ws           interfaces.WebSocketsRepository
+	logger       logging.Logger
+	errorsMapper interfaces.ErrorsMapper
 }
 
 func New(
@@ -25,14 +26,16 @@ func New(
 	tokens interfaces.TokensRepository,
 	ws interfaces.WebSocketsRepository,
 	logger logging.Logger,
+	errorsMapper interfaces.ErrorsMapper,
 ) *UseCases {
 	return &UseCases{
-		users:  users,
-		chats:  chats,
-		auth:   auth,
-		tokens: tokens,
-		ws:     ws,
-		logger: logger,
+		users:        users,
+		chats:        chats,
+		auth:         auth,
+		tokens:       tokens,
+		ws:           ws,
+		logger:       logger,
+		errorsMapper: errorsMapper,
 	}
 }
 
@@ -46,7 +49,7 @@ func (u *UseCases) Authenticate(ctx context.Context) (*domains.User, error) {
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get user by refreshed tokens", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return user, nil
@@ -62,7 +65,7 @@ func (u *UseCases) GetCurrentUser(ctx context.Context) (*domains.User, error) {
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get user by refreshed tokens", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return user, nil
@@ -73,20 +76,20 @@ func (u *UseCases) RefreshTokens(ctx context.Context) (*domains.TokensDTO, error
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	tokens, err = u.auth.RefreshTokens(ctx, tokens.RefreshToken)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to refresh tokens", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	if err = u.tokens.Save(ctx, *tokens); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to save tokens", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return tokens, nil
@@ -97,20 +100,20 @@ func (u *UseCases) Login(ctx context.Context, email, password string) (*domains.
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to login", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	if err = u.tokens.Save(ctx, *tokens); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to save tokens", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	user, err := u.users.GetCurrentUser(ctx, tokens.AccessToken)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get user by accessToken", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return user, nil
@@ -121,25 +124,25 @@ func (u *UseCases) Logout(ctx context.Context) error {
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	if err = u.auth.Logout(ctx, tokens.AccessToken); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to logout", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	if err = u.tokens.Delete(ctx); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to delete tokens", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	if err = u.ws.Close(); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to close websockets", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	return nil
@@ -153,7 +156,7 @@ func (u *UseCases) Register(
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to register user", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return user, nil
@@ -164,19 +167,19 @@ func (u *UseCases) SendMessage(ctx context.Context, message domains.Message) err
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	if err = u.ws.WriteMessage(ctx, message); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to send message", err)
 
-		return err
+		return u.errorsMapper.Map(err)
 	}
 
 	return nil
@@ -187,20 +190,20 @@ func (u *UseCases) ReadMessage(ctx context.Context) (*domains.Message, error) {
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	if err = u.ws.Connect(ctx, tokens.AccessToken); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to connect to websockets", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	message, err := u.ws.ReadMessage(ctx)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to read message", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return message, nil
@@ -211,14 +214,14 @@ func (u *UseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	createdChat, err := u.chats.CreateChat(ctx, tokens.AccessToken, chat)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to create chat", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return createdChat, nil
@@ -229,14 +232,14 @@ func (u *UseCases) GetUserChats(ctx context.Context, limit, offset int) ([]domai
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	chats, err := u.chats.GetUserChats(ctx, tokens.AccessToken, limit, offset)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get user chats", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	return chats, nil
@@ -251,21 +254,21 @@ func (u *UseCases) SearchUsers(
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	currentUser, err := u.users.GetCurrentUser(ctx, tokens.AccessToken)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get current user", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	users, err := u.users.SearchUsers(ctx, username, limit, offset)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to search users", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	if len(users) == 0 {
@@ -293,14 +296,14 @@ func (u *UseCases) GetChatMessages(
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	messages, err := u.chats.GetChatMessages(ctx, tokens.AccessToken, chatID, limit, offset)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get chat messages", err)
 
-		return nil, err
+		return nil, u.errorsMapper.Map(err)
 	}
 
 	// Устанавливаем время сообщений по местному времени польователя
