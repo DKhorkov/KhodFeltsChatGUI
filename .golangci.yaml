@@ -329,7 +329,7 @@ linters:
         linters:
           - staticcheck
 
-      - path: internal/usecases/mapper_test.go
+      - path: internal/errors/mapper_test.go
         linters:
           - testpackage
 
