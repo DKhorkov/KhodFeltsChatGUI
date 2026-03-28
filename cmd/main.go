@@ -10,6 +10,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	"github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/repositories"
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
 	"github.com/DKhorkov/kfcGUI/internal/windows/auth"
@@ -43,6 +44,8 @@ func main() {
 	settingsRepository := repositories.NewSettingsRepository()
 	websocketsRepository := repositories.NewWebSocketsRepository(cfg.HTTP.WebsocketURL, logger)
 
+	errorsMapper := errors.New()
+
 	useCases := usecases.New(
 		usersRepository,
 		chatsRepository,
@@ -51,6 +54,7 @@ func main() {
 		settingsRepository,
 		websocketsRepository,
 		logger,
+		errorsMapper,
 	)
 
 	appTheme := theme.LightTheme()

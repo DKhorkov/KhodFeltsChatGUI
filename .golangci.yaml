@@ -325,6 +325,14 @@ linters:
         linters:
           - gocritic
 
+      - path: internal/errors/mapper.go
+        linters:
+          - staticcheck
+
+      - path: internal/errors/mapper_test.go
+        linters:
+          - testpackage
+
 formatters:
   enable:
     - gofmt # Check if the code is formatted according to 'gofmt' command.
