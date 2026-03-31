@@ -31,7 +31,7 @@ const (
 	chatsLimit  = 0
 	chatsOffset = 0
 
-	chatsListChatLabelText             = "chat"
+	chatsListChatTitleLabelText        = "chat"
 	chatsListNewChatIndicatorLabelText = "●"
 	chatsLabelText                     = "Чаты"
 	currentUserSenderLabelText         = "Вы"
@@ -468,7 +468,7 @@ func (w *Window) buildChatsList() {
 
 			return container.NewHBox(
 				widget.NewIcon(theme.MailComposeIcon()),
-				widget.NewLabel(chatsListChatLabelText),
+				widget.NewLabel(chatsListChatTitleLabelText),
 				newChatIndicatorLabel,
 			)
 		},
