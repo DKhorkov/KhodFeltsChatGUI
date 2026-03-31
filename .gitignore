@@ -36,6 +36,7 @@ bin/
 bench.txt
 tokens.json
 kfc
+settings.json
 
 # Environments
 .venv

@@ -31,10 +31,11 @@ const (
 	chatsLimit  = 0
 	chatsOffset = 0
 
-	chatsListChatLabelText     = "chat"
-	chatsLabelText             = "Чаты"
-	currentUserSenderLabelText = "Вы"
-	messagesHeaderLabelText    = "Сообщения"
+	chatsListChatLabelText             = "chat"
+	chatsListNewChatIndicatorLabelText = "●"
+	chatsLabelText                     = "Чаты"
+	currentUserSenderLabelText         = "Вы"
+	messagesHeaderLabelText            = "Сообщения"
 
 	newChatButtonText          = "Новый чат"
 	searchButtonText           = "Поиск"
@@ -46,11 +47,12 @@ const (
 
 	messageEntryText = "Введите сообщение..."
 
-	chatsListChatLabelIndex       = 1
-	messagesListBorderIndex       = 0
-	messagesListSenderLabelIndex  = 0
-	messagesListTimeLabelIndex    = 1
-	messagesListMessageLabelIndex = 1
+	chatsListChatTitleLabelIndex       = 1
+	chatListNewChatIndicatorLabelIndex = 2
+	messagesListBorderIndex            = 0
+	messagesListSenderLabelIndex       = 0
+	messagesListTimeLabelIndex         = 1
+	messagesListMessageLabelIndex      = 1
 
 	chatTitleDefaultName = "Чат #%d"
 
@@ -459,9 +461,15 @@ func (w *Window) buildChatsList() {
 			return len(w.chats)
 		},
 		func() fyne.CanvasObject {
+			// Индикатор нового сообщения
+			newChatIndicatorLabel := widget.NewLabel(chatsListNewChatIndicatorLabelText)
+			newChatIndicatorLabel.Hide()
+			newChatIndicatorLabel.TextStyle = fyne.TextStyle{Bold: true}
+
 			return container.NewHBox(
 				widget.NewIcon(theme.MailComposeIcon()),
 				widget.NewLabel(chatsListChatLabelText),
+				newChatIndicatorLabel,
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
@@ -474,7 +482,8 @@ func (w *Window) buildChatsList() {
 
 			chat := w.chats[id]
 			container_ := item.(*fyne.Container)
-			chatTitleLabel := container_.Objects[chatsListChatLabelIndex].(*widget.Label)
+			chatTitleLabel := container_.Objects[chatsListChatTitleLabelIndex].(*widget.Label)
+			newChatIndicatorLabel := container_.Objects[chatListNewChatIndicatorLabelIndex].(*widget.Label)
 
 			chatTitle := fmt.Sprintf(chatTitleDefaultName, chat.ID)
 
@@ -495,8 +504,12 @@ func (w *Window) buildChatsList() {
 
 			if !chat.IsRead {
 				chatTitleLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+				newChatIndicatorLabel.Show()
 			} else {
 				chatTitleLabel.TextStyle = fyne.TextStyle{}
+
+				newChatIndicatorLabel.Hide()
 			}
 
 			// Принудительный рефреш для отображения нового чата жирным в списке
