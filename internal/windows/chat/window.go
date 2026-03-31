@@ -593,7 +593,12 @@ func (w *Window) markChatAsRead(id uint64) {
 
 func (w *Window) buildMessagesList() {
 	w.messagesList = widget.NewList(
-		func() int { return len(w.messages) },
+		func() int {
+			w.messagesMu.RLock()
+			defer w.messagesMu.RUnlock()
+
+			return len(w.messages)
+		},
 		func() fyne.CanvasObject {
 			senderLabel := widget.NewLabelWithStyle(
 				"",
@@ -621,6 +626,9 @@ func (w *Window) buildMessagesList() {
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
+			w.messagesMu.Lock()
+			defer w.messagesMu.Unlock()
+
 			if id >= len(w.messages) {
 				return
 			}
