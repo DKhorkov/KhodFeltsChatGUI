@@ -86,7 +86,7 @@ tasks:
       - fyne-cross windows -arch 386 -app-id {{.APP_ID}} -name {{.APP_NAME}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
       - cp -R {{.DIST_PATH}}/windows-386 {{.OUTPUT_DIR}}/windows_386
 
-      # --- MACOS (Darwin) --- sdk  https://github.com/phracker/macosx-sdks/releases
+      # --- MACOS (Darwin) --- sdk https://github.com/phracker/macosx-sdks/releases  https://github.com/joseluisq/macosx-sdks/releases
       - fyne-cross darwin -arch amd64 -app-id {{.APP_ID}} -name {{.APP_NAME}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
       - cp -R {{.DIST_PATH}}/darwin-amd64 {{.OUTPUT_DIR}}/darwin_amd64
       - cd {{.OUTPUT_DIR}}/darwin_amd64 && zip -r {{.APP_NAME}}.zip {{.APP_NAME}}.app
