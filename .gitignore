@@ -32,10 +32,12 @@ go.work.sum
 sdk/MacOSX11.3.sdk
 logs/
 bin/
+build/
 *.db
 bench.txt
 tokens.json
 kfc
+settings.json
 
 # Environments
 .venv

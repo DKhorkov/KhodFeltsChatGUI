@@ -31,10 +31,12 @@ const (
 	chatsLimit  = 0
 	chatsOffset = 0
 
-	chatsListChatLabelText     = "chat"
-	chatsLabelText             = "Чаты"
-	currentUserSenderLabelText = "Вы"
-	messagesHeaderLabelText    = "Сообщения"
+	chatsListChatTitleLabelText              = "chat"
+	chatsListNewChatIndicatorLabelText       = "●"
+	chatsLabelText                           = "Чаты"
+	currentUserSenderLabelText               = "Вы"
+	messagesHeaderLabelText                  = "Сообщения"
+	messagesListNewMessageIndicatorLabelText = "●"
 
 	newChatButtonText          = "Новый чат"
 	searchButtonText           = "Поиск"
@@ -46,11 +48,14 @@ const (
 
 	messageEntryText = "Введите сообщение..."
 
-	chatsListChatLabelIndex       = 1
-	messagesListBorderIndex       = 0
-	messagesListSenderLabelIndex  = 0
-	messagesListTimeLabelIndex    = 1
-	messagesListMessageLabelIndex = 1
+	chatsListChatTitleLabelIndex              = 1
+	chatListNewChatIndicatorLabelIndex        = 2
+	messagesListHeaderIndex                   = 0
+	messagesListSenderLabelIndex              = 0
+	messagesListHeaderRightPartBoxIndex       = 1
+	messagesListTimeLabelIndex                = 0
+	messagesListNewMessageIndicatorLabelIndex = 1
+	messagesListMessageLabelIndex             = 1
 
 	chatTitleDefaultName = "Чат #%d"
 
@@ -459,9 +464,15 @@ func (w *Window) buildChatsList() {
 			return len(w.chats)
 		},
 		func() fyne.CanvasObject {
+			// Индикатор нового сообщения
+			newChatIndicatorLabel := widget.NewLabel(chatsListNewChatIndicatorLabelText)
+			newChatIndicatorLabel.Hide()
+			newChatIndicatorLabel.TextStyle = fyne.TextStyle{Bold: true}
+
 			return container.NewHBox(
 				widget.NewIcon(theme.MailComposeIcon()),
-				widget.NewLabel(chatsListChatLabelText),
+				widget.NewLabel(chatsListChatTitleLabelText),
+				newChatIndicatorLabel,
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
@@ -474,7 +485,8 @@ func (w *Window) buildChatsList() {
 
 			chat := w.chats[id]
 			container_ := item.(*fyne.Container)
-			chatTitleLabel := container_.Objects[chatsListChatLabelIndex].(*widget.Label)
+			chatTitleLabel := container_.Objects[chatsListChatTitleLabelIndex].(*widget.Label)
+			newChatIndicatorLabel := container_.Objects[chatListNewChatIndicatorLabelIndex].(*widget.Label)
 
 			chatTitle := fmt.Sprintf(chatTitleDefaultName, chat.ID)
 
@@ -495,8 +507,12 @@ func (w *Window) buildChatsList() {
 
 			if !chat.IsRead {
 				chatTitleLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+				newChatIndicatorLabel.Show()
 			} else {
 				chatTitleLabel.TextStyle = fyne.TextStyle{}
+
+				newChatIndicatorLabel.Hide()
 			}
 
 			// Принудительный рефреш для отображения нового чата жирным в списке
@@ -580,7 +596,12 @@ func (w *Window) markChatAsRead(id uint64) {
 
 func (w *Window) buildMessagesList() {
 	w.messagesList = widget.NewList(
-		func() int { return len(w.messages) },
+		func() int {
+			w.messagesMu.RLock()
+			defer w.messagesMu.RUnlock()
+
+			return len(w.messages)
+		},
 		func() fyne.CanvasObject {
 			senderLabel := widget.NewLabelWithStyle(
 				"",
@@ -597,27 +618,46 @@ func (w *Window) buildMessagesList() {
 				fyne.TextStyle{Italic: true},
 			)
 
-			return container.NewVBox(
-				container.NewBorder(
-					nil,
-					nil,
-					senderLabel,
+			// Индикатор нового сообщения
+			newMessageIndicatorLabel := widget.NewLabel(messagesListNewMessageIndicatorLabelText)
+			newMessageIndicatorLabel.Hide()
+			newMessageIndicatorLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+			header := container.NewBorder(
+				nil,
+				nil,
+				senderLabel,
+				container.NewHBox(
 					timeLabel,
-				),
+					newMessageIndicatorLabel,
+				), // Справа время + индикатор
+			)
+
+			return container.NewVBox(
+				header,
 				messageLabel,
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
+			// Используем w.messagesMu.Unlock() без defer из-за w.messagesList.SetItemHeight() в конце метода
+			w.messagesMu.Lock()
+
 			if id >= len(w.messages) {
+				w.messagesMu.Unlock()
+
 				return
 			}
 
 			message := w.messages[id]
 
+			w.messagesMu.Unlock()
+
 			container_ := item.(*fyne.Container)
-			border := container_.Objects[messagesListBorderIndex].(*fyne.Container)
-			senderLabel := border.Objects[messagesListSenderLabelIndex].(*widget.Label)
-			timeLabel := border.Objects[messagesListTimeLabelIndex].(*widget.Label)
+			headerBorder := container_.Objects[messagesListHeaderIndex].(*fyne.Container)
+			senderLabel := headerBorder.Objects[messagesListSenderLabelIndex].(*widget.Label)
+			headerRightPartBox := headerBorder.Objects[messagesListHeaderRightPartBoxIndex].(*fyne.Container)
+			timeLabel := headerRightPartBox.Objects[messagesListTimeLabelIndex].(*widget.Label)
+			newMessageIndicatorLabel := headerRightPartBox.Objects[messagesListNewMessageIndicatorLabelIndex].(*widget.Label)
 			messageLabel := container_.Objects[messagesListMessageLabelIndex].(*widget.Label)
 
 			if message.Sender.ID == w.currentUser.ID {
@@ -629,6 +669,32 @@ func (w *Window) buildMessagesList() {
 			timeLabel.SetText(message.CreatedAt.Format(common.DateTimeFormat))
 
 			messageLabel.SetText(message.Text)
+
+			if !message.IsRead {
+				senderLabel.TextStyle = fyne.TextStyle{Bold: true}
+				timeLabel.TextStyle = fyne.TextStyle{Bold: true}
+				messageLabel.TextStyle = fyne.TextStyle{Bold: true}
+				newMessageIndicatorLabel.TextStyle = fyne.TextStyle{Bold: true}
+
+				senderLabel.Refresh()
+				timeLabel.Refresh()
+				messageLabel.Refresh()
+				newMessageIndicatorLabel.Refresh()
+
+				newMessageIndicatorLabel.Show()
+			} else {
+				senderLabel.TextStyle = fyne.TextStyle{Bold: false}
+				timeLabel.TextStyle = fyne.TextStyle{Bold: false}
+				messageLabel.TextStyle = fyne.TextStyle{Bold: false}
+				newMessageIndicatorLabel.TextStyle = fyne.TextStyle{Bold: false}
+
+				senderLabel.Refresh()
+				timeLabel.Refresh()
+				messageLabel.Refresh()
+				newMessageIndicatorLabel.Refresh()
+
+				newMessageIndicatorLabel.Hide()
+			}
 
 			// Динамически подгоняем высоту итемов, чтобы все помещалось
 			if messageLabel.MinSize().Height > w.minMessageSize {
@@ -825,6 +891,7 @@ func (w *Window) sendMessage() {
 		Text:      text,
 		CreatedAt: time.Now().In(common.Timezone),
 		UpdatedAt: time.Now().In(common.Timezone),
+		IsRead:    true, // Сообщение прочитано для отправителя
 	}
 
 	if err := w.useCases.SendMessage(w.ctx, message); err != nil {
@@ -835,6 +902,12 @@ func (w *Window) sendMessage() {
 
 	// Обновляем список сообщбений только после успешной отправки на сервер
 	w.messagesMu.Lock()
+
+	// Все сообщения в списке помечаем прочитанными, когда пользователь отправляет в чат новое сообщение
+	for i := range w.messages {
+		w.messages[i].IsRead = true
+	}
+
 	w.messages = append(w.messages, message)
 	w.messagesMu.Unlock()
 

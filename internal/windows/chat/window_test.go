@@ -359,7 +359,7 @@ func TestWindow_Constants(t *testing.T) {
 		},
 		{
 			name:     "chats list chat label text",
-			constant: chatsListChatLabelText,
+			constant: chatsListChatTitleLabelText,
 			expected: "chat",
 		},
 		{
