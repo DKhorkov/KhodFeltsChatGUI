@@ -11,6 +11,7 @@ type Message struct {
 	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+	IsRead    bool      `json:"isRead"`
 }
 
 func NewMessage() *Message {

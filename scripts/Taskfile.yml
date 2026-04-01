@@ -60,34 +60,41 @@ tasks:
     vars:
       PACKAGE_PATH: ./cmd
       APP_NAME: kfc
-      ICON_PATH: "./assets/icon.png"
+      ICON_PATH: ./assets/icon.png
       APP_ID: "com.dkhorkov.kfc"
-      OUTPUT_DIR: ./bin
+      OUTPUT_DIR: ./build
+      DIST_PATH: fyne-cross/dist
     cmds:
+      - rm -rf {{.OUTPUT_DIR}}
+
       - mkdir -p {{.OUTPUT_DIR}}
 
       # 1. Установка инструмента (если еще нет)
       - go install github.com/fyne-io/fyne-cross@latest
 
       # --- LINUX ---
-      - fyne-cross linux -arch amd64 -app-id {{.APP_ID}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/linux-amd64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_linux_amd64
-      - fyne-cross linux -arch 386 -app-id {{.APP_ID}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/linux-386/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_linux_386
-      - fyne-cross linux -arch arm64 -app-id {{.APP_ID}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/linux-arm64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_linux_arm64
+      - fyne-cross linux -arch amd64 -app-id {{.APP_ID}} -name {{.APP_NAME}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/linux-amd64 {{.OUTPUT_DIR}}/linux_amd64
+      - fyne-cross linux -arch 386 -app-id {{.APP_ID}} -name {{.APP_NAME}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/linux-386 {{.OUTPUT_DIR}}/linux_386
+      - fyne-cross linux -arch arm64 -app-id {{.APP_ID}} -name {{.APP_NAME}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/linux-arm64 {{.OUTPUT_DIR}}/linux_arm64
 
       # --- WINDOWS ---
-      - fyne-cross windows -arch amd64 -app-id {{.APP_ID}} -name {{.APP_NAME}}_windows_amd64.exe -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/windows-amd64/{{.APP_NAME}}_windows_amd64.exe {{.OUTPUT_DIR}}/{{.APP_NAME}}_windows_amd64.exe
-      - fyne-cross windows -arch 386 -app-id {{.APP_ID}} -name {{.APP_NAME}}_windows_386.exe -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/windows-386/{{.APP_NAME}}_windows_386.exe {{.OUTPUT_DIR}}/{{.APP_NAME}}_windows_386.exe
+      - fyne-cross windows -arch amd64 -app-id {{.APP_ID}} -name {{.APP_NAME}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/windows-amd64 {{.OUTPUT_DIR}}/windows_amd64
+      - fyne-cross windows -arch 386 -app-id {{.APP_ID}} -name {{.APP_NAME}} -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/windows-386 {{.OUTPUT_DIR}}/windows_386
 
-      # --- MACOS (Darwin) --- sdk  https://github.com/phracker/macosx-sdks/releases
-      - fyne-cross darwin -arch amd64 -app-id {{.APP_ID}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/darwin-amd64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_darwin_amd64
-      - fyne-cross darwin -arch arm64 -app-id {{.APP_ID}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
-      - mv fyne-cross/bin/darwin-arm64/cmd {{.OUTPUT_DIR}}/{{.APP_NAME}}_darwin_arm64
+      # --- MACOS (Darwin) --- sdk https://github.com/phracker/macosx-sdks/releases  https://github.com/joseluisq/macosx-sdks/releases
+      - fyne-cross darwin -arch amd64 -app-id {{.APP_ID}} -name {{.APP_NAME}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/darwin-amd64 {{.OUTPUT_DIR}}/darwin_amd64
+      - cd {{.OUTPUT_DIR}}/darwin_amd64 && zip -r {{.APP_NAME}}.zip {{.APP_NAME}}.app
+      - rm -rf {{.OUTPUT_DIR}}/darwin_amd64/{{.APP_NAME}}.app
+      - fyne-cross darwin -arch arm64 -app-id {{.APP_ID}} -name {{.APP_NAME}} -macosx-sdk-path ./sdk/MacOSX11.3.sdk -icon {{.ICON_PATH}} {{.PACKAGE_PATH}}
+      - cp -R {{.DIST_PATH}}/darwin-arm64 {{.OUTPUT_DIR}}/darwin_arm64
+      - cd {{.OUTPUT_DIR}}/darwin_arm64 && zip -r {{.APP_NAME}}.zip {{.APP_NAME}}.app
+      - rm -rf {{.OUTPUT_DIR}}/darwin_arm64/{{.APP_NAME}}.app
 
       - rm -rf ./fyne-cross
 

@@ -29,13 +29,15 @@ go.work.sum
 
 # Local files^
 *.log
-sdk/MacOSX11.3.sdk
+sdk/
 logs/
 bin/
+build/
 *.db
 bench.txt
 tokens.json
 kfc
+settings.json
 
 # Environments
 .venv
