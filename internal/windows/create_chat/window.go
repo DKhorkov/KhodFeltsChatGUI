@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
@@ -48,20 +46,17 @@ type Window struct {
 
 	useCases         interfaces.UseCases
 	refreshChatsFunc func(chat domains.Chat)
-	errMapper        *customerrors.Mapper
 }
 
 func New(
 	app fyne.App,
 	useCases interfaces.UseCases,
 	refreshChatsFunc func(chat domains.Chat),
-	errMapper *customerrors.Mapper,
 ) *Window {
 	return &Window{
 		app:              app,
 		useCases:         useCases,
 		refreshChatsFunc: refreshChatsFunc,
-		errMapper:        errMapper,
 	}
 }
 

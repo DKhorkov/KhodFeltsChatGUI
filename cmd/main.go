@@ -68,7 +68,7 @@ func main() {
 	authWindow := auth.New(kfc, nil, useCases, cfg.Validation, errorsMapper)
 	notificationWindow := notification.New(kfc, useCases)
 	searchUsersWindow := searchUsers.New(kfc, useCases)
-	createChatWindow := createChat.New(kfc, useCases, nil, errorsMapper)
+	createChatWindow := createChat.New(kfc, useCases, nil)
 	chatWindow := chat.New(
 		kfc,
 		authWindow,
