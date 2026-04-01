@@ -2,8 +2,8 @@ package auth
 
 import (
 	"context"
-	"errors"
-	"fmt"
+
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -36,19 +36,6 @@ const (
 	registerTabIndex = 1
 )
 
-var (
-	errInvalidPassword = errors.New(
-		"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву" +
-			" в верхнем и нижнем регистре, цифру и спецсимвол",
-	)
-	errInvalidUsername = errors.New(
-		"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
-	)
-	errInvalidEmail         = errors.New("некорректный email")
-	errPasswordDoesNotMatch = errors.New("пароли не совпадают")
-	errRegistration         = errors.New("ошибка регистрации")
-)
-
 type Window struct {
 	app    fyne.App
 	window fyne.Window
@@ -56,6 +43,7 @@ type Window struct {
 	useCases         interfaces.UseCases
 	chatWindow       interfaces.Window
 	validationConfig config.ValidationConfig
+	errMapper        *customerrors.Mapper
 }
 
 func New(
@@ -63,12 +51,14 @@ func New(
 	chatWindow interfaces.Window,
 	useCases interfaces.UseCases,
 	validationConfig config.ValidationConfig,
+	errMapper *customerrors.Mapper,
 ) *Window {
 	return &Window{
 		app:              app,
 		useCases:         useCases,
 		chatWindow:       chatWindow,
 		validationConfig: validationConfig,
+		errMapper:        errMapper,
 	}
 }
 
@@ -128,7 +118,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 	loginButton := widget.NewButton(loginButtonName, func() {
 		if !validation.ValidateValueByRule(loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
-			dialog.ShowError(errInvalidEmail, w.window)
+			err := w.errMapper.Map(customerrors.ErrLogin)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -137,7 +128,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 			loginPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			dialog.ShowError(errInvalidPassword, w.window)
+			err := w.errMapper.Map(customerrors.ErrLogin)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -155,7 +147,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					dialog.ShowError(err, w.window)
+					dialog.ShowError(w.errMapper.Map(err), w.window)
 				})
 
 				return
@@ -196,7 +188,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerEmailEntry.Text,
 			w.validationConfig.EmailRegExp,
 		) {
-			dialog.ShowError(errInvalidEmail, w.window)
+			err := w.errMapper.Map(customerrors.ErrInvalidEmail)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -205,7 +198,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerUsernameEntry.Text,
 			w.validationConfig.UsernameRegExps,
 		) {
-			dialog.ShowError(errInvalidUsername, w.window)
+			err := w.errMapper.Map(customerrors.ErrInvalidUsername)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -214,13 +208,15 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			dialog.ShowError(errInvalidPassword, w.window)
+			err := w.errMapper.Map(customerrors.ErrInvalidPassword)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
 
 		if registerPasswordEntry.Text != registerConfirmPasswordEntry.Text {
-			dialog.ShowError(errPasswordDoesNotMatch, w.window)
+			err := w.errMapper.Map(customerrors.ErrPasswordDoesNotMatch)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -240,7 +236,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					dialog.ShowError(fmt.Errorf("%w: %s", errRegistration, err.Error()), w.window)
+					err = w.errMapper.Map(customerrors.ErrRegister)
+					dialog.ShowError(err, w.window)
 				})
 
 				return

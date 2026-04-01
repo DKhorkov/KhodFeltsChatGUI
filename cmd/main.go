@@ -65,10 +65,10 @@ func main() {
 	kfc := app.New()
 	kfc.Settings().SetTheme(appTheme)
 
-	authWindow := auth.New(kfc, nil, useCases, cfg.Validation)
+	authWindow := auth.New(kfc, nil, useCases, cfg.Validation, errorsMapper)
 	notificationWindow := notification.New(kfc, useCases)
 	searchUsersWindow := searchUsers.New(kfc, useCases)
-	createChatWindow := createChat.New(kfc, useCases, nil)
+	createChatWindow := createChat.New(kfc, useCases, nil, errorsMapper)
 	chatWindow := chat.New(
 		kfc,
 		authWindow,

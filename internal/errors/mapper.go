@@ -14,7 +14,7 @@ var (
 	errUserAlreadyExist                       = errors.New("Такой пользователь уже существует")
 	errEmailNotConfirmed                      = errors.New("Почтовый адрес не был подтвержён")
 	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
-	errWrongPassword                          = errors.New("Неверный логин или пароль")
+	errFailedLogin                            = errors.New("Неверный логин или пароль")
 	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
 	errInvalidChat                            = errors.New("Неверный чат")
 	errUserNotIsMember                        = errors.New("У вас нет доступа к этому чату")
@@ -23,16 +23,29 @@ var (
 	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
 	errValidationFailed                       = errors.New("Ошибка авторизации")
 	errDefault                                = errors.New("Что-то пошло не так...")
+	errInvalidPassword                        = errors.New(
+		"Пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву" +
+			" в верхнем и нижнем регистре, цифру и спецсимвол",
+	)
+	errInvalidUsername = errors.New(
+		"Имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
+	)
+	errInvalidEmail         = errors.New("Некорректный email")
+	errPasswordDoesNotMatch = errors.New("Пароли не совпадают")
+	errRegister             = errors.New("Ошибка регистрации")
+	errGetUserChats         = errors.New(`failed to get user chats`)
+	errCreateChat           = errors.New(`Не удалось создать чат`)
+	errGetChatMessages      = errors.New(`Не удалось получать сообщения из чата`)
 )
 
 func New() *Mapper {
 	return &Mapper{
 		mapping: map[string]error{
-			"user not found":                                errUserNotFound,
+			ErrUserNotFound.Error():                         errUserNotFound,
 			"user already exists":                           errUserAlreadyExist,
 			"email not confirmed":                           errEmailNotConfirmed,
 			"email already confirmed":                       errEmailAlreadyExist,
-			"wrong password":                                errWrongPassword,
+			ErrLogin.Error():                                errFailedLogin,
 			"access token does not belong to refresh token": errAccessTokenDoesNotBelongToRefreshToken,
 			"invalid chat":                                  errInvalidChat,
 			"user is not a chat member":                     errUserNotIsMember,
@@ -40,6 +53,16 @@ func New() *Mapper {
 			"chat already exists":                           errChatAlreadyExist,
 			"invalid jwt token":                             errInvalidJwtToken,
 			"validation failed":                             errValidationFailed,
+			ErrInvalidPassword.Error():                      errInvalidPassword,
+			ErrInvalidUsername.Error():                      errInvalidUsername,
+			ErrInvalidEmail.Error():                         errInvalidEmail,
+			ErrPasswordDoesNotMatch.Error():                 errPasswordDoesNotMatch,
+			ErrRegister.Error():                             errRegister,
+			ErrGetUserChats.Error():                         errGetUserChats,
+			ErrCreateChat.Error():                           errCreateChat,
+			ErrGetChatMessages.Error():                      errGetChatMessages,
+			ErrWebsocket.Error():                            errDefault,
+			ErrWebsocketClosed.Error():                      errDefault,
 		},
 	}
 }
