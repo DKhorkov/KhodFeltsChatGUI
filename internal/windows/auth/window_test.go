@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
 	"github.com/DKhorkov/kfcGUI/internal/config"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	mockwindows "github.com/DKhorkov/kfcGUI/mocks/window"
@@ -42,7 +43,7 @@ func TestNew(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.chatWindow, mockUseCases, tt.validationConfig)
+			w := New(app, tt.chatWindow, mockUseCases, tt.validationConfig, customerrors.New())
 
 			assert.NotNil(t, w)
 			assert.Equal(t, app, w.app)
@@ -88,7 +89,7 @@ func TestWindow_SetChatWindow(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.initialChat, mockUseCases, config.ValidationConfig{})
+			w := New(app, tt.initialChat, mockUseCases, config.ValidationConfig{}, customerrors.New())
 			w.SetChatWindow(tt.newChat)
 
 			assert.Equal(t, tt.newChat, w.chatWindow)
@@ -116,7 +117,7 @@ func TestWindow_Build(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{})
+			w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
 			w.Build(nil)
 
 			assert.NotNil(t, w.window)
@@ -161,7 +162,7 @@ func TestWindow_Show(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{})
+			w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -208,7 +209,7 @@ func TestWindow_Close(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{})
+			w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -309,6 +310,7 @@ func TestWindow_Constants(t *testing.T) {
 
 func TestWindow_ErrorMessages(t *testing.T) {
 	t.Parallel()
+	mapper := customerrors.New()
 
 	tests := []struct {
 		name     string
@@ -317,28 +319,28 @@ func TestWindow_ErrorMessages(t *testing.T) {
 	}{
 		{
 			name:     "invalid password error",
-			err:      errInvalidPassword,
-			expected: "пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
+			err:      mapper.Map(customerrors.ErrInvalidPassword),
+			expected: "Пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
 		},
 		{
 			name:     "invalid username error",
-			err:      errInvalidUsername,
-			expected: "имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
+			err:      mapper.Map(customerrors.ErrInvalidUsername),
+			expected: "Имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
 		},
 		{
 			name:     "invalid email error",
-			err:      errInvalidEmail,
-			expected: "некорректный email",
+			err:      mapper.Map(customerrors.ErrInvalidEmail),
+			expected: "Некорректный email",
 		},
 		{
 			name:     "password does not match error",
-			err:      errPasswordDoesNotMatch,
-			expected: "пароли не совпадают",
+			err:      mapper.Map(customerrors.ErrPasswordDoesNotMatch),
+			expected: "Пароли не совпадают",
 		},
 		{
 			name:     "registration error",
-			err:      errRegistration,
-			expected: "ошибка регистрации",
+			err:      mapper.Map(customerrors.ErrRegister),
+			expected: "Ошибка регистрации",
 		},
 	}
 
@@ -362,7 +364,7 @@ func TestWindow_Integration(t *testing.T) {
 		app := test.NewApp()
 		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, nil, mockUseCases, config.ValidationConfig{})
+		w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
 		w.Build(nil)
 
 		// Показываем
