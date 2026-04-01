@@ -48,9 +48,14 @@ func (w *Window) Show() {
 
 	w.window.Show()
 
+	// Замыкание на случай, когда пришлют много сообщений и w.window будет менять адрес объекта
+	window := w.window
+
 	time.AfterFunc(3*time.Second, func() {
 		fyne.Do(func() {
-			w.Close()
+			if window != nil {
+				window.Close()
+			}
 		})
 	})
 }
