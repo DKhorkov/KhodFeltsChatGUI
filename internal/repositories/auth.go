@@ -306,7 +306,7 @@ func (r *AuthRepository) SendForgetPasswordMessage(ctx context.Context, email st
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	input := domains.SendVerifyEmailMessageMessageDTO{
+	input := domains.SendVerifyEmailMessageDTO{
 		Email: email,
 	}
 

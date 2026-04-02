@@ -26,7 +26,7 @@ type ChangePasswordDTO struct {
 	OldPassword string `json:"oldPassword"`
 }
 
-type SendVerifyEmailMessageMessageDTO struct {
+type SendVerifyEmailMessageDTO struct {
 	Email string `json:"email"`
 }
 

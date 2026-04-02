@@ -721,7 +721,7 @@ func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
 						)
 
 						// Проверяем тело запроса
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
@@ -744,7 +744,7 @@ func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
 					DoAndReturn(func(req *http.Request) (*http.Response, error) {
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
@@ -767,7 +767,7 @@ func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
 					DoAndReturn(func(req *http.Request) (*http.Response, error) {
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
@@ -897,7 +897,7 @@ func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
 					DoAndReturn(func(req *http.Request) (*http.Response, error) {
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
@@ -969,7 +969,7 @@ func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
 						)
 
 						// Проверяем тело запроса
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
@@ -992,7 +992,7 @@ func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
 					DoAndReturn(func(req *http.Request) (*http.Response, error) {
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
@@ -1106,7 +1106,7 @@ func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
 					DoAndReturn(func(req *http.Request) (*http.Response, error) {
-						var input domains.SendVerifyEmailMessageMessageDTO
+						var input domains.SendVerifyEmailMessageDTO
 
 						body, _ := io.ReadAll(req.Body)
 						err := json.Unmarshal(body, &input)
