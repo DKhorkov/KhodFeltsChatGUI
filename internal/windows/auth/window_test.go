@@ -328,7 +328,7 @@ func TestWindow_ErrorMessages(t *testing.T) {
 		{
 			name:     "invalid email error",
 			err:      errInvalidEmail,
-			expected: "некорректный email",
+			expected: "некорректный адрес элеткронной почты",
 		},
 		{
 			name:     "password does not match error",
