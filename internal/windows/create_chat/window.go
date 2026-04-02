@@ -144,7 +144,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		}()
 	}
 
-	searchBtn := widget.NewButton(searchButtonName, func() {
+	searchButton := widget.NewButton(searchButtonName, func() {
 		username := searchEntry.Text
 		if username == "" {
 			return
@@ -170,8 +170,8 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		}()
 	})
 
-	createBtn := widget.NewButton(createChatButtonName, nil)
-	createBtn.OnTapped = func() {
+	createButton := widget.NewButton(createChatButtonName, nil)
+	createButton.OnTapped = func() {
 		chatType := domains.ChatType(typeEntry.Selected)
 
 		if chatType == domains.ChatTypePrivate && len(selectedUsers) == 0 {
@@ -180,7 +180,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 			return
 		}
 
-		createBtn.Disable()
+		createButton.Disable()
 
 		go func() {
 			ctx := context.Background()
@@ -199,7 +199,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 			chat, err := w.useCases.CreateChat(ctx, *chat)
 			if err != nil {
 				fyne.Do(func() {
-					createBtn.Enable()
+					createButton.Enable()
 
 					dialog.ShowError(err, w.window)
 				})
@@ -224,12 +224,12 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 	topContent := container.NewVBox(
 		chatTypeBox,
 		searchEntry,
-		searchBtn,
+		searchButton,
 		foundUsersLabel,
 	)
 
 	bottomContent := container.NewCenter(
-		createBtn,
+		createButton,
 	)
 
 	content := container.NewBorder(

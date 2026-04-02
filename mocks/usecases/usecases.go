@@ -71,6 +71,20 @@ func (mr *MockUseCasesMockRecorder) CreateChat(ctx, chat any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChat", reflect.TypeOf((*MockUseCases)(nil).CreateChat), ctx, chat)
 }
 
+// ForgetPassword mocks base method.
+func (m *MockUseCases) ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ForgetPassword", ctx, forgetPasswordToken, newPassword)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForgetPassword indicates an expected call of ForgetPassword.
+func (mr *MockUseCasesMockRecorder) ForgetPassword(ctx, forgetPasswordToken, newPassword any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForgetPassword", reflect.TypeOf((*MockUseCases)(nil).ForgetPassword), ctx, forgetPasswordToken, newPassword)
+}
+
 // GetChatMessages mocks base method.
 func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID uint64, limit, offset int) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
@@ -219,6 +233,20 @@ func (mr *MockUseCasesMockRecorder) SearchUsers(ctx, username, limit, offset any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUseCases)(nil).SearchUsers), ctx, username, limit, offset)
 }
 
+// SendForgetPasswordMessage mocks base method.
+func (m *MockUseCases) SendForgetPasswordMessage(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendForgetPasswordMessage", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendForgetPasswordMessage indicates an expected call of SendForgetPasswordMessage.
+func (mr *MockUseCasesMockRecorder) SendForgetPasswordMessage(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendForgetPasswordMessage", reflect.TypeOf((*MockUseCases)(nil).SendForgetPasswordMessage), ctx, email)
+}
+
 // SendMessage mocks base method.
 func (m *MockUseCases) SendMessage(ctx context.Context, message domains.Message) error {
 	m.ctrl.T.Helper()
@@ -233,18 +261,18 @@ func (mr *MockUseCasesMockRecorder) SendMessage(ctx, message any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockUseCases)(nil).SendMessage), ctx, message)
 }
 
-// SendVerifyEmail mocks base method.
-func (m *MockUseCases) SendVerifyEmail(ctx context.Context, email string) error {
+// SendVerifyEmailMessage mocks base method.
+func (m *MockUseCases) SendVerifyEmailMessage(ctx context.Context, email string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendVerifyEmail", ctx, email)
+	ret := m.ctrl.Call(m, "SendVerifyEmailMessage", ctx, email)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendVerifyEmail indicates an expected call of SendVerifyEmail.
-func (mr *MockUseCasesMockRecorder) SendVerifyEmail(ctx, email any) *gomock.Call {
+// SendVerifyEmailMessage indicates an expected call of SendVerifyEmailMessage.
+func (mr *MockUseCasesMockRecorder) SendVerifyEmailMessage(ctx, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerifyEmail", reflect.TypeOf((*MockUseCases)(nil).SendVerifyEmail), ctx, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerifyEmailMessage", reflect.TypeOf((*MockUseCases)(nil).SendVerifyEmailMessage), ctx, email)
 }
 
 // SetTheme mocks base method.

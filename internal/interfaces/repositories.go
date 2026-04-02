@@ -12,7 +12,9 @@ type AuthRepository interface {
 	Login(ctx context.Context, email, password string) (*domains.TokensDTO, error)
 	Logout(ctx context.Context, accessToken string) error
 	RefreshTokens(ctx context.Context, refreshToken string) (*domains.TokensDTO, error)
-	SendVerifyEmail(ctx context.Context, email string) error
+	SendVerifyEmailMessage(ctx context.Context, email string) error
+	SendForgetPasswordMessage(ctx context.Context, email string) error
+	ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error
 }
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/tokens_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,WebSocketsRepository,SettingsRepository

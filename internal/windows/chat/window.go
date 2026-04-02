@@ -422,7 +422,8 @@ func (w *Window) processMessage(message domains.Message) {
 						"[%s] %s: %s",
 						chatTitle,
 						message.Sender.Username,
-						message.Text),
+						message.Text,
+					),
 				),
 			)
 			w.notificationWindow.Show()

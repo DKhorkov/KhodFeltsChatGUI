@@ -2,7 +2,6 @@ package information
 
 import (
 	"fyne.io/fyne/v2"
-	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
 const (
@@ -14,12 +13,11 @@ type Window struct {
 	app    fyne.App
 	window fyne.Window
 
-	title    string
-	useCases interfaces.UseCases
+	title string
 }
 
-func New(app fyne.App, title string, useCases interfaces.UseCases) *Window {
-	return &Window{app: app, useCases: useCases, title: title}
+func New(app fyne.App, title string) *Window {
+	return &Window{app: app, title: title}
 }
 
 func (w *Window) Build(content fyne.CanvasObject) {

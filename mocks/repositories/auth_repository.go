@@ -41,6 +41,20 @@ func (m *MockAuthRepository) EXPECT() *MockAuthRepositoryMockRecorder {
 	return m.recorder
 }
 
+// ForgetPassword mocks base method.
+func (m *MockAuthRepository) ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ForgetPassword", ctx, forgetPasswordToken, newPassword)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForgetPassword indicates an expected call of ForgetPassword.
+func (mr *MockAuthRepositoryMockRecorder) ForgetPassword(ctx, forgetPasswordToken, newPassword any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForgetPassword", reflect.TypeOf((*MockAuthRepository)(nil).ForgetPassword), ctx, forgetPasswordToken, newPassword)
+}
+
 // Login mocks base method.
 func (m *MockAuthRepository) Login(ctx context.Context, email, password string) (*domains.TokensDTO, error) {
 	m.ctrl.T.Helper()
@@ -100,16 +114,30 @@ func (mr *MockAuthRepositoryMockRecorder) Register(ctx, registerData any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAuthRepository)(nil).Register), ctx, registerData)
 }
 
-// SendVerifyEmail mocks base method.
-func (m *MockAuthRepository) SendVerifyEmail(ctx context.Context, email string) error {
+// SendForgetPasswordMessage mocks base method.
+func (m *MockAuthRepository) SendForgetPasswordMessage(ctx context.Context, email string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendVerifyEmail", ctx, email)
+	ret := m.ctrl.Call(m, "SendForgetPasswordMessage", ctx, email)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendVerifyEmail indicates an expected call of SendVerifyEmail.
-func (mr *MockAuthRepositoryMockRecorder) SendVerifyEmail(ctx, email any) *gomock.Call {
+// SendForgetPasswordMessage indicates an expected call of SendForgetPasswordMessage.
+func (mr *MockAuthRepositoryMockRecorder) SendForgetPasswordMessage(ctx, email any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerifyEmail", reflect.TypeOf((*MockAuthRepository)(nil).SendVerifyEmail), ctx, email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendForgetPasswordMessage", reflect.TypeOf((*MockAuthRepository)(nil).SendForgetPasswordMessage), ctx, email)
+}
+
+// SendVerifyEmailMessage mocks base method.
+func (m *MockAuthRepository) SendVerifyEmailMessage(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendVerifyEmailMessage", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendVerifyEmailMessage indicates an expected call of SendVerifyEmailMessage.
+func (mr *MockAuthRepositoryMockRecorder) SendVerifyEmailMessage(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerifyEmailMessage", reflect.TypeOf((*MockAuthRepository)(nil).SendVerifyEmailMessage), ctx, email)
 }
