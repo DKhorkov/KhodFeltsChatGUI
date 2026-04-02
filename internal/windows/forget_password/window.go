@@ -79,8 +79,7 @@ func (w *Window) Build(info fyne.CanvasObject) {
 			return
 		}
 
-		_, err = strconv.ParseUint(string(bytesUserID), 10, 64)
-		if err != nil {
+		if _, err = strconv.ParseUint(string(bytesUserID), 10, 64); err != nil {
 			err = w.errorsMapper.Map(errors.ErrInvalidForgetPasswordToken)
 			dialog.ShowError(err, w.window)
 
