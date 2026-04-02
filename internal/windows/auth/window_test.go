@@ -21,6 +21,7 @@ func TestNew(t *testing.T) {
 		name             string
 		chatWindow       interfaces.Window
 		validationConfig config.ValidationConfig
+		actualErr        interfaces.ErrorsMapper
 	}{
 		{
 			name:             "create auth window with valid config",
@@ -43,7 +44,7 @@ func TestNew(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.chatWindow, mockUseCases, tt.validationConfig, customerrors.New())
+			w := New(app, tt.chatWindow, mockUseCases, tt.validationConfig, tt.actualErr)
 
 			assert.NotNil(t, w)
 			assert.Equal(t, app, w.app)
@@ -62,6 +63,7 @@ func TestWindow_SetChatWindow(t *testing.T) {
 		name        string
 		initialChat interfaces.Window
 		newChat     interfaces.Window
+		actualErr   interfaces.ErrorsMapper
 	}{
 		{
 			name:        "set new chat window",
@@ -89,7 +91,7 @@ func TestWindow_SetChatWindow(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.initialChat, mockUseCases, config.ValidationConfig{}, customerrors.New())
+			w := New(app, tt.initialChat, mockUseCases, config.ValidationConfig{}, tt.actualErr)
 			w.SetChatWindow(tt.newChat)
 
 			assert.Equal(t, tt.newChat, w.chatWindow)
@@ -101,7 +103,8 @@ func TestWindow_Build(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
+		name      string
+		actualErr interfaces.ErrorsMapper
 	}{
 		{
 			name: "build auth window",
@@ -117,7 +120,7 @@ func TestWindow_Build(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
+			w := New(app, nil, mockUseCases, config.ValidationConfig{}, tt.actualErr)
 			w.Build(nil)
 
 			assert.NotNil(t, w.window)
@@ -134,6 +137,7 @@ func TestWindow_Show(t *testing.T) {
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
+		actualErr   interfaces.ErrorsMapper
 	}{
 		{
 			name: "show window after build",
@@ -162,7 +166,7 @@ func TestWindow_Show(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
+			w := New(app, nil, mockUseCases, config.ValidationConfig{}, tt.actualErr)
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -181,6 +185,7 @@ func TestWindow_Close(t *testing.T) {
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
+		actualErr   interfaces.ErrorsMapper
 	}{
 		{
 			name: "close existing window",
@@ -209,7 +214,7 @@ func TestWindow_Close(t *testing.T) {
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
+			w := New(app, nil, mockUseCases, config.ValidationConfig{}, tt.actualErr)
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)

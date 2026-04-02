@@ -33,9 +33,9 @@ var (
 	errInvalidEmail         = errors.New("Некорректный email")
 	errPasswordDoesNotMatch = errors.New("Пароли не совпадают")
 	errRegister             = errors.New("Ошибка регистрации")
-	errGetUserChats         = errors.New(`failed to get user chats`)
+	errGetUserChats         = errors.New(`Не удалось получить чаты пользователя`)
 	errCreateChat           = errors.New(`Не удалось создать чат`)
-	errGetChatMessages      = errors.New(`Не удалось получать сообщения из чата`)
+	errGetChatMessages      = errors.New(`Не удалось получить сообщения для чата`)
 )
 
 func New() *Mapper {

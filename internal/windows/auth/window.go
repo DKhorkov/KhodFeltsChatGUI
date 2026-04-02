@@ -43,7 +43,7 @@ type Window struct {
 	useCases         interfaces.UseCases
 	chatWindow       interfaces.Window
 	validationConfig config.ValidationConfig
-	errMapper        *customerrors.Mapper
+	errMapper        interfaces.ErrorsMapper
 }
 
 func New(
@@ -51,7 +51,7 @@ func New(
 	chatWindow interfaces.Window,
 	useCases interfaces.UseCases,
 	validationConfig config.ValidationConfig,
-	errMapper *customerrors.Mapper,
+	errMapper interfaces.ErrorsMapper,
 ) *Window {
 	return &Window{
 		app:              app,
@@ -118,7 +118,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 	loginButton := widget.NewButton(loginButtonName, func() {
 		if !validation.ValidateValueByRule(loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
-			err := w.errMapper.Map(customerrors.ErrLogin)
+			err := w.errMapper.Map(customerrors.ErrInvalidEmail)
 			dialog.ShowError(err, w.window)
 
 			return
@@ -128,7 +128,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			loginPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			err := w.errMapper.Map(customerrors.ErrLogin)
+			err := w.errMapper.Map(customerrors.ErrInvalidPassword)
 			dialog.ShowError(err, w.window)
 
 			return
@@ -147,7 +147,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					dialog.ShowError(w.errMapper.Map(err), w.window)
+					dialog.ShowError(w.errMapper.Map(customerrors.ErrLogin), w.window)
 				})
 
 				return
