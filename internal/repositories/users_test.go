@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	internalerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	mockhttp "github.com/DKhorkov/kfcGUI/mocks/http"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -70,13 +69,13 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusNotFound,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "user not found"}`)),
+							bytes.NewReader([]byte(`user not found`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrUserNotFound,
+			expectedError: errors.New(`user not found`),
 		},
 		{
 			name:        "http client error",
@@ -114,13 +113,13 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusUnauthorized,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "unauthorized"}`)),
+							bytes.NewReader([]byte(`unauthorized`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrUserNotFound,
+			expectedError: errors.New(`unauthorized`),
 		},
 		{
 			name:        "internal server error",
@@ -131,13 +130,13 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusInternalServerError,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "server error"}`)),
+							bytes.NewReader([]byte(`server error`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrUserNotFound,
+			expectedError: errors.New(`server error`),
 		},
 		{
 			name:        "empty response body",
@@ -345,13 +344,13 @@ func TestUsersRepository_SearchUsers(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusNotFound,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "users not found"}`)),
+							bytes.NewReader([]byte(`users not found`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUsers: nil,
-			expectedError: internalerrors.ErrUserNotFound,
+			expectedError: errors.New(`users not found`),
 		},
 		{
 			name:     "bad request",
@@ -364,13 +363,13 @@ func TestUsersRepository_SearchUsers(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusBadRequest,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "invalid parameters"}`)),
+							bytes.NewReader([]byte(`invalid parameters`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUsers: nil,
-			expectedError: internalerrors.ErrUserNotFound,
+			expectedError: errors.New(`invalid parameters`),
 		},
 		{
 			name:     "invalid json response",

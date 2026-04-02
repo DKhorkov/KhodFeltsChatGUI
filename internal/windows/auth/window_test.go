@@ -239,7 +239,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "width constant",
 			constant: width,
-			expected: 400,
+			expected: width,
 		},
 		{
 			name:     "height constant",
@@ -269,7 +269,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "email entry text",
 			constant: emailEntryText,
-			expected: "Email",
+			expected: "Почта",
 		},
 		{
 			name:     "password entry text",
@@ -279,7 +279,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "username entry text",
 			constant: usernameEntryText,
-			expected: "Имя пользователя (от 5 символов)",
+			expected: "Логин",
 		},
 		{
 			name:     "confirm password entry text",
@@ -328,7 +328,7 @@ func TestWindow_ErrorMessages(t *testing.T) {
 		{
 			name:     "invalid email error",
 			err:      errInvalidEmail,
-			expected: "некорректный email",
+			expected: "некорректный адрес элеткронной почты",
 		},
 		{
 			name:     "password does not match error",

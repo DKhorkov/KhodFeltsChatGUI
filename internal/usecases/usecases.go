@@ -165,6 +165,16 @@ func (u *UseCases) Register(
 	return user, nil
 }
 
+func (u *UseCases) SendVerifyEmail(ctx context.Context, email string) error {
+	if err := u.auth.SendVerifyEmail(ctx, email); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to send verify email message", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) SendMessage(ctx context.Context, message domains.Message) error {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {

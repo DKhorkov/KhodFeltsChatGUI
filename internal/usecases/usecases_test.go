@@ -3106,3 +3106,302 @@ func TestUseCases_SetTheme(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCases_SendVerifyEmail(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		email         string
+		setupMocks    func(*mockrepositories.MockAuthRepository, *mocks.MockLogger, *mockerrors.MockErrorsMapper)
+		expectedError error
+	}{
+		{
+			name:  "successful send verify email",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "user@example.com").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "send verify email to user with special characters",
+			email: "user.name+tag@example.co.uk",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "user.name+tag@example.co.uk").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "send verify email to user with cyrillic domain",
+			email: "user@почта.рф",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "user@почта.рф").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "auth service returns error - user not found",
+			email: "nonexistent@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("user not found")
+				mappedErr := errors.New("user not found")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "nonexistent@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user not found"),
+		},
+		{
+			name:  "auth service returns error - invalid email format",
+			email: "invalid-email",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("invalid email format")
+				mappedErr := errors.New("invalid email format")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "invalid-email").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("invalid email format"),
+		},
+		{
+			name:  "auth service returns error - email already verified",
+			email: "verified@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("email already verified")
+				mappedErr := errors.New("email already verified")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "verified@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("email already verified"),
+		},
+		{
+			name:  "auth service returns error - rate limit exceeded",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("rate limit exceeded, try again later")
+				mappedErr := errors.New("rate limit exceeded, try again later")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "user@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("rate limit exceeded, try again later"),
+		},
+		{
+			name:  "auth service returns error - network timeout",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("network timeout")
+				mappedErr := errors.New("network timeout")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "user@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("network timeout"),
+		},
+		{
+			name:  "empty email address",
+			email: "",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("email is required")
+				mappedErr := errors.New("email is required")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("email is required"),
+		},
+		{
+			name:  "errors mapper transforms error",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("some internal error")
+				mappedErr := errors.New("user-friendly error message")
+
+				mockAuth.EXPECT().
+					SendVerifyEmail(gomock.Any(), "user@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send verify email message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user-friendly error message"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockAuth, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			err := uc.SendVerifyEmail(ctx, tt.email)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

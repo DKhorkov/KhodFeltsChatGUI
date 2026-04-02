@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	"github.com/DKhorkov/kfcGUI/internal/errors"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
@@ -75,7 +76,7 @@ func (r *AuthRepository) Register(
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrRegister, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var createdUser domains.User
@@ -128,7 +129,7 @@ func (r *AuthRepository) Login(
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrLogin, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var tokens domains.TokensDTO
@@ -146,7 +147,7 @@ func (r *AuthRepository) Login(
 	if tokens.AccessToken == "" || tokens.RefreshToken == "" {
 		return nil, fmt.Errorf(
 			"%w: %s",
-			errors.ErrLogin,
+			customerrors.ErrLogin,
 			fmt.Sprintf("failed to get tokens from cookies. Tokens: %v", tokens),
 		)
 	}
@@ -188,7 +189,7 @@ func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
 			return err
 		}
 
-		return fmt.Errorf("%w: %s. Status: %s", errors.ErrLogout, data, resp.Status)
+		return errors.New(string(data))
 	}
 
 	return nil
@@ -231,7 +232,7 @@ func (r *AuthRepository) RefreshTokens(
 			return nil, err
 		}
 
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrRefreshTokens, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var tokens domains.TokensDTO
@@ -249,10 +250,54 @@ func (r *AuthRepository) RefreshTokens(
 	if tokens.AccessToken == "" || tokens.RefreshToken == "" {
 		return nil, fmt.Errorf(
 			"%w: %s",
-			errors.ErrRefreshTokens,
+			customerrors.ErrRefreshTokens,
 			fmt.Sprintf("failed to get tokens from cookies. Tokens: %v", tokens),
 		)
 	}
 
 	return &tokens, nil
+}
+
+func (r *AuthRepository) SendVerifyEmail(ctx context.Context, email string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	input := domains.SendVerifyEmailMessageDTO{
+		Email: email,
+	}
+
+	body, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		r.baseURL+"/users/email/verify",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer r.closeBody(ctx, resp.Body)
+
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
+	}
+
+	return nil
 }

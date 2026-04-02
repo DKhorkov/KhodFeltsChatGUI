@@ -15,6 +15,7 @@ type UseCases interface {
 	Logout(ctx context.Context) error
 	Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error)
 	RefreshTokens(ctx context.Context) (*domains.TokensDTO, error)
+	SendVerifyEmail(ctx context.Context, email string) error
 
 	// Messaging
 	SendMessage(ctx context.Context, message domains.Message) error

@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
@@ -18,22 +19,29 @@ import (
 const (
 	title = "Вход / Регистрация"
 
-	width  = 400
+	width  = 500
 	height = 450
 
 	loginTabName    = "Вход"
 	registerTabName = "Регистрация"
 
-	loginButtonName    = "Войти"
-	registerButtonName = "Зарегистрироваться"
+	loginButtonName           = "Войти"
+	registerButtonName        = "Зарегистрироваться"
+	sendVerifyEmailButtonName = "Отправить повторно письмо для подтверждения почты"
 
-	emailEntryText           = "Email"
+	emailEntryText           = "Почта"
 	passwordEntryText        = "Пароль" //nolint:gosec // наименование переменной
-	usernameEntryText        = "Имя пользователя (от 5 символов)"
+	usernameEntryText        = "Логин"
 	confirmPasswordEntryText = "Подтверждение пароля" //nolint:gosec // наименование переменной
 
 	loginTabIndex    = 0
 	registerTabIndex = 1
+
+	successRegisterTitle = "Успешная регистрация"
+	successRegisterText  = "Регистрация успешна! Теперь войдите."
+	verifyEmailSentTitle = "Письмо подтверждения отправлено"
+	verifyEmailSentText  = "Письмо для подтверждения почты было успешно отправлено по адресу <%s>.\n\n" +
+		"Пожалуйста, перейдите по ссылке из письма для подтверждения почты."
 )
 
 var (
@@ -44,7 +52,7 @@ var (
 	errInvalidUsername = errors.New(
 		"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
 	)
-	errInvalidEmail         = errors.New("некорректный email")
+	errInvalidEmail         = errors.New("некорректный адрес элеткронной почты")
 	errPasswordDoesNotMatch = errors.New("пароли не совпадают")
 	errRegistration         = errors.New("ошибка регистрации")
 )
@@ -170,12 +178,48 @@ func (w *Window) buildTabs() *container.AppTabs {
 		}()
 	})
 
+	sendVerifyEmailButton := widget.NewButtonWithIcon(
+		sendVerifyEmailButtonName,
+		theme.MailComposeIcon(),
+		func() {
+			if !validation.ValidateValueByRule(
+				loginEmailEntry.Text,
+				w.validationConfig.EmailRegExp,
+			) {
+				dialog.ShowError(errInvalidEmail, w.window)
+
+				return
+			}
+
+			go func() {
+				ctx := context.Background()
+
+				if err := w.useCases.SendVerifyEmail(ctx, loginEmailEntry.Text); err != nil {
+					fyne.Do(func() {
+						dialog.ShowError(err, w.window)
+					})
+
+					return
+				}
+
+				fyne.Do(func() {
+					dialog.ShowInformation(
+						verifyEmailSentTitle,
+						fmt.Sprintf(verifyEmailSentText, loginEmailEntry.Text),
+						w.window,
+					)
+				})
+			}()
+		})
+	sendVerifyEmailButton.Importance = widget.WarningImportance
+
 	loginTab := container.NewVBox(
 		widget.NewLabelWithStyle(loginTabName, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		loginEmailEntry,
 		loginPasswordEntry,
 		loginButton,
 		progressBar,
+		sendVerifyEmailButton,
 	)
 
 	// Регистрация
@@ -240,7 +284,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					dialog.ShowError(fmt.Errorf("%w: %s", errRegistration, err.Error()), w.window)
+					dialog.ShowError(err, w.window)
 				})
 
 				return
@@ -250,8 +294,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 				progressBar.Hidden = true
 
 				dialog.ShowInformation(
-					"Успешная регистрация",
-					"Регистрация успешна! Теперь войдите.",
+					successRegisterTitle,
+					successRegisterText,
 					w.window,
 				)
 

@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	"github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
@@ -63,7 +63,7 @@ func (r *UsersRepository) GetCurrentUser(
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrUserNotFound, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var user domains.User
@@ -110,7 +110,7 @@ func (r *UsersRepository) SearchUsers(
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrUserNotFound, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var users []domains.User

@@ -99,3 +99,17 @@ func (mr *MockAuthRepositoryMockRecorder) Register(ctx, registerData any) *gomoc
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAuthRepository)(nil).Register), ctx, registerData)
 }
+
+// SendVerifyEmail mocks base method.
+func (m *MockAuthRepository) SendVerifyEmail(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendVerifyEmail", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendVerifyEmail indicates an expected call of SendVerifyEmail.
+func (mr *MockAuthRepositoryMockRecorder) SendVerifyEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerifyEmail", reflect.TypeOf((*MockAuthRepository)(nil).SendVerifyEmail), ctx, email)
+}
