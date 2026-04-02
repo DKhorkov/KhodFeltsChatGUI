@@ -279,7 +279,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "username entry text",
 			constant: usernameEntryText,
-			expected: "Имя пользователя (от 5 символов)",
+			expected: "Логин",
 		},
 		{
 			name:     "confirm password entry text",

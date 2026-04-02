@@ -31,7 +31,7 @@ const (
 
 	emailEntryText           = "Почта"
 	passwordEntryText        = "Пароль" //nolint:gosec // наименование переменной
-	usernameEntryText        = "Имя пользователя (от 5 символов)"
+	usernameEntryText        = "Логин"
 	confirmPasswordEntryText = "Подтверждение пароля" //nolint:gosec // наименование переменной
 
 	loginTabIndex    = 0
