@@ -28,7 +28,7 @@ const (
 	loginButtonName           = "Войти"
 	registerButtonName        = "Зарегистрироваться"
 	sendVerifyEmailButtonName = "Отправить повторно письмо для подтверждения почты"
-	forgetPasswordButtonName  = "Сбросить пароль"
+	forgetPasswordButtonName  = "Сбросить пароль" //nolint:gosec // наименование переменной
 
 	emailEntryText           = "Почта"
 	passwordEntryText        = "Пароль" //nolint:gosec // наименование переменной

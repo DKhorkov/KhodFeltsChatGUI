@@ -21,11 +21,11 @@ const (
 	width  = 300
 	height = 300
 
-	forgetPasswordTokenEntryText = "Код для сброса пароля"
-	newPasswordEntryText         = "Пароль"               //nolint:gosec // наименование переменной
-	confirmNewPasswordEntryText  = "Подтверждение пароля" //nolint:gosec // наименование переменной
+	forgetPasswordTokenEntryText = "Код для сброса пароля" //nolint:gosec // наименование переменной
+	newPasswordEntryText         = "Пароль"                //nolint:gosec // наименование переменной
+	confirmNewPasswordEntryText  = "Подтверждение пароля"  //nolint:gosec // наименование переменной
 
-	forgetPasswordButtonName = "Сбросить пароль"
+	forgetPasswordButtonName = "Сбросить пароль" //nolint:gosec // наименование переменной
 
 	passwordChangedText = "Пароль был успешно сброшен.\n\n" +
 		"Теперь вы можете авторизоваться под новым паролем!"

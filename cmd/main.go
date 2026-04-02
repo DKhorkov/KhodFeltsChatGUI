@@ -24,7 +24,7 @@ import (
 	"github.com/DKhorkov/libs/logging"
 )
 
-var passwordChangedInformationWindowTitle = "Пароль успешно сброшен"
+var passwordChangedInformationWindowTitle = "Пароль успешно сброшен" //nolint:gosec // наименование переменной
 
 func main() {
 	// Инициализируем переменные окружения для дальнейшего считывания в конфиге:

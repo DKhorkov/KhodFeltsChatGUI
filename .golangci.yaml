@@ -285,6 +285,7 @@ linters:
         linters:
           - exhaustruct
           - staticcheck
+          - gochecknoglobals
 
       - path: internal/domains/chat.go
         linters:
@@ -314,6 +315,10 @@ linters:
           - forcetypeassert
           - staticcheck
 
+      - path: internal/windows/auth/window.go
+        linters:
+          - maintidx
+
       - path: internal/windows/create_chat/window.go
         linters:
           - forcetypeassert
@@ -323,6 +328,10 @@ linters:
           - forcetypeassert
 
       - path: internal/windows/notification/window_test.go
+        linters:
+          - gocritic
+
+      - path: internal/windows/forget_password/window_test.go
         linters:
           - gocritic
 
