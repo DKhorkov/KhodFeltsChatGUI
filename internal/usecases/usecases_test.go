@@ -3107,7 +3107,7 @@ func TestUseCases_SetTheme(t *testing.T) {
 	}
 }
 
-func TestUseCases_SendVerifyEmail(t *testing.T) {
+func TestUseCases_SendVerifyEmailMessage(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -3125,7 +3125,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "user@example.com").
+					SendVerifyEmailMessage(gomock.Any(), "user@example.com").
 					Return(nil)
 			},
 			expectedError: nil,
@@ -3139,7 +3139,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "user.name+tag@example.co.uk").
+					SendVerifyEmailMessage(gomock.Any(), "user.name+tag@example.co.uk").
 					Return(nil)
 			},
 			expectedError: nil,
@@ -3153,7 +3153,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "user@почта.рф").
+					SendVerifyEmailMessage(gomock.Any(), "user@почта.рф").
 					Return(nil)
 			},
 			expectedError: nil,
@@ -3170,7 +3170,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("user not found")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "nonexistent@example.com").
+					SendVerifyEmailMessage(gomock.Any(), "nonexistent@example.com").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3199,7 +3199,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("invalid email format")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "invalid-email").
+					SendVerifyEmailMessage(gomock.Any(), "invalid-email").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3228,7 +3228,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("email already verified")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "verified@example.com").
+					SendVerifyEmailMessage(gomock.Any(), "verified@example.com").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3257,7 +3257,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("rate limit exceeded, try again later")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "user@example.com").
+					SendVerifyEmailMessage(gomock.Any(), "user@example.com").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3286,7 +3286,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("network timeout")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "user@example.com").
+					SendVerifyEmailMessage(gomock.Any(), "user@example.com").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3315,7 +3315,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("email is required")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "").
+					SendVerifyEmailMessage(gomock.Any(), "").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3344,7 +3344,7 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 				mappedErr := errors.New("user-friendly error message")
 
 				mockAuth.EXPECT().
-					SendVerifyEmail(gomock.Any(), "user@example.com").
+					SendVerifyEmailMessage(gomock.Any(), "user@example.com").
 					Return(originalErr)
 
 				mockLogger.EXPECT().
@@ -3394,7 +3394,588 @@ func TestUseCases_SendVerifyEmail(t *testing.T) {
 			)
 
 			ctx := context.Background()
-			err := uc.SendVerifyEmail(ctx, tt.email)
+			err := uc.SendVerifyEmailMessage(ctx, tt.email)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUseCases_SendForgetPasswordMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		email         string
+		setupMocks    func(*mockrepositories.MockAuthRepository, *mocks.MockLogger, *mockerrors.MockErrorsMapper)
+		expectedError error
+	}{
+		{
+			name:  "successful send forget password message",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "user@example.com").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "send forget password message to user with special characters",
+			email: "user.name+tag@example.co.uk",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "user.name+tag@example.co.uk").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "user not found error",
+			email: "nonexistent@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("user not found")
+				mappedErr := errors.New("user not found")
+
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "nonexistent@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send forget password message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user not found"),
+		},
+		{
+			name:  "invalid email format error",
+			email: "invalid-email",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("invalid email format")
+				mappedErr := errors.New("invalid email format")
+
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "invalid-email").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send forget password message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("invalid email format"),
+		},
+		{
+			name:  "rate limit exceeded error",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("rate limit exceeded, try again later")
+				mappedErr := errors.New("rate limit exceeded, try again later")
+
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "user@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send forget password message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("rate limit exceeded, try again later"),
+		},
+		{
+			name:  "network timeout error",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("network timeout")
+				mappedErr := errors.New("network timeout")
+
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "user@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send forget password message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("network timeout"),
+		},
+		{
+			name:  "empty email address",
+			email: "",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("email is required")
+				mappedErr := errors.New("email is required")
+
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send forget password message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("email is required"),
+		},
+		{
+			name:  "errors mapper transforms error",
+			email: "user@example.com",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("some internal error")
+				mappedErr := errors.New("user-friendly error message")
+
+				mockAuth.EXPECT().
+					SendForgetPasswordMessage(gomock.Any(), "user@example.com").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to send forget password message",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user-friendly error message"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockAuth, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			err := uc.SendForgetPasswordMessage(ctx, tt.email)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUseCases_ForgetPassword(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                string
+		forgetPasswordToken string
+		newPassword         string
+		setupMocks          func(*mockrepositories.MockAuthRepository, *mocks.MockLogger, *mockerrors.MockErrorsMapper)
+		expectedError       error
+	}{
+		{
+			name:                "successful forget password",
+			forgetPasswordToken: "valid-token-123",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token-123", "NewPassword123!").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:                "successful forget password with long password",
+			forgetPasswordToken: "valid-token-456",
+			newPassword:         "VeryLongPasswordWithManyCharacters123!@#",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token-456", "VeryLongPasswordWithManyCharacters123!@#").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:                "invalid token error",
+			forgetPasswordToken: "invalid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("invalid or expired token")
+				mappedErr := errors.New("invalid or expired token")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "invalid-token", "NewPassword123!").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("invalid or expired token"),
+		},
+		{
+			name:                "expired token error",
+			forgetPasswordToken: "expired-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("token has expired")
+				mappedErr := errors.New("token has expired")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "expired-token", "NewPassword123!").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("token has expired"),
+		},
+		{
+			name:                "weak password error",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "weak",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("password does not meet security requirements")
+				mappedErr := errors.New("password does not meet security requirements")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token", "weak").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("password does not meet security requirements"),
+		},
+		{
+			name:                "user not found error",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("user not found")
+				mappedErr := errors.New("user not found")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token", "NewPassword123!").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user not found"),
+		},
+		{
+			name:                "network error",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("network error")
+				mappedErr := errors.New("network error")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token", "NewPassword123!").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("network error"),
+		},
+		{
+			name:                "empty token",
+			forgetPasswordToken: "",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("token is required")
+				mappedErr := errors.New("token is required")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "", "NewPassword123!").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("token is required"),
+		},
+		{
+			name:                "empty new password",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("new password is required")
+				mappedErr := errors.New("new password is required")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token", "").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("new password is required"),
+		},
+		{
+			name:                "errors mapper transforms error",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(
+				mockAuth *mockrepositories.MockAuthRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("some internal error")
+				mappedErr := errors.New("user-friendly error message")
+
+				mockAuth.EXPECT().
+					ForgetPassword(gomock.Any(), "valid-token", "NewPassword123!").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to forget password",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user-friendly error message"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockAuth, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			err := uc.ForgetPassword(ctx, tt.forgetPasswordToken, tt.newPassword)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

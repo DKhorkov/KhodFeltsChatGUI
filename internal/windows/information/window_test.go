@@ -7,9 +7,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/test"
 	"fyne.io/fyne/v2/widget"
-	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestNew(t *testing.T) {
@@ -41,17 +39,13 @@ func TestNew(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctrl := gomock.NewController(t)
-
 			app := test.NewApp()
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.title, mockUseCases)
+			w := New(app, tt.title)
 
 			assert.NotNil(t, w)
 			assert.Equal(t, app, w.app)
 			assert.Equal(t, tt.title, w.title)
-			assert.Equal(t, mockUseCases, w.useCases)
 			assert.Nil(t, w.window)
 		})
 	}
@@ -112,12 +106,9 @@ func TestWindow_Build(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctrl := gomock.NewController(t)
-
 			app := test.NewApp()
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.title, mockUseCases)
+			w := New(app, tt.title)
 			w.Build(tt.content)
 
 			assert.NotNil(t, w.window, "Window should be created")
@@ -139,12 +130,9 @@ func TestWindow_Build_MultipleBuilds(t *testing.T) {
 	t.Run("build multiple windows sequentially", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "First Window", mockUseCases)
+		w := New(app, "First Window")
 
 		// Первое окно
 		content1 := widget.NewLabel("First content")
@@ -191,12 +179,9 @@ func TestWindow_Show(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctrl := gomock.NewController(t)
-
 			app := test.NewApp()
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, "Test", mockUseCases)
+			w := New(app, "Test")
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -248,12 +233,9 @@ func TestWindow_Close(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctrl := gomock.NewController(t)
-
 			app := test.NewApp()
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, "Test", mockUseCases)
+			w := New(app, "Test")
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -305,12 +287,9 @@ func TestWindow_Integration(t *testing.T) {
 	t.Run("full window lifecycle", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Integration Test", mockUseCases)
+		w := New(app, "Integration Test")
 
 		// Создаем контент
 		content := widget.NewLabelWithStyle(
@@ -402,12 +381,9 @@ func TestWindow_Build_DifferentContentTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctrl := gomock.NewController(t)
-
 			app := test.NewApp()
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.title, mockUseCases)
+			w := New(app, tt.title)
 			w.Build(tt.content)
 
 			assert.NotNil(t, w.window)
@@ -424,12 +400,9 @@ func TestWindow_ShowHideSequence(t *testing.T) {
 	t.Run("show, close, show again", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Test", mockUseCases)
+		w := New(app, "Test")
 
 		// Создаем и показываем окно
 		firstContent := widget.NewLabel("Content")
@@ -472,18 +445,15 @@ func TestWindow_MultipleInstances(t *testing.T) {
 	t.Run("create multiple independent windows", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
 		// Создаем первое окно
-		w1 := New(app, "Window 1", mockUseCases)
+		w1 := New(app, "Window 1")
 		content1 := widget.NewLabel("Content 1")
 		w1.Build(content1)
 
 		// Создаем второе окно
-		w2 := New(app, "Window 2", mockUseCases)
+		w2 := New(app, "Window 2")
 		content2 := widget.NewLabel("Content 2")
 		w2.Build(content2)
 
@@ -520,12 +490,9 @@ func TestWindow_RebuildWithDifferentContent(t *testing.T) {
 	t.Run("rebuild window with different content types", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Test Window", mockUseCases)
+		w := New(app, "Test Window")
 
 		// Создаем окно с Label
 		labelContent := widget.NewLabel("Label text")
@@ -575,12 +542,9 @@ func TestWindow_SafeClose(t *testing.T) {
 	t.Run("close multiple times safely", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Test", mockUseCases)
+		w := New(app, "Test")
 
 		// Закрываем без построения
 		assert.NotPanics(t, func() {
@@ -612,12 +576,9 @@ func TestWindow_ShowWithoutBuild(t *testing.T) {
 	t.Run("show without building should not panic", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Test", mockUseCases)
+		w := New(app, "Test")
 
 		assert.NotPanics(t, func() {
 			w.Show()
@@ -640,12 +601,9 @@ func TestWindow_WindowSize(t *testing.T) {
 	t.Run("window size should match constants", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Test", mockUseCases)
+		w := New(app, "Test")
 		w.Build(widget.NewLabel("Content"))
 
 		expectedSize := fyne.NewSize(width, height)
@@ -688,12 +646,9 @@ func TestWindow_Title(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctrl := gomock.NewController(t)
-
 			app := test.NewApp()
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-			w := New(app, tt.title, mockUseCases)
+			w := New(app, tt.title)
 			w.Build(widget.NewLabel("Content"))
 
 			assert.Equal(t, tt.expectedTitle, w.window.Title())
@@ -708,12 +663,9 @@ func TestWindow_BuildReplacesWindow(t *testing.T) {
 	t.Run("build should create new window", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
 		app := test.NewApp()
-		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-		w := New(app, "Test", mockUseCases)
+		w := New(app, "Test")
 
 		// Первый Build
 		w.Build(widget.NewLabel("First"))

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -12,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	"github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/libs/validation"
 )
@@ -28,6 +28,7 @@ const (
 	loginButtonName           = "Войти"
 	registerButtonName        = "Зарегистрироваться"
 	sendVerifyEmailButtonName = "Отправить повторно письмо для подтверждения почты"
+	forgetPasswordButtonName  = "Сбросить пароль"
 
 	emailEntryText           = "Почта"
 	passwordEntryText        = "Пароль" //nolint:gosec // наименование переменной
@@ -40,43 +41,36 @@ const (
 	successRegisterTitle = "Успешная регистрация"
 	successRegisterText  = "Регистрация успешна! Теперь войдите."
 	verifyEmailSentTitle = "Письмо подтверждения отправлено"
-	verifyEmailSentText  = "Письмо для подтверждения почты было успешно отправлено по адресу <%s>.\n\n" +
+	verifyEmailSentText  = "Письмо для подтверждения почты было отправлено по адресу <%s>.\n\n" +
 		"Пожалуйста, перейдите по ссылке из письма для подтверждения почты."
-)
-
-var (
-	errInvalidPassword = errors.New(
-		"пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву" +
-			" в верхнем и нижнем регистре, цифру и спецсимвол",
-	)
-	errInvalidUsername = errors.New(
-		"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
-	)
-	errInvalidEmail         = errors.New("некорректный адрес электронной почты")
-	errPasswordDoesNotMatch = errors.New("пароли не совпадают")
-	errRegistration         = errors.New("ошибка регистрации")
+	forgetPasswordText = "Письмо с кодом для сброса пароля было отправлено по адресу <%s>.\n\n" +
+		"Пожалуйста, используйте полученный код и укажите новый пароль."
 )
 
 type Window struct {
 	app    fyne.App
 	window fyne.Window
 
-	useCases         interfaces.UseCases
-	chatWindow       interfaces.Window
-	validationConfig config.ValidationConfig
+	useCases                         interfaces.UseCases
+	chatWindow, forgetPasswordWindow interfaces.Window
+	validationConfig                 config.ValidationConfig
+	errorsMapper                     interfaces.ErrorsMapper
 }
 
 func New(
 	app fyne.App,
-	chatWindow interfaces.Window,
+	chatWindow, forgetPasswordWindow interfaces.Window,
 	useCases interfaces.UseCases,
 	validationConfig config.ValidationConfig,
+	errorsMapper interfaces.ErrorsMapper,
 ) *Window {
 	return &Window{
-		app:              app,
-		useCases:         useCases,
-		chatWindow:       chatWindow,
-		validationConfig: validationConfig,
+		app:                  app,
+		useCases:             useCases,
+		chatWindow:           chatWindow,
+		forgetPasswordWindow: forgetPasswordWindow,
+		validationConfig:     validationConfig,
+		errorsMapper:         errorsMapper,
 	}
 }
 
@@ -136,7 +130,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 	loginButton := widget.NewButton(loginButtonName, func() {
 		if !validation.ValidateValueByRule(loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
-			dialog.ShowError(errInvalidEmail, w.window)
+			err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -145,7 +140,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 			loginPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			dialog.ShowError(errInvalidPassword, w.window)
+			err := w.errorsMapper.Map(errors.ErrInvalidPassword)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -186,7 +182,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 				loginEmailEntry.Text,
 				w.validationConfig.EmailRegExp,
 			) {
-				dialog.ShowError(errInvalidEmail, w.window)
+				err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+				dialog.ShowError(err, w.window)
 
 				return
 			}
@@ -194,7 +191,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			go func() {
 				ctx := context.Background()
 
-				if err := w.useCases.SendVerifyEmail(ctx, loginEmailEntry.Text); err != nil {
+				if err := w.useCases.SendVerifyEmailMessage(ctx, loginEmailEntry.Text); err != nil {
 					fyne.Do(func() {
 						dialog.ShowError(err, w.window)
 					})
@@ -213,6 +210,49 @@ func (w *Window) buildTabs() *container.AppTabs {
 		})
 	sendVerifyEmailButton.Importance = widget.WarningImportance
 
+	forgetPasswordButton := widget.NewButtonWithIcon(
+		forgetPasswordButtonName,
+		theme.DeleteIcon(),
+		func() {
+			if !validation.ValidateValueByRule(
+				loginEmailEntry.Text,
+				w.validationConfig.EmailRegExp,
+			) {
+				err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+				dialog.ShowError(err, w.window)
+
+				return
+			}
+
+			go func() {
+				ctx := context.Background()
+
+				if err := w.useCases.SendForgetPasswordMessage(
+					ctx,
+					loginEmailEntry.Text,
+				); err != nil {
+					fyne.Do(func() {
+						dialog.ShowError(err, w.window)
+					})
+
+					return
+				}
+
+				fyne.Do(func() {
+					w.forgetPasswordWindow.Build(
+						widget.NewLabel(
+							fmt.Sprintf(
+								forgetPasswordText,
+								loginEmailEntry.Text,
+							),
+						),
+					)
+					w.forgetPasswordWindow.Show()
+				})
+			}()
+		})
+	forgetPasswordButton.Importance = widget.DangerImportance
+
 	loginTab := container.NewVBox(
 		widget.NewLabelWithStyle(loginTabName, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		loginEmailEntry,
@@ -220,6 +260,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 		loginButton,
 		progressBar,
 		sendVerifyEmailButton,
+		forgetPasswordButton,
 	)
 
 	// Регистрация
@@ -235,12 +276,13 @@ func (w *Window) buildTabs() *container.AppTabs {
 	registerConfirmPasswordEntry := widget.NewPasswordEntry()
 	registerConfirmPasswordEntry.SetPlaceHolder(confirmPasswordEntryText)
 
-	registerBtn := widget.NewButton(registerButtonName, func() {
+	registerButton := widget.NewButton(registerButtonName, func() {
 		if !validation.ValidateValueByRule(
 			registerEmailEntry.Text,
 			w.validationConfig.EmailRegExp,
 		) {
-			dialog.ShowError(errInvalidEmail, w.window)
+			err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -249,7 +291,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerUsernameEntry.Text,
 			w.validationConfig.UsernameRegExps,
 		) {
-			dialog.ShowError(errInvalidUsername, w.window)
+			err := w.errorsMapper.Map(errors.ErrInvalidUsername)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -258,13 +301,15 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			dialog.ShowError(errInvalidPassword, w.window)
+			err := w.errorsMapper.Map(errors.ErrInvalidPassword)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
 
 		if registerPasswordEntry.Text != registerConfirmPasswordEntry.Text {
-			dialog.ShowError(errPasswordDoesNotMatch, w.window)
+			err := w.errorsMapper.Map(errors.ErrPasswordDoesNotMatch)
+			dialog.ShowError(err, w.window)
 
 			return
 		}
@@ -321,7 +366,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 		registerUsernameEntry,
 		registerPasswordEntry,
 		registerConfirmPasswordEntry,
-		registerBtn,
+		registerButton,
 	)
 
 	// Обновляем содержимое вкладок

@@ -258,11 +258,11 @@ func (r *AuthRepository) RefreshTokens(
 	return &tokens, nil
 }
 
-func (r *AuthRepository) SendVerifyEmail(ctx context.Context, email string) error {
+func (r *AuthRepository) SendVerifyEmailMessage(ctx context.Context, email string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	input := domains.SendVerifyEmailMessageDTO{
+	input := domains.SendForgetPasswordMessageDTO{
 		Email: email,
 	}
 
@@ -275,6 +275,97 @@ func (r *AuthRepository) SendVerifyEmail(ctx context.Context, email string) erro
 		ctx,
 		http.MethodPost,
 		r.baseURL+"/users/email/verify",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer r.closeBody(ctx, resp.Body)
+
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
+	}
+
+	return nil
+}
+
+func (r *AuthRepository) SendForgetPasswordMessage(ctx context.Context, email string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	input := domains.SendVerifyEmailMessageMessageDTO{
+		Email: email,
+	}
+
+	body, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		r.baseURL+"/users/password/forget",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer r.closeBody(ctx, resp.Body)
+
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
+	}
+
+	return nil
+}
+
+func (r *AuthRepository) ForgetPassword(
+	ctx context.Context,
+	forgetPasswordToken, newPassword string,
+) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	input := domains.ForgetPasswordDTO{
+		NewPassword: newPassword,
+	}
+
+	body, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		fmt.Sprintf("%s/%s/%s", r.baseURL, "users/password/forget", forgetPasswordToken),
 		bytes.NewReader(body),
 	)
 	if err != nil {

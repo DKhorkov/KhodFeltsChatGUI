@@ -23,6 +23,19 @@ var (
 	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
 	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
 	errValidationFailed                       = errors.New("Ошибка авторизации")
+	errInvalidPassword                        = errors.New(
+		"Пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву" +
+			" в верхнем и нижнем регистре, цифру и спецсимвол",
+	)
+	errInvalidUsername = errors.New(
+		"Логин должен быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
+	)
+	errInvalidEmail                  = errors.New("Некорректный адрес электронной почты")
+	errPasswordDoesNotMatch          = errors.New("Пароли не совпадают")
+	errInvalidForgetPasswordToken    = errors.New("Некорректный код для сброса пароля")
+	errNewPasswordEqualToOldPassword = errors.New(
+		"Старый пароль не может быть использован в качестве нового пароля",
+	)
 
 	// Chats.
 	errInvalidChat         = errors.New("Неверный чат")
@@ -37,18 +50,29 @@ var (
 func New() *Mapper {
 	return &Mapper{
 		mapping: map[string]error{
-			"user not found":                                errUserNotFound,
-			"user already exists":                           errUserAlreadyExist,
+			// Users
+			"user not found":      errUserNotFound,
+			"user already exists": errUserAlreadyExist,
+
+			// Auth
 			"email not confirmed":                           errEmailNotConfirmed,
 			"email already confirmed":                       errEmailAlreadyConfirmed,
 			"wrong password":                                errWrongPassword,
 			"access token does not belong to refresh token": errAccessTokenDoesNotBelongToRefreshToken,
-			"invalid chat":                                  errInvalidChat,
-			"user is not a chat member":                     errUserIsNotChatMember,
-			"chat not found":                                errChatNotFound,
-			"chat already exists":                           errChatAlreadyExist,
 			"invalid jwt token":                             errInvalidJwtToken,
 			"validation failed":                             errValidationFailed,
+			ErrInvalidPassword.Error():                      errInvalidPassword,
+			ErrInvalidUsername.Error():                      errInvalidUsername,
+			ErrInvalidEmail.Error():                         errInvalidEmail,
+			ErrPasswordDoesNotMatch.Error():                 errPasswordDoesNotMatch,
+			ErrInvalidForgetPasswordToken.Error():           errInvalidForgetPasswordToken,
+			"new password equal to old password":            errNewPasswordEqualToOldPassword,
+
+			// Chats
+			"invalid chat":              errInvalidChat,
+			"user is not a chat member": errUserIsNotChatMember,
+			"chat not found":            errChatNotFound,
+			"chat already exists":       errChatAlreadyExist,
 		},
 	}
 }
