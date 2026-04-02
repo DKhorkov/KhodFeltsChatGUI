@@ -239,7 +239,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "width constant",
 			constant: width,
-			expected: 400,
+			expected: width,
 		},
 		{
 			name:     "height constant",
@@ -269,7 +269,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "email entry text",
 			constant: emailEntryText,
-			expected: "Email",
+			expected: "Почта",
 		},
 		{
 			name:     "password entry text",

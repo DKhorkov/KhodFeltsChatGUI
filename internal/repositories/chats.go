@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	"github.com/DKhorkov/kfcGUI/internal/errors"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
@@ -68,7 +69,7 @@ func (r *ChatsRepository) GetUserChats(
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrGetUserChats, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var chats []domains.Chat
@@ -88,7 +89,7 @@ func (r *ChatsRepository) CreateChat(
 	defer r.mu.Unlock()
 
 	if !chat.IsValid() {
-		return nil, fmt.Errorf("%w: chat is not valid: %v+", errors.ErrCreateChat, chat)
+		return nil, fmt.Errorf("%w: chat is not valid: %v+", customerrors.ErrCreateChat, chat)
 	}
 
 	body, err := json.Marshal(chat)
@@ -127,7 +128,7 @@ func (r *ChatsRepository) CreateChat(
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrCreateChat, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var createdChat domains.Chat
@@ -176,7 +177,7 @@ func (r *ChatsRepository) GetChatMessages(
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %s. Status: %s", errors.ErrGetChatMessages, data, resp.Status)
+		return nil, errors.New(string(data))
 	}
 
 	var messages []domains.Message

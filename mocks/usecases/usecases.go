@@ -233,6 +233,20 @@ func (mr *MockUseCasesMockRecorder) SendMessage(ctx, message any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockUseCases)(nil).SendMessage), ctx, message)
 }
 
+// SendVerifyEmail mocks base method.
+func (m *MockUseCases) SendVerifyEmail(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendVerifyEmail", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendVerifyEmail indicates an expected call of SendVerifyEmail.
+func (mr *MockUseCasesMockRecorder) SendVerifyEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerifyEmail", reflect.TypeOf((*MockUseCases)(nil).SendVerifyEmail), ctx, email)
+}
+
 // SetTheme mocks base method.
 func (m *MockUseCases) SetTheme(ctx context.Context, theme domains.ThemeType) error {
 	m.ctrl.T.Helper()

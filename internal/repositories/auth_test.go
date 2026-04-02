@@ -95,13 +95,13 @@ func TestAuthRepository_Register(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusConflict,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "email already exists"}`)),
+							bytes.NewReader([]byte(`email already exists`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrRegister,
+			expectedError: errors.New(`email already exists`),
 		},
 		{
 			name: "validation error - invalid email",
@@ -116,13 +116,13 @@ func TestAuthRepository_Register(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusBadRequest,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "invalid email format"}`)),
+							bytes.NewReader([]byte(`invalid email format`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrRegister,
+			expectedError: errors.New(`invalid email format`),
 		},
 		{
 			name: "http client error",
@@ -431,12 +431,12 @@ func TestAuthRepository_Logout(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusUnauthorized,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "invalid token"}`)),
+							bytes.NewReader([]byte(`invalid token`)),
 						),
 					}, nil).
 					Times(1)
 			},
-			expectedError: internalerrors.ErrLogout,
+			expectedError: errors.New(`invalid token`),
 		},
 		{
 			name:        "logout without session",
@@ -447,12 +447,12 @@ func TestAuthRepository_Logout(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusNotFound,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "session not found"}`)),
+							bytes.NewReader([]byte(`session not found`)),
 						),
 					}, nil).
 					Times(1)
 			},
-			expectedError: internalerrors.ErrLogout,
+			expectedError: errors.New(`session not found`),
 		},
 		{
 			name:        "http client error",
@@ -477,7 +477,7 @@ func TestAuthRepository_Logout(t *testing.T) {
 					}, nil).
 					Times(1)
 			},
-			expectedError: internalerrors.ErrLogout,
+			expectedError: errors.New(``),
 		},
 	}
 

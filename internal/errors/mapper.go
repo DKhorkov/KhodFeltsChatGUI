@@ -10,19 +10,28 @@ type Mapper struct {
 }
 
 var (
-	errUserNotFound                           = errors.New("Такого пользователя не суествует")
-	errUserAlreadyExist                       = errors.New("Такой пользователь уже существует")
-	errEmailNotConfirmed                      = errors.New("Почтовый адрес не был подтвержён")
-	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
+	// Users.
+	errUserNotFound     = errors.New("Такого пользователя не существует")
+	errUserAlreadyExist = errors.New(
+		"Пользователь с таким почтовым адресом или ником уже существует",
+	)
+
+	// Auth.
+	errEmailNotConfirmed                      = errors.New("Почта не была подтвержён")
+	errEmailAlreadyConfirmed                  = errors.New("Эта почта уже подтверждена")
 	errWrongPassword                          = errors.New("Неверный логин или пароль")
 	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
-	errInvalidChat                            = errors.New("Неверный чат")
-	errUserNotIsMember                        = errors.New("У вас нет доступа к этому чату")
-	errChatNotFound                           = errors.New("Чат не найден")
-	errChatAlreadyExist                       = errors.New("Такой чат уже существует")
 	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
 	errValidationFailed                       = errors.New("Ошибка авторизации")
-	errDefault                                = errors.New("Что-то пошло не так...")
+
+	// Chats.
+	errInvalidChat         = errors.New("Неверный чат")
+	errUserIsNotChatMember = errors.New("У вас нет доступа к этому чату")
+	errChatNotFound        = errors.New("Чат не найден")
+	errChatAlreadyExist    = errors.New("Такой чат уже существует")
+
+	// Default.
+	errDefault = errors.New("Что-то пошло не так...")
 )
 
 func New() *Mapper {
@@ -31,11 +40,11 @@ func New() *Mapper {
 			"user not found":                                errUserNotFound,
 			"user already exists":                           errUserAlreadyExist,
 			"email not confirmed":                           errEmailNotConfirmed,
-			"email already confirmed":                       errEmailAlreadyExist,
+			"email already confirmed":                       errEmailAlreadyConfirmed,
 			"wrong password":                                errWrongPassword,
 			"access token does not belong to refresh token": errAccessTokenDoesNotBelongToRefreshToken,
 			"invalid chat":                                  errInvalidChat,
-			"user is not a chat member":                     errUserNotIsMember,
+			"user is not a chat member":                     errUserIsNotChatMember,
 			"chat not found":                                errChatNotFound,
 			"chat already exists":                           errChatAlreadyExist,
 			"invalid jwt token":                             errInvalidJwtToken,
