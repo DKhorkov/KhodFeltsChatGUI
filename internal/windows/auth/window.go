@@ -52,7 +52,7 @@ var (
 	errInvalidUsername = errors.New(
 		"имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
 	)
-	errInvalidEmail         = errors.New("некорректный email")
+	errInvalidEmail         = errors.New("некорректный адрес элеткронной почты")
 	errPasswordDoesNotMatch = errors.New("пароли не совпадают")
 	errRegistration         = errors.New("ошибка регистрации")
 )
