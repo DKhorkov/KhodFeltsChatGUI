@@ -281,6 +281,8 @@ func (r *AuthRepository) SendVerifyEmail(ctx context.Context, email string) erro
 		return err
 	}
 
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
 		return err
