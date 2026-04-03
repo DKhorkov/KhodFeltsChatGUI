@@ -105,7 +105,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		}()
 	}
 
-	searchBtn := widget.NewButton(searchButtonName, func() {
+	searchButton := widget.NewButton(searchButtonName, func() {
 		username := searchEntry.Text
 		if username == "" {
 			return
@@ -134,7 +134,7 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 	// Создаем верхнюю панель со всеми элементами управления
 	topContent := container.NewVBox(
 		searchEntry,
-		searchBtn,
+		searchButton,
 		foundUsersLabel,
 	)
 

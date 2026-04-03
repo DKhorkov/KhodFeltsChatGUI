@@ -16,11 +16,15 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/windows/auth"
 	"github.com/DKhorkov/kfcGUI/internal/windows/chat"
 	createChat "github.com/DKhorkov/kfcGUI/internal/windows/create_chat"
+	forgetPassword "github.com/DKhorkov/kfcGUI/internal/windows/forget_password"
+	"github.com/DKhorkov/kfcGUI/internal/windows/information"
 	"github.com/DKhorkov/kfcGUI/internal/windows/notification"
 	searchUsers "github.com/DKhorkov/kfcGUI/internal/windows/search_users"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
 )
+
+var passwordChangedInformationWindowTitle = "Пароль успешно сброшен" //nolint:gosec // наименование переменной
 
 func main() {
 	// Инициализируем переменные окружения для дальнейшего считывания в конфиге:
@@ -66,6 +70,13 @@ func main() {
 	kfc.Settings().SetTheme(appTheme)
 
 	authWindow := auth.New(kfc, nil, useCases, cfg.Validation, errorsMapper)
+	forgetPasswordWindow := forgetPassword.New(
+		kfc,
+		information.New(kfc, passwordChangedInformationWindowTitle),
+		useCases,
+		cfg.Validation,
+		errorsMapper,
+	)
 	notificationWindow := notification.New(kfc, useCases)
 	searchUsersWindow := searchUsers.New(kfc, useCases)
 	createChatWindow := createChat.New(kfc, useCases, nil)

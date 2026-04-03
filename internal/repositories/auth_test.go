@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	internalerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	mockhttp "github.com/DKhorkov/kfcGUI/mocks/http"
@@ -95,13 +96,13 @@ func TestAuthRepository_Register(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusConflict,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "email already exists"}`)),
+							bytes.NewReader([]byte(`email already exists`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrRegister,
+			expectedError: errors.New(`email already exists`),
 		},
 		{
 			name: "validation error - invalid email",
@@ -116,13 +117,13 @@ func TestAuthRepository_Register(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusBadRequest,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "invalid email format"}`)),
+							bytes.NewReader([]byte(`invalid email format`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: internalerrors.ErrRegister,
+			expectedError: errors.New(`invalid email format`),
 		},
 		{
 			name: "http client error",
@@ -431,12 +432,12 @@ func TestAuthRepository_Logout(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusUnauthorized,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "invalid token"}`)),
+							bytes.NewReader([]byte(`invalid token`)),
 						),
 					}, nil).
 					Times(1)
 			},
-			expectedError: internalerrors.ErrLogout,
+			expectedError: errors.New(`invalid token`),
 		},
 		{
 			name:        "logout without session",
@@ -447,12 +448,12 @@ func TestAuthRepository_Logout(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusNotFound,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "session not found"}`)),
+							bytes.NewReader([]byte(`session not found`)),
 						),
 					}, nil).
 					Times(1)
 			},
-			expectedError: internalerrors.ErrLogout,
+			expectedError: errors.New(`session not found`),
 		},
 		{
 			name:        "http client error",
@@ -477,7 +478,7 @@ func TestAuthRepository_Logout(t *testing.T) {
 					}, nil).
 					Times(1)
 			},
-			expectedError: internalerrors.ErrLogout,
+			expectedError: errors.New(``),
 		},
 	}
 
@@ -690,6 +691,727 @@ func TestAuthRepository_RefreshTokens(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.expectedTokens, tokens)
+		})
+	}
+}
+
+func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		email         string
+		setupMocks    func(*mockhttp.MockHTTPClient)
+		expectedError error
+	}{
+		{
+			name:  "successful send verify email",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						// Проверяем метод
+						assert.Equal(t, http.MethodPost, req.Method)
+						assert.Equal(t, "/users/email/verify", req.URL.Path)
+						assert.Equal(
+							t,
+							common.ApplicationJSONContentType,
+							req.Header.Get(common.ContentTypeHeaderName),
+						)
+
+						// Проверяем тело запроса
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "user@example.com", input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "successful send verify email with special characters",
+			email: "user.name+tag@example.co.uk",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "user.name+tag@example.co.uk", input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "send verify email to user with cyrillic domain",
+			email: "user@почта.рф",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "user@почта.рф", input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "user not found - returns 404",
+			email: "nonexistent@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "user not found"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "user not found"}`),
+		},
+		{
+			name:  "invalid email format - returns 400",
+			email: "invalid-email",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "invalid email format"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "invalid email format"}`),
+		},
+		{
+			name:  "email already verified - returns 409",
+			email: "verified@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusConflict,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "email already verified"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "email already verified"}`),
+		},
+		{
+			name:  "rate limit exceeded - returns 429",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusTooManyRequests,
+						Body: io.NopCloser(
+							bytes.NewReader(
+								[]byte(`{"error": "rate limit exceeded, try again later"}`),
+							),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "rate limit exceeded, try again later"}`),
+		},
+		{
+			name:  "internal server error - returns 500",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "internal server error"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "internal server error"}`),
+		},
+		{
+			name:  "http client error",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedError: errors.New("connection refused"),
+		},
+		{
+			name:  "empty response body with error status",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(""),
+		},
+		{
+			name:  "email with spaces",
+			email: " user@example.com ",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						// Пробелы сохраняются как есть
+						assert.Equal(t, " user@example.com ", input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			ctx := context.Background()
+
+			err := repo.SendVerifyEmailMessage(ctx, tt.email)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		email         string
+		setupMocks    func(*mockhttp.MockHTTPClient)
+		expectedError error
+	}{
+		{
+			name:  "successful send forget password message",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						// Проверяем метод
+						assert.Equal(t, http.MethodPost, req.Method)
+						assert.Equal(t, "/users/password/forget", req.URL.Path)
+						assert.Equal(
+							t,
+							common.ApplicationJSONContentType,
+							req.Header.Get(common.ContentTypeHeaderName),
+						)
+
+						// Проверяем тело запроса
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "user@example.com", input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "send forget password message with special characters",
+			email: "user.name+tag@example.co.uk",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "user.name+tag@example.co.uk", input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "user not found - returns 404",
+			email: "nonexistent@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "user not found"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "user not found"}`),
+		},
+		{
+			name:  "invalid email format - returns 400",
+			email: "invalid-email",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "invalid email format"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "invalid email format"}`),
+		},
+		{
+			name:  "rate limit exceeded - returns 429",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusTooManyRequests,
+						Body: io.NopCloser(
+							bytes.NewReader(
+								[]byte(`{"error": "rate limit exceeded, try again later"}`),
+							),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "rate limit exceeded, try again later"}`),
+		},
+		{
+			name:  "internal server error - returns 500",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "internal server error"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "internal server error"}`),
+		},
+		{
+			name:  "http client error",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedError: errors.New("connection refused"),
+		},
+		{
+			name:  "empty response body with error status",
+			email: "user@example.com",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(""),
+		},
+		{
+			name:  "empty email",
+			email: "",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.SendVerifyEmailMessageDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Empty(t, input.Email)
+
+						return &http.Response{
+							StatusCode: http.StatusBadRequest,
+							Body: io.NopCloser(
+								bytes.NewReader([]byte(`{"error": "email is required"}`)),
+							),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "email is required"}`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			ctx := context.Background()
+
+			err := repo.SendForgetPasswordMessage(ctx, tt.email)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestAuthRepository_ForgetPassword(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                string
+		forgetPasswordToken string
+		newPassword         string
+		setupMocks          func(*mockhttp.MockHTTPClient)
+		expectedError       error
+	}{
+		{
+			name:                "successful forget password",
+			forgetPasswordToken: "valid-token-123",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						// Проверяем метод
+						assert.Equal(t, http.MethodPost, req.Method)
+						assert.Equal(t, "/users/password/forget/valid-token-123", req.URL.Path)
+						assert.Equal(
+							t,
+							common.ApplicationJSONContentType,
+							req.Header.Get(common.ContentTypeHeaderName),
+						)
+
+						// Проверяем тело запроса
+						var input domains.ForgetPasswordDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "NewPassword123!", input.NewPassword)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:                "successful forget password with long password",
+			forgetPasswordToken: "valid-token-456",
+			newPassword:         "VeryLongPasswordWithManyCharacters123!@#",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.ForgetPasswordDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(
+							t,
+							"VeryLongPasswordWithManyCharacters123!@#",
+							input.NewPassword,
+						)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:                "invalid token - returns 400",
+			forgetPasswordToken: "invalid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "invalid token"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "invalid token"}`),
+		},
+		{
+			name:                "expired token - returns 401",
+			forgetPasswordToken: "expired-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "token has expired"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "token has expired"}`),
+		},
+		{
+			name:                "weak password - returns 400",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "weak",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body: io.NopCloser(
+							bytes.NewReader(
+								[]byte(`{"error": "password does not meet security requirements"}`),
+							),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "password does not meet security requirements"}`),
+		},
+		{
+			name:                "user not found - returns 404",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "user not found"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "user not found"}`),
+		},
+		{
+			name:                "internal server error - returns 500",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`{"error": "internal server error"}`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "internal server error"}`),
+		},
+		{
+			name:                "http client error",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedError: errors.New("connection refused"),
+		},
+		{
+			name:                "empty token",
+			forgetPasswordToken: "",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						// Проверяем URL с пустым токеном
+						assert.Equal(t, "/users/password/forget/", req.URL.Path)
+
+						return &http.Response{
+							StatusCode: http.StatusBadRequest,
+							Body: io.NopCloser(
+								bytes.NewReader([]byte(`{"error": "token is required"}`)),
+							),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "token is required"}`),
+		},
+		{
+			name:                "empty new password",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						var input domains.ForgetPasswordDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err := json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Empty(t, input.NewPassword)
+
+						return &http.Response{
+							StatusCode: http.StatusBadRequest,
+							Body: io.NopCloser(
+								bytes.NewReader([]byte(`{"error": "new password is required"}`)),
+							),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: errors.New(`{"error": "new password is required"}`),
+		},
+		{
+			name:                "empty response body with error status",
+			forgetPasswordToken: "valid-token",
+			newPassword:         "NewPassword123!",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(""),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			ctx := context.Background()
+
+			err := repo.ForgetPassword(ctx, tt.forgetPasswordToken, tt.newPassword)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }

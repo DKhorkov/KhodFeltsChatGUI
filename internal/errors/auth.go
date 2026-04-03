@@ -11,4 +11,5 @@ var (
 	ErrInvalidUsername      = errors.New(`invalid username`)
 	ErrInvalidEmail         = errors.New(`invalid email`)
 	ErrPasswordDoesNotMatch = errors.New(`passwords does not match`)
+	ErrInvalidForgetPasswordToken = errors.New(`invalid forget password token`)
 )

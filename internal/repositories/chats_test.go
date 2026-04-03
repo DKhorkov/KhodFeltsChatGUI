@@ -171,13 +171,13 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusUnauthorized,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "unauthorized"}`)),
+							bytes.NewReader([]byte(`unauthorized`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedChats: nil,
-			expectedError: internalerrors.ErrGetUserChats,
+			expectedError: errors.New(`unauthorized`),
 		},
 		{
 			name:        "not found",
@@ -190,13 +190,13 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusNotFound,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "chats not found"}`)),
+							bytes.NewReader([]byte(`chats not found`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedChats: nil,
-			expectedError: internalerrors.ErrGetUserChats,
+			expectedError: errors.New(`chats not found`),
 		},
 		{
 			name:        "invalid json response",
@@ -699,13 +699,13 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusNotFound,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "chat not found"}`)),
+							bytes.NewReader([]byte(`chat not found`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedMessages: nil,
-			expectedError:    internalerrors.ErrGetChatMessages,
+			expectedError:    errors.New(`chat not found`),
 		},
 		{
 			name:        "unauthorized access",
@@ -719,13 +719,13 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusUnauthorized,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "unauthorized"}`)),
+							bytes.NewReader([]byte(`unauthorized`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedMessages: nil,
-			expectedError:    internalerrors.ErrGetChatMessages,
+			expectedError:    errors.New(`unauthorized`),
 		},
 		{
 			name:        "http client error",
@@ -772,13 +772,13 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 					Return(&http.Response{
 						StatusCode: http.StatusForbidden,
 						Body: io.NopCloser(
-							bytes.NewReader([]byte(`{"error": "access denied"}`)),
+							bytes.NewReader([]byte(`access denied`)),
 						),
 					}, nil).
 					Times(1)
 			},
 			expectedMessages: nil,
-			expectedError:    internalerrors.ErrGetChatMessages,
+			expectedError:    errors.New(`access denied`),
 		},
 		{
 			name:        "message with all fields populated",

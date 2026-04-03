@@ -422,7 +422,8 @@ func (w *Window) processMessage(message domains.Message) {
 						"[%s] %s: %s",
 						chatTitle,
 						message.Sender.Username,
-						message.Text),
+						message.Text,
+					),
 				),
 			)
 			w.notificationWindow.Show()
@@ -470,7 +471,9 @@ func (w *Window) buildChatsList() {
 			newChatIndicatorLabel.TextStyle = fyne.TextStyle{Bold: true}
 
 			return container.NewHBox(
-				widget.NewIcon(theme.MailComposeIcon()),
+				widget.NewIcon(
+					theme.AccountIcon(),
+				), // TODO если чат груповой, то иконку ставим theme.FolderIcon()
 				widget.NewLabel(chatsListChatTitleLabelText),
 				newChatIndicatorLabel,
 			)

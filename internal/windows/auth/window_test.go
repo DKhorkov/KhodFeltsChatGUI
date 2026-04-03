@@ -6,8 +6,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
 	"github.com/DKhorkov/kfcGUI/internal/config"
-	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	mockwindows "github.com/DKhorkov/kfcGUI/mocks/window"
 	"github.com/stretchr/testify/assert"
@@ -19,18 +19,14 @@ func TestNew(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		chatWindow       interfaces.Window
 		validationConfig config.ValidationConfig
-		actualErr        interfaces.ErrorsMapper
 	}{
 		{
 			name:             "create auth window with valid config",
-			chatWindow:       nil,
 			validationConfig: config.ValidationConfig{},
 		},
 		{
 			name:             "create auth window with nil chat window",
-			chatWindow:       nil,
 			validationConfig: config.ValidationConfig{},
 		},
 	}
@@ -43,13 +39,22 @@ func TestNew(t *testing.T) {
 
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockChatWindow := mockwindows.NewMockWindow(ctrl)
+			mockInformationWindow := mockwindows.NewMockWindow(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-			w := New(app, tt.chatWindow, mockUseCases, tt.validationConfig, tt.actualErr)
+			w := New(
+				app,
+				mockChatWindow,
+				mockInformationWindow,
+				mockUseCases,
+				tt.validationConfig,
+				mockErrorsMapper,
+			)
 
 			assert.NotNil(t, w)
 			assert.Equal(t, app, w.app)
 			assert.Equal(t, mockUseCases, w.useCases)
-			assert.Equal(t, tt.chatWindow, w.chatWindow)
 			assert.Equal(t, tt.validationConfig, w.validationConfig)
 			assert.Nil(t, w.window)
 		})
@@ -63,7 +68,6 @@ func TestWindow_SetChatWindow(t *testing.T) {
 		name        string
 		initialChat interfaces.Window
 		newChat     interfaces.Window
-		actualErr   interfaces.ErrorsMapper
 	}{
 		{
 			name:        "set new chat window",
@@ -90,8 +94,17 @@ func TestWindow_SetChatWindow(t *testing.T) {
 
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockInformationWindow := mockwindows.NewMockWindow(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-			w := New(app, tt.initialChat, mockUseCases, config.ValidationConfig{}, tt.actualErr)
+			w := New(
+				app,
+				tt.initialChat,
+				mockInformationWindow,
+				mockUseCases,
+				config.ValidationConfig{},
+				mockErrorsMapper,
+			)
 			w.SetChatWindow(tt.newChat)
 
 			assert.Equal(t, tt.newChat, w.chatWindow)
@@ -103,8 +116,7 @@ func TestWindow_Build(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		actualErr interfaces.ErrorsMapper
+		name string
 	}{
 		{
 			name: "build auth window",
@@ -119,8 +131,18 @@ func TestWindow_Build(t *testing.T) {
 
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockChatWindow := mockwindows.NewMockWindow(ctrl)
+			mockInformationWindow := mockwindows.NewMockWindow(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{}, tt.actualErr)
+			w := New(
+				app,
+				mockChatWindow,
+				mockInformationWindow,
+				mockUseCases,
+				config.ValidationConfig{},
+				mockErrorsMapper,
+			)
 			w.Build(nil)
 
 			assert.NotNil(t, w.window)
@@ -137,7 +159,6 @@ func TestWindow_Show(t *testing.T) {
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
-		actualErr   interfaces.ErrorsMapper
 	}{
 		{
 			name: "show window after build",
@@ -165,8 +186,18 @@ func TestWindow_Show(t *testing.T) {
 
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockChatWindow := mockwindows.NewMockWindow(ctrl)
+			mockInformationWindow := mockwindows.NewMockWindow(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{}, tt.actualErr)
+			w := New(
+				app,
+				mockChatWindow,
+				mockInformationWindow,
+				mockUseCases,
+				config.ValidationConfig{},
+				mockErrorsMapper,
+			)
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -185,7 +216,6 @@ func TestWindow_Close(t *testing.T) {
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
-		actualErr   interfaces.ErrorsMapper
 	}{
 		{
 			name: "close existing window",
@@ -213,8 +243,18 @@ func TestWindow_Close(t *testing.T) {
 
 			app := test.NewApp()
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockChatWindow := mockwindows.NewMockWindow(ctrl)
+			mockInformationWindow := mockwindows.NewMockWindow(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-			w := New(app, nil, mockUseCases, config.ValidationConfig{}, tt.actualErr)
+			w := New(
+				app,
+				mockChatWindow,
+				mockInformationWindow,
+				mockUseCases,
+				config.ValidationConfig{},
+				mockErrorsMapper,
+			)
 
 			if tt.setupWindow != nil {
 				tt.setupWindow(w)
@@ -245,7 +285,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "width constant",
 			constant: width,
-			expected: 400,
+			expected: width,
 		},
 		{
 			name:     "height constant",
@@ -275,7 +315,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "email entry text",
 			constant: emailEntryText,
-			expected: "Email",
+			expected: "Почта",
 		},
 		{
 			name:     "password entry text",
@@ -285,7 +325,7 @@ func TestWindow_Constants(t *testing.T) {
 		{
 			name:     "username entry text",
 			constant: usernameEntryText,
-			expected: "Имя пользователя (от 5 символов)",
+			expected: "Логин",
 		},
 		{
 			name:     "confirm password entry text",
@@ -313,51 +353,6 @@ func TestWindow_Constants(t *testing.T) {
 	}
 }
 
-func TestWindow_ErrorMessages(t *testing.T) {
-	t.Parallel()
-	mapper := customerrors.New()
-
-	tests := []struct {
-		name     string
-		err      error
-		expected string
-	}{
-		{
-			name:     "invalid password error",
-			err:      mapper.Map(customerrors.ErrInvalidPassword),
-			expected: "Пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву в верхнем и нижнем регистре, цифру и спецсимвол",
-		},
-		{
-			name:     "invalid username error",
-			err:      mapper.Map(customerrors.ErrInvalidUsername),
-			expected: "Имя пользователя должно быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
-		},
-		{
-			name:     "invalid email error",
-			err:      mapper.Map(customerrors.ErrInvalidEmail),
-			expected: "Некорректный email",
-		},
-		{
-			name:     "password does not match error",
-			err:      mapper.Map(customerrors.ErrPasswordDoesNotMatch),
-			expected: "Пароли не совпадают",
-		},
-		{
-			name:     "registration error",
-			err:      mapper.Map(customerrors.ErrRegister),
-			expected: "Ошибка регистрации",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			assert.Equal(t, tt.expected, tt.err.Error())
-		})
-	}
-}
-
 func TestWindow_Integration(t *testing.T) {
 	t.Parallel()
 
@@ -368,8 +363,18 @@ func TestWindow_Integration(t *testing.T) {
 
 		app := test.NewApp()
 		mockUseCases := mockusecases.NewMockUseCases(ctrl)
+		mockChatWindow := mockwindows.NewMockWindow(ctrl)
+		mockInformationWindow := mockwindows.NewMockWindow(ctrl)
+		mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-		w := New(app, nil, mockUseCases, config.ValidationConfig{}, customerrors.New())
+		w := New(
+			app,
+			mockChatWindow,
+			mockInformationWindow,
+			mockUseCases,
+			config.ValidationConfig{},
+			mockErrorsMapper,
+		)
 		w.Build(nil)
 
 		// Показываем

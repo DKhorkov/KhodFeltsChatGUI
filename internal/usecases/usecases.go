@@ -165,6 +165,39 @@ func (u *UseCases) Register(
 	return user, nil
 }
 
+func (u *UseCases) SendVerifyEmailMessage(ctx context.Context, email string) error {
+	if err := u.auth.SendVerifyEmailMessage(ctx, email); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to send verify email message", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
+func (u *UseCases) SendForgetPasswordMessage(ctx context.Context, email string) error {
+	if err := u.auth.SendForgetPasswordMessage(ctx, email); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to send forget password message", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
+func (u *UseCases) ForgetPassword(
+	ctx context.Context,
+	forgetPasswordToken, newPassword string,
+) error {
+	if err := u.auth.ForgetPassword(ctx, forgetPasswordToken, newPassword); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to forget password", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) SendMessage(ctx context.Context, message domains.Message) error {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
