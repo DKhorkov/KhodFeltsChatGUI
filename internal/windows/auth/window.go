@@ -52,9 +52,9 @@ type Window struct {
 	app    fyne.App
 	window fyne.Window
 
-	useCases         interfaces.UseCases
-	chatWindow       interfaces.Window
-	validationConfig config.ValidationConfig
+	useCases                         interfaces.UseCases
+	chatWindow, forgetPasswordWindow interfaces.Window
+	validationConfig                 config.ValidationConfig
 	errorsMapper                     interfaces.ErrorsMapper
 }
 
@@ -63,15 +63,14 @@ func New(
 	chatWindow, forgetPasswordWindow interfaces.Window,
 	useCases interfaces.UseCases,
 	validationConfig config.ValidationConfig,
-	errMapper interfaces.ErrorsMapper,
 	errorsMapper interfaces.ErrorsMapper,
 ) *Window {
 	return &Window{
-		app:              app,
-		useCases:         useCases,
-		chatWindow:       chatWindow,
-		validationConfig: validationConfig,
+		app:                  app,
+		useCases:             useCases,
+		chatWindow:           chatWindow,
 		forgetPasswordWindow: forgetPasswordWindow,
+		validationConfig:     validationConfig,
 		errorsMapper:         errorsMapper,
 	}
 }
@@ -331,7 +330,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					progressBar.Hidden = true
 
-					dialog.ShowError(err, w.window)
+					dialog.ShowError(w.errorsMapper.Map(errors.ErrLogin), w.window)
 				})
 
 				return
