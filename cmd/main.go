@@ -69,7 +69,6 @@ func main() {
 	kfc := app.New()
 	kfc.Settings().SetTheme(appTheme)
 
-	authWindow := auth.New(kfc, nil, useCases, cfg.Validation, errorsMapper)
 	forgetPasswordWindow := forgetPassword.New(
 		kfc,
 		information.New(kfc, passwordChangedInformationWindowTitle),
@@ -77,6 +76,7 @@ func main() {
 		cfg.Validation,
 		errorsMapper,
 	)
+	authWindow := auth.New(kfc, nil, forgetPasswordWindow, useCases, cfg.Validation, errorsMapper)
 	notificationWindow := notification.New(kfc, useCases)
 	searchUsersWindow := searchUsers.New(kfc, useCases)
 	createChatWindow := createChat.New(kfc, useCases, nil)
