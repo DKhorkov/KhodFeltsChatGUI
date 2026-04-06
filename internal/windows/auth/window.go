@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-
 	"fmt"
 
 	"fyne.io/fyne/v2"

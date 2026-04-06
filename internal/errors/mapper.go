@@ -10,8 +10,8 @@ type Mapper struct {
 }
 
 var (
-	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
-	errFailedLogin                            = errors.New("Неверный логин или пароль")
+	errEmailAlreadyExist = errors.New("Этот почтовый адрес уже занят")
+	errFailedLogin       = errors.New("Неверный логин или пароль")
 	// Users.
 	errUserNotFound     = errors.New("Такого пользователя не существует")
 	errUserAlreadyExist = errors.New(
@@ -20,14 +20,12 @@ var (
 
 	// Auth.
 	errEmailNotConfirmed                      = errors.New("Почта не была подтвержён")
-	errEmailAlreadyConfirmed                  = errors.New("Эта почта уже подтверждена")
 	errWrongPassword                          = errors.New("Неверный логин или пароль")
 	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
-	errUserNotIsMember                        = errors.New("У вас нет доступа к этому чату")
-	errRegister             = errors.New("Ошибка регистрации")
-	errGetUserChats         = errors.New(`Не удалось получить чаты пользователя`)
-	errCreateChat           = errors.New(`Не удалось создать чат`)
-	errGetChatMessages      = errors.New(`Не удалось получить сообщения для чата`)
+	errRegister                               = errors.New("Ошибка регистрации")
+	errGetUserChats                           = errors.New(`Не удалось получить чаты пользователя`)
+	errCreateChat                             = errors.New(`Не удалось создать чат`)
+	errGetChatMessages                        = errors.New(`Не удалось получить сообщения для чата`)
 	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
 	errValidationFailed                       = errors.New("Ошибка авторизации")
 	errInvalidPassword                        = errors.New(
@@ -57,12 +55,9 @@ var (
 func New() *Mapper {
 	return &Mapper{
 		mapping: map[string]error{
-			ErrUserNotFound.Error():                         errUserNotFound,
-			"user already exists":                           errUserAlreadyExist,
 			// Users
-			"user not found":      errUserNotFound,
-			"user already exists": errUserAlreadyExist,
-
+			ErrUserNotFound.Error(): errUserNotFound,
+			"user already exists":   errUserAlreadyExist,
 			// Auth
 			"email not confirmed":                           errEmailNotConfirmed,
 			"email already confirmed":                       errEmailAlreadyExist,
