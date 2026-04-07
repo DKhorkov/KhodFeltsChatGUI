@@ -158,8 +158,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 			); err != nil {
 				fyne.Do(func() {
 					progressBar.Hidden = true
-
-					dialog.ShowError(w.errorsMapper.Map(errors.ErrLogin), w.window)
+					err = w.errorsMapper.Map(errors.ErrLogin)
+					dialog.ShowError(err, w.window)
 				})
 
 				return
