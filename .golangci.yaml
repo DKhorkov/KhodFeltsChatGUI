@@ -343,7 +343,7 @@ linters:
         linters:
           - testpackage
 
-      - path: internal/widgets/entries/multiline_test.go
+      - path: internal/widgets/entries/entries_test.go
         linters:
           - testpackage
 
