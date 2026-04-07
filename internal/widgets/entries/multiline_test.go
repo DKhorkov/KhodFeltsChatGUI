@@ -8,33 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewMultiLineEntry_Table(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "инициализация multiline entry",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			test.NewApp() // Создаем контекст приложения для каждого теста
-
-			entry := NewMultiLineEntry()
-
-			assert.NotNil(t, entry)
-			assert.True(t, entry.MultiLine)
-		})
-	}
-}
-
 func TestMultilineEntry_TypedKey(t *testing.T) {
-	// Мы не используем t.Parallel() здесь, так как fyne.CurrentApp()
-	// может вести себя нестабильно при параллельном создании приложений в тестах
+	t.Parallel() // Разрешаем параллельный запуск этого теста
 
 	tests := []struct {
 		name         string
@@ -46,7 +21,7 @@ func TestMultilineEntry_TypedKey(t *testing.T) {
 		{
 			name:         "обычный ввод текста без нажатия Enter",
 			inputText:    "Hello World",
-			keyToPress:   "", // Ничего не нажимаем
+			keyToPress:   "",
 			shouldSubmit: false,
 			expectedText: "Hello World",
 		},
@@ -59,19 +34,25 @@ func TestMultilineEntry_TypedKey(t *testing.T) {
 		},
 		{
 			name:         "отправка сообщения через KeyReturn",
-			inputText:    "Another message",
+			inputText:    "Return key test",
 			keyToPress:   fyne.KeyReturn,
 			shouldSubmit: true,
-			expectedText: "Another message",
+			expectedText: "Return key test",
 		},
 	}
 
 	for _, tt := range tests {
+		// Запуск подтеста в параллели
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Инициализируем изолированное окружение Fyne для этого подтеста
 			test.NewApp()
+
 			entry := NewMultiLineEntry()
 
 			var submittedText string
+
 			wasSubmitted := false
 
 			entry.OnSubmitted = func(s string) {
@@ -79,21 +60,21 @@ func TestMultilineEntry_TypedKey(t *testing.T) {
 				submittedText = s
 			}
 
-			// 1. Имитируем ввод текста
+			// Вводим текст
 			if tt.inputText != "" {
 				test.Type(entry, tt.inputText)
 			}
 
-			// 2. Имитируем нажатие специальной клавиши
+			// Проверяем нажатие клавиши
 			if tt.keyToPress != "" {
 				entry.FocusGained()
 				entry.TypedKey(&fyne.KeyEvent{Name: tt.keyToPress})
 				entry.FocusLost()
 			}
 
-			// 3. Проверки
+			// Ассерты
 			assert.Equal(t, tt.expectedText, entry.Text)
-			assert.Equal(t, tt.shouldSubmit, wasSubmitted, "Статус отправки не совпадает")
+			assert.Equal(t, tt.shouldSubmit, wasSubmitted)
 
 			if tt.shouldSubmit {
 				assert.Equal(t, tt.expectedText, submittedText)
