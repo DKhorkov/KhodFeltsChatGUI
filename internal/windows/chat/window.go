@@ -19,6 +19,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/kfcGUI/internal/widgets/entries"
 	"github.com/DKhorkov/libs/logging"
 )
 
@@ -92,7 +93,7 @@ type Window struct {
 
 	chatsList              *widget.List
 	messagesList           *widget.List
-	messageEntry           *widget.Entry
+	messageEntry           *entries.MultilineEntry
 	loadMoreMessagesButton *widget.Button
 	sendMessageButton      *widget.Button
 	rightPanel             *fyne.Container
@@ -808,7 +809,7 @@ func (w *Window) logout() {
 }
 
 func (w *Window) buildRightPanel() *fyne.Container {
-	messageEntry := widget.NewMultiLineEntry()
+	messageEntry := entries.NewMultiLineEntry()
 	messageEntry.SetPlaceHolder(messageEntryText)
 	messageEntry.OnSubmitted = func(_ string) {
 		w.sendMessage()
