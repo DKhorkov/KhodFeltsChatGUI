@@ -16,8 +16,10 @@ var (
 	ErrEmailNotConfirmed                      = errors.New(`email not confirmed`)
 	ErrEmailAlreadyExists                     = errors.New(`email already exist`)
 	ErrWrongPassword                          = errors.New(`wrong password`)
-	ErrAccessTokenDoesNotBelongToRefreshToken = errors.New(`access token does not belong to refresh token`)
-	ErrInvalidJwtToken                        = errors.New(`invalid jwt token`)
-	ErrValidationFailed                       = errors.New(`validation failed`)
-	ErrNewPasswordEqualToOldPassword          = errors.New(`new password equal to old password`)
+	ErrAccessTokenDoesNotBelongToRefreshToken = errors.New(
+		`access token does not belong to refresh token`,
+	)
+	ErrInvalidJwtToken               = errors.New(`invalid jwt token`)
+	ErrValidationFailed              = errors.New(`validation failed`)
+	ErrNewPasswordEqualToOldPassword = errors.New(`new password equal to old password`)
 )

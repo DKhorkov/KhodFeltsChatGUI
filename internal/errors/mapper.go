@@ -18,10 +18,9 @@ var (
 
 	// Auth.
 	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
-	errFailedLogin                            = errors.New("Неверный логин или пароль")
+	errLoginFailed                            = errors.New("Неверный логин или пароль")
 	errEmailNotConfirmed                      = errors.New("Почта не была подтвержён")
 	errEmailAlreadyConfirmed                  = errors.New("Эта почта уже подтверждена")
-	errWrongPassword                          = errors.New("Неверный логин или пароль")
 	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
 	errRegister                               = errors.New("Ошибка регистрации")
 	errInvalidJwtToken                        = errors.New("Ошибка авторизации")
@@ -64,8 +63,8 @@ func New() *Mapper {
 			ErrEmailAlreadyConfirmed.Error():                  errEmailAlreadyConfirmed,
 			ErrEmailNotConfirmed.Error():                      errEmailNotConfirmed,
 			ErrEmailAlreadyExists.Error():                     errEmailAlreadyExist,
-			ErrLogin.Error():                                  errFailedLogin,
-			ErrWrongPassword.Error():                          errWrongPassword,
+			ErrLogin.Error():                                  errLoginFailed,
+			ErrWrongPassword.Error():                          errLoginFailed,
 			ErrAccessTokenDoesNotBelongToRefreshToken.Error(): errAccessTokenDoesNotBelongToRefreshToken,
 			ErrInvalidJwtToken.Error():                        errInvalidJwtToken,
 			ErrValidationFailed.Error():                       errValidationFailed,
@@ -76,10 +75,6 @@ func New() *Mapper {
 			ErrRegister.Error():                               errRegister,
 			ErrWebsocket.Error():                              errDefault,
 			ErrWebsocketClosed.Error():                        errDefault,
-			ErrInvalidPassword.Error():                        errInvalidPassword,
-			ErrInvalidUsername.Error():                        errInvalidUsername,
-			ErrInvalidEmail.Error():                           errInvalidEmail,
-			ErrPasswordDoesNotMatch.Error():                   errPasswordDoesNotMatch,
 			ErrInvalidForgetPasswordToken.Error():             errInvalidForgetPasswordToken,
 			ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
 
