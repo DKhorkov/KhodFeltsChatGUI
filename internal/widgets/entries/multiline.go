@@ -1,4 +1,4 @@
-package windows
+package entries
 
 import (
 	"fyne.io/fyne/v2"
@@ -6,20 +6,20 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type CustomEntry struct {
+type MultilineEntry struct {
 	widget.Entry
-
-	OnSubmit func(string)
 }
 
-func NewCustomEntry() *CustomEntry {
-	e := &CustomEntry{}
+func NewMultiLineEntry() *MultilineEntry {
+	e := &MultilineEntry{}
+	e.MultiLine = true
+
 	e.ExtendBaseWidget(e)
 
 	return e
 }
 
-func (e *CustomEntry) TypedKey(key *fyne.KeyEvent) {
+func (e *MultilineEntry) TypedKey(key *fyne.KeyEvent) {
 	if key.Name == fyne.KeyReturn || key.Name == fyne.KeyEnter {
 		if d, ok := fyne.CurrentApp().Driver().(desktop.Driver); ok {
 			if d.CurrentKeyModifiers()&fyne.KeyModifierShift != 0 {
@@ -29,8 +29,8 @@ func (e *CustomEntry) TypedKey(key *fyne.KeyEvent) {
 			}
 		}
 
-		if e.OnSubmit != nil {
-			e.OnSubmit(e.Text)
+		if e.OnSubmitted != nil {
+			e.OnSubmitted(e.Text)
 		}
 
 		return
