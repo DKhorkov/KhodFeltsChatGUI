@@ -356,50 +356,11 @@ func (w *Window) readMessage(message domains.Message) {
 		return
 	}
 
-	w.markChatUnreadAfterReceivingMessage(message)
+	if err := w.updateChats(); err != nil {
+		logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
+	}
 
 	w.processMessage(message)
-}
-
-func (w *Window) markChatUnreadAfterReceivingMessage(message domains.Message) {
-	// Если чата нет в списке - обновляем весь список
-	if !w.chatExists(message) {
-		if err := w.updateChats(); err != nil {
-			logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
-		}
-
-		return
-	}
-
-	// Если чат есть и это НЕ текущий чат - помечаем как непрочитанный
-	if w.currentChat == nil || message.ChatID != w.currentChat.ID {
-		w.chatsMu.Lock()
-		for i := range w.chats {
-			if w.chats[i].ID == message.ChatID {
-				w.chats[i].IsRead = false
-
-				break
-			}
-		}
-		w.chatsMu.Unlock()
-
-		fyne.Do(func() {
-			w.chatsList.Refresh()
-		})
-	}
-}
-
-func (w *Window) chatExists(message domains.Message) bool {
-	w.chatsMu.RLock()
-	defer w.chatsMu.RUnlock()
-
-	for i := range w.chats {
-		if w.chats[i].ID == message.ChatID {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (w *Window) processMessage(message domains.Message) {
