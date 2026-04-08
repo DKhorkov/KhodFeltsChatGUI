@@ -275,16 +275,19 @@ func (w *Window) updateChats() error {
 	}
 
 	w.chatsMu.Lock()
+	defer w.chatsMu.Unlock()
+
 	w.chats = chats
-	w.chatsMu.Unlock()
 
 	// Если текущий открытый чат был удален, закрываем вкладку
 	if w.currentChat != nil {
 		chatDeleted := true
+		newSelectedIndex := -1 // Ищем новый индекс текущего чата в обновленном слайсе
 
-		for i := range chats {
-			if w.currentChat.ID == chats[i].ID {
+		for i := range w.chats {
+			if w.currentChat.ID == w.chats[i].ID {
 				chatDeleted = false
+				newSelectedIndex = i
 
 				break
 			}
@@ -293,6 +296,12 @@ func (w *Window) updateChats() error {
 		if chatDeleted {
 			fyne.Do(func() {
 				w.closeChat()
+			})
+		}
+
+		if newSelectedIndex >= 0 {
+			fyne.Do(func() {
+				w.chatsList.Select(newSelectedIndex)
 			})
 		}
 	}
@@ -525,9 +534,13 @@ func (w *Window) buildChatsList() {
 	)
 
 	w.chatsList.OnSelected = func(id widget.ListItemID) {
+		w.chatsMu.RLock()
+
 		if id >= len(w.chats) {
 			return
 		}
+
+		w.chatsMu.RUnlock()
 
 		chat := w.chats[id]
 
