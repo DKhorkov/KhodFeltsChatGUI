@@ -5,7 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
-	e "github.com/DKhorkov/kfcGUI/internal/widgets/entries"
+	"github.com/DKhorkov/kfcGUI/internal/widgets/entries"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,10 +47,7 @@ func TestMultilineEntry_TypedKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Инициализируем изолированное окружение Fyne для этого подтеста
-			test.NewApp()
-
-			entry := e.NewMultiLineEntry()
+			entry := entries.NewMultiLineEntry()
 
 			var submittedText string
 
