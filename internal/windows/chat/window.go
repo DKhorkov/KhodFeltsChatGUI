@@ -932,6 +932,10 @@ func (w *Window) sendMessage() {
 	w.messageEntry.SetText("")
 	w.messagesList.Refresh()
 	w.messagesList.ScrollToBottom()
+
+	if err := w.updateChats(); err != nil {
+		logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
+	}
 }
 
 func (w *Window) loadMoreMessages() {
