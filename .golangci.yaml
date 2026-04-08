@@ -343,10 +343,6 @@ linters:
         linters:
           - testpackage
 
-      - path: internal/widgets/entries/entries_test.go
-        linters:
-          - testpackage
-
 formatters:
   enable:
     - gofmt # Check if the code is formatted according to 'gofmt' command.

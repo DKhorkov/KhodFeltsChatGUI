@@ -1,10 +1,11 @@
-package entries
+package entries_test
 
 import (
 	"testing"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
+	e "github.com/DKhorkov/kfcGUI/internal/widgets/entries"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,7 +50,7 @@ func TestMultilineEntry_TypedKey(t *testing.T) {
 			// Инициализируем изолированное окружение Fyne для этого подтеста
 			test.NewApp()
 
-			entry := NewMultiLineEntry()
+			entry := e.NewMultiLineEntry()
 
 			var submittedText string
 
