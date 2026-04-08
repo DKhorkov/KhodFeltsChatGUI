@@ -540,9 +540,9 @@ func (w *Window) buildChatsList() {
 			return
 		}
 
-		w.chatsMu.RUnlock()
-
 		chat := w.chats[id]
+
+		w.chatsMu.RUnlock()
 
 		w.selectChat(chat)
 	}
