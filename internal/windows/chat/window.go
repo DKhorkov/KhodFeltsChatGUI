@@ -275,16 +275,19 @@ func (w *Window) updateChats() error {
 	}
 
 	w.chatsMu.Lock()
+	defer w.chatsMu.Unlock()
+
 	w.chats = chats
-	w.chatsMu.Unlock()
 
 	// Если текущий открытый чат был удален, закрываем вкладку
 	if w.currentChat != nil {
 		chatDeleted := true
+		newSelectedIndex := -1 // Ищем новый индекс текущего чата в обновленном слайсе
 
-		for i := range chats {
-			if w.currentChat.ID == chats[i].ID {
+		for i := range w.chats {
+			if w.currentChat.ID == w.chats[i].ID {
 				chatDeleted = false
+				newSelectedIndex = i
 
 				break
 			}
@@ -293,6 +296,12 @@ func (w *Window) updateChats() error {
 		if chatDeleted {
 			fyne.Do(func() {
 				w.closeChat()
+			})
+		}
+
+		if newSelectedIndex >= 0 {
+			fyne.Do(func() {
+				w.chatsList.Select(newSelectedIndex)
 			})
 		}
 	}
@@ -347,50 +356,11 @@ func (w *Window) readMessage(message domains.Message) {
 		return
 	}
 
-	w.markChatUnreadAfterReceivingMessage(message)
+	if err := w.updateChats(); err != nil {
+		logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
+	}
 
 	w.processMessage(message)
-}
-
-func (w *Window) markChatUnreadAfterReceivingMessage(message domains.Message) {
-	// Если чата нет в списке - обновляем весь список
-	if !w.chatExists(message) {
-		if err := w.updateChats(); err != nil {
-			logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
-		}
-
-		return
-	}
-
-	// Если чат есть и это НЕ текущий чат - помечаем как непрочитанный
-	if w.currentChat == nil || message.ChatID != w.currentChat.ID {
-		w.chatsMu.Lock()
-		for i := range w.chats {
-			if w.chats[i].ID == message.ChatID {
-				w.chats[i].IsRead = false
-
-				break
-			}
-		}
-		w.chatsMu.Unlock()
-
-		fyne.Do(func() {
-			w.chatsList.Refresh()
-		})
-	}
-}
-
-func (w *Window) chatExists(message domains.Message) bool {
-	w.chatsMu.RLock()
-	defer w.chatsMu.RUnlock()
-
-	for i := range w.chats {
-		if w.chats[i].ID == message.ChatID {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (w *Window) processMessage(message domains.Message) {
@@ -525,11 +495,15 @@ func (w *Window) buildChatsList() {
 	)
 
 	w.chatsList.OnSelected = func(id widget.ListItemID) {
+		w.chatsMu.RLock()
+
 		if id >= len(w.chats) {
 			return
 		}
 
 		chat := w.chats[id]
+
+		w.chatsMu.RUnlock()
 
 		w.selectChat(chat)
 	}
@@ -919,6 +893,10 @@ func (w *Window) sendMessage() {
 	w.messageEntry.SetText("")
 	w.messagesList.Refresh()
 	w.messagesList.ScrollToBottom()
+
+	if err := w.updateChats(); err != nil {
+		logging.LogErrorContext(w.ctx, w.logger, "не удалось обновить чаты", err)
+	}
 }
 
 func (w *Window) loadMoreMessages() {
