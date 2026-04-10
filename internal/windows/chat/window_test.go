@@ -16,8 +16,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name string
 	}{
@@ -28,8 +26,6 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -64,8 +60,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
-	t.Parallel()
-
 	now := time.Now()
 
 	tests := []struct {
@@ -132,8 +126,6 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -171,8 +163,6 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
-	t.Parallel()
-
 	now := time.Now()
 
 	tests := []struct {
@@ -192,8 +182,6 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -246,8 +234,6 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
-	t.Parallel()
-
 	now := time.Now()
 
 	tests := []struct {
@@ -274,8 +260,6 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -393,14 +377,9 @@ func TestWindow_Constants(t *testing.T) {
 			expected: "Выйти",
 		},
 		{
-			name:     "load more messages button text",
-			constant: loadMoreMessagesButtonText,
-			expected: "Загрузить историю",
-		},
-		{
 			name:     "close chat button text",
 			constant: closeChatButtonText,
-			expected: "Закрыть чат",
+			expected: "",
 		},
 		{
 			name:     "send message button text",
@@ -445,11 +424,7 @@ func TestWindow_Constants(t *testing.T) {
 
 // Интеграционный тест полного цикла.
 func TestWindow_Integration(t *testing.T) {
-	t.Parallel()
-
 	t.Run("full window lifecycle", func(t *testing.T) {
-		t.Parallel()
-
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

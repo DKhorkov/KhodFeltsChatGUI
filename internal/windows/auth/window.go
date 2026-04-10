@@ -55,6 +55,9 @@ type Window struct {
 	chatWindow, forgetPasswordWindow interfaces.Window
 	validationConfig                 config.ValidationConfig
 	errorsMapper                     interfaces.ErrorsMapper
+
+	loginEmailEntry, loginPasswordEntry *widget.Entry
+	progressBar                         *widget.ProgressBarInfinite
 }
 
 func New(
@@ -119,67 +122,29 @@ func (w *Window) buildTabs() *container.AppTabs {
 	)
 
 	// Вход
-	loginEmailEntry := widget.NewEntry()
-	loginEmailEntry.SetPlaceHolder(emailEntryText)
+	w.loginEmailEntry = widget.NewEntry()
+	w.loginEmailEntry.SetPlaceHolder(emailEntryText)
+	w.loginEmailEntry.OnSubmitted = func(_ string) {
+		w.login()
+	}
 
-	loginPasswordEntry := widget.NewPasswordEntry()
-	loginPasswordEntry.SetPlaceHolder(passwordEntryText)
+	w.loginPasswordEntry = widget.NewPasswordEntry()
+	w.loginPasswordEntry.SetPlaceHolder(passwordEntryText)
+	w.loginPasswordEntry.OnSubmitted = func(_ string) {
+		w.login()
+	}
 
-	progressBar := widget.NewProgressBarInfinite()
-	progressBar.Hidden = true
+	w.progressBar = widget.NewProgressBarInfinite()
+	w.progressBar.Hidden = true
 
-	loginButton := widget.NewButton(loginButtonName, func() {
-		if !validation.ValidateValueByRule(loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
-			err := w.errorsMapper.Map(errors.ErrInvalidEmail)
-			dialog.ShowError(err, w.window)
-
-			return
-		}
-
-		if !validation.ValidateValueByRules(
-			loginPasswordEntry.Text,
-			w.validationConfig.PasswordRegExps,
-		) {
-			err := w.errorsMapper.Map(errors.ErrInvalidPassword)
-			dialog.ShowError(err, w.window)
-
-			return
-		}
-
-		progressBar.Hidden = false
-
-		go func() {
-			ctx := context.Background()
-
-			if _, err := w.useCases.Login(
-				ctx,
-				loginEmailEntry.Text,
-				loginPasswordEntry.Text,
-			); err != nil {
-				fyne.Do(func() {
-					progressBar.Hidden = true
-					err = w.errorsMapper.Map(errors.ErrLogin)
-					dialog.ShowError(err, w.window)
-				})
-
-				return
-			}
-
-			fyne.Do(func() {
-				w.window.Close()
-
-				w.chatWindow.Build(nil)
-				w.chatWindow.Show()
-			})
-		}()
-	})
+	loginButton := widget.NewButton(loginButtonName, w.login)
 
 	sendVerifyEmailButton := widget.NewButtonWithIcon(
 		sendVerifyEmailButtonName,
 		theme.MailComposeIcon(),
 		func() {
 			if !validation.ValidateValueByRule(
-				loginEmailEntry.Text,
+				w.loginEmailEntry.Text,
 				w.validationConfig.EmailRegExp,
 			) {
 				err := w.errorsMapper.Map(errors.ErrInvalidEmail)
@@ -191,7 +156,10 @@ func (w *Window) buildTabs() *container.AppTabs {
 			go func() {
 				ctx := context.Background()
 
-				if err := w.useCases.SendVerifyEmailMessage(ctx, loginEmailEntry.Text); err != nil {
+				if err := w.useCases.SendVerifyEmailMessage(
+					ctx,
+					w.loginEmailEntry.Text,
+				); err != nil {
 					fyne.Do(func() {
 						dialog.ShowError(err, w.window)
 					})
@@ -202,7 +170,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				fyne.Do(func() {
 					dialog.ShowInformation(
 						verifyEmailSentTitle,
-						fmt.Sprintf(verifyEmailSentText, loginEmailEntry.Text),
+						fmt.Sprintf(verifyEmailSentText, w.loginEmailEntry.Text),
 						w.window,
 					)
 				})
@@ -215,7 +183,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 		theme.DeleteIcon(),
 		func() {
 			if !validation.ValidateValueByRule(
-				loginEmailEntry.Text,
+				w.loginEmailEntry.Text,
 				w.validationConfig.EmailRegExp,
 			) {
 				err := w.errorsMapper.Map(errors.ErrInvalidEmail)
@@ -229,7 +197,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 				if err := w.useCases.SendForgetPasswordMessage(
 					ctx,
-					loginEmailEntry.Text,
+					w.loginEmailEntry.Text,
 				); err != nil {
 					fyne.Do(func() {
 						dialog.ShowError(err, w.window)
@@ -243,7 +211,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 						widget.NewLabel(
 							fmt.Sprintf(
 								forgetPasswordText,
-								loginEmailEntry.Text,
+								w.loginEmailEntry.Text,
 							),
 						),
 					)
@@ -255,10 +223,10 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 	loginTab := container.NewVBox(
 		widget.NewLabelWithStyle(loginTabName, fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		loginEmailEntry,
-		loginPasswordEntry,
+		w.loginEmailEntry,
+		w.loginPasswordEntry,
 		loginButton,
-		progressBar,
+		w.progressBar,
 		sendVerifyEmailButton,
 		forgetPasswordButton,
 	)
@@ -314,7 +282,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			return
 		}
 
-		progressBar.Hidden = false
+		w.progressBar.Hidden = false
 
 		go func() {
 			ctx := context.Background()
@@ -327,7 +295,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 			if _, err := w.useCases.Register(ctx, registerData); err != nil {
 				fyne.Do(func() {
-					progressBar.Hidden = true
+					w.progressBar.Hidden = true
 					err = w.errorsMapper.Map(errors.ErrRegister)
 					dialog.ShowError(err, w.window)
 				})
@@ -336,7 +304,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			}
 
 			fyne.Do(func() {
-				progressBar.Hidden = true
+				w.progressBar.Hidden = true
 
 				dialog.ShowInformation(
 					successRegisterTitle,
@@ -345,8 +313,8 @@ func (w *Window) buildTabs() *container.AppTabs {
 				)
 
 				// Заполняем поля входа тем же email и паролем
-				loginEmailEntry.SetText(registerEmailEntry.Text)
-				loginPasswordEntry.SetText(registerPasswordEntry.Text)
+				w.loginEmailEntry.SetText(registerEmailEntry.Text)
+				w.loginPasswordEntry.SetText(registerPasswordEntry.Text)
 
 				// Очищаем поля регистрации
 				registerEmailEntry.SetText("")
@@ -374,4 +342,50 @@ func (w *Window) buildTabs() *container.AppTabs {
 	tabs.Items[registerTabIndex].Content = registerTab
 
 	return tabs
+}
+
+func (w *Window) login() {
+	if !validation.ValidateValueByRule(w.loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
+		err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+		dialog.ShowError(err, w.window)
+
+		return
+	}
+
+	if !validation.ValidateValueByRules(
+		w.loginPasswordEntry.Text,
+		w.validationConfig.PasswordRegExps,
+	) {
+		err := w.errorsMapper.Map(errors.ErrInvalidPassword)
+		dialog.ShowError(err, w.window)
+
+		return
+	}
+
+	w.progressBar.Hidden = false
+
+	go func() {
+		ctx := context.Background()
+
+		if _, err := w.useCases.Login(
+			ctx,
+			w.loginEmailEntry.Text,
+			w.loginPasswordEntry.Text,
+		); err != nil {
+			fyne.Do(func() {
+				w.progressBar.Hidden = true
+				err = w.errorsMapper.Map(errors.ErrLogin)
+				dialog.ShowError(err, w.window)
+			})
+
+			return
+		}
+
+		fyne.Do(func() {
+			w.window.Close()
+
+			w.chatWindow.Build(nil)
+			w.chatWindow.Show()
+		})
+	}()
 }

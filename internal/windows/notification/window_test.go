@@ -14,8 +14,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name     string
 		setupApp func() fyne.App
@@ -32,8 +30,6 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := tt.setupApp()
@@ -50,8 +46,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		message     fyne.CanvasObject
@@ -81,8 +75,6 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -124,11 +116,7 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_Build_MultipleBuilds(t *testing.T) {
-	t.Parallel()
-
 	t.Run("build multiple windows", func(t *testing.T) {
-		t.Parallel()
-
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -157,8 +145,6 @@ func TestWindow_Build_MultipleBuilds(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name           string
 		setupWindow    func(*Window)
@@ -179,8 +165,6 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -214,8 +198,6 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -240,8 +222,6 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -265,8 +245,6 @@ func TestWindow_Integration(t *testing.T) {
 	t.Parallel()
 
 	t.Run("full window lifecycle", func(t *testing.T) {
-		t.Parallel()
-
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -334,8 +312,6 @@ func TestWindow_Constants(t *testing.T) {
 
 // Тест для проверки различных типов сообщений.
 func TestWindow_Build_DifferentMessageTypes(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name    string
 		message fyne.CanvasObject
@@ -376,8 +352,6 @@ func TestWindow_Build_DifferentMessageTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
