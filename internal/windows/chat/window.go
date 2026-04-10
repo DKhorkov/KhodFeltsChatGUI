@@ -538,8 +538,9 @@ func (w *Window) selectChat(chat domains.Chat) {
 		w.messagesMu.Unlock()
 	}
 
-	w.messagesMu.Lock()
 	slices.Reverse(messages)
+
+	w.messagesMu.Lock()
 	w.messages = messages
 	w.messagesMu.Unlock()
 
@@ -938,6 +939,7 @@ func (w *Window) loadMoreMessages() {
 
 	slices.Reverse(messages)
 
+	// Добавляем старые сообщения в начало
 	w.messagesMu.Lock()
 	w.messages = append(messages, w.messages...)
 	w.messagesMu.Unlock()
