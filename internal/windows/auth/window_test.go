@@ -15,8 +15,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name             string
 		validationConfig config.ValidationConfig
@@ -33,8 +31,6 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -62,8 +58,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_SetChatWindow(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		initialChat interfaces.Window
@@ -88,8 +82,6 @@ func TestWindow_SetChatWindow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -113,8 +105,6 @@ func TestWindow_SetChatWindow(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name string
 	}{
@@ -125,8 +115,6 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -154,8 +142,6 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -180,8 +166,6 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -211,8 +195,6 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -237,8 +219,6 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -354,11 +334,7 @@ func TestWindow_Constants(t *testing.T) {
 }
 
 func TestWindow_Integration(t *testing.T) {
-	t.Parallel()
-
 	t.Run("full window lifecycle ", func(t *testing.T) {
-		t.Parallel()
-
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

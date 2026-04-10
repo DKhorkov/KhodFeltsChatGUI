@@ -15,8 +15,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name             string
 		refreshChatsFunc func(domains.Chat)
@@ -33,8 +31,6 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -58,8 +54,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestWindow_SetRefreshChatsFunc(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		initialFunc func(domains.Chat)
@@ -84,8 +78,6 @@ func TestWindow_SetRefreshChatsFunc(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -105,8 +97,6 @@ func TestWindow_SetRefreshChatsFunc(t *testing.T) {
 }
 
 func TestWindow_Build(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name string
 	}{
@@ -117,8 +107,6 @@ func TestWindow_Build(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -136,8 +124,6 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_SearchFunctionality(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name          string
 		searchQuery   string
@@ -186,8 +172,6 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -218,8 +202,6 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 }
 
 func TestWindow_ChatTypeSelection(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name         string
 		selectedType string
@@ -239,8 +221,6 @@ func TestWindow_ChatTypeSelection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -259,8 +239,6 @@ func TestWindow_ChatTypeSelection(t *testing.T) {
 }
 
 func TestWindow_Show(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -285,8 +263,6 @@ func TestWindow_Show(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -306,8 +282,6 @@ func TestWindow_Show(t *testing.T) {
 }
 
 func TestWindow_Close(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -332,8 +306,6 @@ func TestWindow_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			ctrl := gomock.NewController(t)
 
 			app := test.NewApp()
@@ -521,11 +493,7 @@ func findTypeSelect(window fyne.Window) *widget.Select {
 }
 
 func TestWindow_Integration(t *testing.T) {
-	t.Parallel()
-
 	t.Run("full window lifecycle ", func(t *testing.T) {
-		t.Parallel()
-
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()

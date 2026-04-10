@@ -39,13 +39,12 @@ const (
 	messagesHeaderLabelText                  = "Сообщения"
 	messagesListNewMessageIndicatorLabelText = "●"
 
-	newChatButtonText          = "Новый чат"
-	searchButtonText           = "Поиск"
-	logoutButtonText           = "Выйти"
-	loadMoreMessagesButtonText = "Загрузить историю"
-	closeChatButtonText        = "Закрыть чат"
-	sendMessageButtonText      = "Отправить"
-	changeThemeButtonText      = "Сменить тему"
+	newChatButtonText     = "Новый чат"
+	searchButtonText      = "Поиск"
+	logoutButtonText      = "Выйти"
+	closeChatButtonText   = ""
+	sendMessageButtonText = "Отправить"
+	changeThemeButtonText = "Сменить тему"
 
 	messageEntryText = "Введите сообщение..."
 
@@ -68,6 +67,8 @@ const (
 	panelsSplitOffset = 0.25
 
 	additionalMessageHeight = 30
+
+	firstMessageID = 0
 )
 
 type Window struct {
@@ -90,13 +91,13 @@ type Window struct {
 	chats           []domains.Chat
 	messages        []domains.Message
 	hasMoreMessages bool
+	isLoading       bool
 
-	chatsList              *widget.List
-	messagesList           *widget.List
-	messageEntry           *entries.MultilineEntry
-	loadMoreMessagesButton *widget.Button
-	sendMessageButton      *widget.Button
-	rightPanel             *fyne.Container
+	chatsList         *widget.List
+	messagesList      *widget.List
+	messageEntry      *entries.MultilineEntry
+	sendMessageButton *widget.Button
+	rightPanel        *fyne.Container
 
 	minMessageSize float32
 }
@@ -510,14 +511,18 @@ func (w *Window) buildChatsList() {
 }
 
 func (w *Window) selectChat(chat domains.Chat) {
+	w.chatsMu.Lock()
 	w.currentChat = &chat
+	w.chatsMu.Unlock()
 
 	// Помечаем чат как прочитанный
 	w.markChatAsRead(chat.ID)
 
+	w.messagesMu.Lock()
 	w.messages = nil
 	w.hasMoreMessages = true
 	w.minMessageSize = 0
+	w.messagesMu.Unlock()
 
 	messages, err := w.useCases.GetChatMessages(w.ctx, chat.ID, messagesLimit, 0)
 	if err != nil {
@@ -528,7 +533,9 @@ func (w *Window) selectChat(chat domains.Chat) {
 
 	// Если сообщений меньше лимита, значит больше сообщений нет и подгружать не надо
 	if len(messages) < messagesLimit {
+		w.messagesMu.Lock()
 		w.hasMoreMessages = false
+		w.messagesMu.Unlock()
 	}
 
 	w.messagesMu.Lock()
@@ -537,15 +544,6 @@ func (w *Window) selectChat(chat domains.Chat) {
 	w.messagesMu.Unlock()
 
 	w.rightPanel.Show()
-
-	switch w.hasMoreMessages {
-	case true:
-		w.loadMoreMessagesButton.Enable()
-		w.loadMoreMessagesButton.Show()
-	case false:
-		w.loadMoreMessagesButton.Disable()
-		w.loadMoreMessagesButton.Hide()
-	}
 
 	w.messagesList.Refresh()
 
@@ -617,6 +615,10 @@ func (w *Window) buildMessagesList() {
 			)
 		},
 		func(id widget.ListItemID, item fyne.CanvasObject) {
+			if w.needToLoadMoreMessages(id) {
+				w.loadMoreMessages()
+			}
+
 			// Используем w.messagesMu.Unlock() без defer из-за w.messagesList.SetItemHeight() в конце метода
 			w.messagesMu.Lock()
 
@@ -654,11 +656,6 @@ func (w *Window) buildMessagesList() {
 				messageLabel.TextStyle = fyne.TextStyle{Bold: true}
 				newMessageIndicatorLabel.TextStyle = fyne.TextStyle{Bold: true}
 
-				senderLabel.Refresh()
-				timeLabel.Refresh()
-				messageLabel.Refresh()
-				newMessageIndicatorLabel.Refresh()
-
 				newMessageIndicatorLabel.Show()
 			} else {
 				senderLabel.TextStyle = fyne.TextStyle{Bold: false}
@@ -666,13 +663,13 @@ func (w *Window) buildMessagesList() {
 				messageLabel.TextStyle = fyne.TextStyle{Bold: false}
 				newMessageIndicatorLabel.TextStyle = fyne.TextStyle{Bold: false}
 
-				senderLabel.Refresh()
-				timeLabel.Refresh()
-				messageLabel.Refresh()
-				newMessageIndicatorLabel.Refresh()
-
 				newMessageIndicatorLabel.Hide()
 			}
+
+			senderLabel.Refresh()
+			timeLabel.Refresh()
+			messageLabel.Refresh()
+			newMessageIndicatorLabel.Refresh()
 
 			// Динамически подгоняем высоту итемов, чтобы все помещалось
 			if messageLabel.MinSize().Height > w.minMessageSize {
@@ -682,6 +679,22 @@ func (w *Window) buildMessagesList() {
 			w.messagesList.SetItemHeight(id, w.minMessageSize+additionalMessageHeight)
 		},
 	)
+}
+
+//  1. Проверяем, не идет ли уже загрузка
+//  2. id == 0 — мы вверху
+//  3. len(w.messages) >= messagesLimit — не грузим, если сообщений еще слишком мало
+//     (это отсечет ложное срабатывание при пустом или полупустом чате)
+func (w *Window) needToLoadMoreMessages(id widget.ListItemID) bool {
+	w.messagesMu.RLock()
+	canLoad := !w.isLoading && w.hasMoreMessages && len(w.messages) >= messagesLimit
+	w.messagesMu.RUnlock()
+
+	if id == firstMessageID && canLoad {
+		return true
+	}
+
+	return false
 }
 
 func (w *Window) buildLeftPanel() *fyne.Container {
@@ -800,17 +813,6 @@ func (w *Window) buildRightPanel() *fyne.Container {
 	sendMessageButton.Importance = widget.SuccessImportance
 	w.sendMessageButton = sendMessageButton
 
-	// Кнопка загрузки истории
-	loadMoreMessagesButton := widget.NewButtonWithIcon(
-		loadMoreMessagesButtonText,
-		theme.ContentAddIcon(),
-		func() {
-			w.loadMoreMessages()
-		},
-	)
-	loadMoreMessagesButton.Hidden = true
-	w.loadMoreMessagesButton = loadMoreMessagesButton
-
 	// Кнопка закрытия чата
 	closeChatButton := widget.NewButtonWithIcon(
 		closeChatButtonText,
@@ -828,8 +830,6 @@ func (w *Window) buildRightPanel() *fyne.Container {
 			fyne.TextAlignCenter,
 			fyne.TextStyle{Bold: true},
 		),
-		layout.NewSpacer(), // Это сдвигает все последующие элементы вправо
-		loadMoreMessagesButton,
 		layout.NewSpacer(), // Это сдвигает все последующие элементы вправо
 		closeChatButton,
 	)
@@ -900,34 +900,44 @@ func (w *Window) sendMessage() {
 }
 
 func (w *Window) loadMoreMessages() {
-	if !w.hasMoreMessages || w.currentChat == nil {
+	w.messagesMu.Lock()
+
+	if w.currentChat == nil || !w.hasMoreMessages || w.isLoading {
+		w.messagesMu.Unlock()
+
 		return
 	}
 
-	w.loadMoreMessagesButton.Disable()
-	w.loadMoreMessagesButton.Hide()
+	w.isLoading = true
+	w.messagesMu.Unlock()
+
+	// В конце функции (и при ошибке, и при успехе)
+	defer func() {
+		w.messagesMu.Lock()
+		w.isLoading = false
+		w.messagesMu.Unlock()
+	}()
 
 	offset := len(w.messages)
 
 	messages, err := w.useCases.GetChatMessages(w.ctx, w.currentChat.ID, messagesLimit, offset)
 	if err != nil {
 		dialog.ShowError(err, w.window)
-		w.loadMoreMessagesButton.Enable()
-		w.loadMoreMessagesButton.Show()
 
 		return
 	}
 
 	// Больше нет сообщений в чате, скрываем кнопку подгрузки сообщений
 	if len(messages) == 0 {
+		w.messagesMu.Lock()
 		w.hasMoreMessages = false
+		w.messagesMu.Unlock()
 
 		return
 	}
 
 	slices.Reverse(messages)
 
-	// Добавляем старые сообщения в начало
 	w.messagesMu.Lock()
 	w.messages = append(messages, w.messages...)
 	w.messagesMu.Unlock()
@@ -939,13 +949,12 @@ func (w *Window) loadMoreMessages() {
 
 	// Если загружено меньше лимита, значит больше нет сообщений
 	if len(messages) < messagesLimit {
+		w.messagesMu.Lock()
 		w.hasMoreMessages = false
+		w.messagesMu.Unlock()
 
 		return
 	}
-
-	w.loadMoreMessagesButton.Enable()
-	w.loadMoreMessagesButton.Show()
 }
 
 func (w *Window) closeChat() {

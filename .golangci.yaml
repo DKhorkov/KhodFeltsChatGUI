@@ -304,6 +304,8 @@ linters:
       - path: internal/windows/*
         linters:
           - testpackage
+          - tparallel
+          - paralleltest
 
       - path: internal/windows/texts.go
         linters:
