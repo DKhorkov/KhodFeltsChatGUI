@@ -1,4 +1,4 @@
-package repositories
+package ws
 
 import (
 	"context"
@@ -21,9 +21,11 @@ const (
 	readErrorsBufferSize   = 1
 
 	writeDeadline = 2 * time.Second
+
+	accessTokenCookieName = "accessToken"
 )
 
-type WebSocketsRepository struct {
+type Repository struct {
 	baseURL      string
 	logger       logging.Logger
 	ws           *websocket.Conn
@@ -32,14 +34,14 @@ type WebSocketsRepository struct {
 	errChan      chan error            // Канал для критических ошибок чтения
 }
 
-func NewWebSocketsRepository(baseURL string, logger logging.Logger) *WebSocketsRepository {
-	return &WebSocketsRepository{
+func New(baseURL string, logger logging.Logger) *Repository {
+	return &Repository{
 		baseURL: baseURL,
 		logger:  logger,
 	}
 }
 
-func (r *WebSocketsRepository) Connect(ctx context.Context, accessToken string) error {
+func (r *Repository) Connect(ctx context.Context, accessToken string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -56,7 +58,10 @@ func (r *WebSocketsRepository) Connect(ctx context.Context, accessToken string) 
 	r.errChan = make(chan error, readErrorsBufferSize)
 
 	header := http.Header{}
-	header.Add(common.CookieHeaderName, fmt.Sprintf("%s=%s", accessTokenCookieName, accessToken))
+	header.Add(
+		common.CookieHeaderName,
+		fmt.Sprintf("%s=%s", accessTokenCookieName, accessToken),
+	)
 
 	conn, _, err := websocket.DefaultDialer.DialContext(ctx, r.baseURL+"/ws", header)
 	if err != nil {
@@ -71,7 +76,7 @@ func (r *WebSocketsRepository) Connect(ctx context.Context, accessToken string) 
 	return nil
 }
 
-func (r *WebSocketsRepository) Close() error {
+func (r *Repository) Close() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -87,7 +92,7 @@ func (r *WebSocketsRepository) Close() error {
 	return err
 }
 
-func (r *WebSocketsRepository) ReadMessage(ctx context.Context) (*domains.Message, error) {
+func (r *Repository) ReadMessage(ctx context.Context) (*domains.Message, error) {
 	if r.ws == nil {
 		return nil, fmt.Errorf("%w: connection was not enstablished", customerrors.ErrWebsocket)
 	}
@@ -113,7 +118,7 @@ func (r *WebSocketsRepository) ReadMessage(ctx context.Context) (*domains.Messag
 	}
 }
 
-func (r *WebSocketsRepository) WriteMessage(ctx context.Context, message domains.Message) error {
+func (r *Repository) WriteMessage(ctx context.Context, message domains.Message) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -160,7 +165,7 @@ func (r *WebSocketsRepository) WriteMessage(ctx context.Context, message domains
 	return nil
 }
 
-func (r *WebSocketsRepository) readLoop() {
+func (r *Repository) readLoop() {
 	defer close(r.messagesChan)
 	defer close(r.errChan)
 

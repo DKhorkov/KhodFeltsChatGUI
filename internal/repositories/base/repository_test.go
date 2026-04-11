@@ -1,4 +1,4 @@
-package repositories
+package base
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func (m *MockReadCloser) Close() error {
 	return m.closeError
 }
 
-func TestRepository_closeBody(t *testing.T) {
+func TestRepository_CloseBody(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -160,10 +160,10 @@ func TestRepository_closeBody(t *testing.T) {
 				tt.setupMocks(mockLogger)
 			}
 
-			repo := NewRepository(mockLogger)
+			repo := New(mockLogger)
 
 			// Execute
-			repo.closeBody(tt.ctx, tt.body)
+			repo.CloseBody(tt.ctx, tt.body)
 
 			// Дополнительные проверки для body
 			if tt.body != nil {
@@ -185,7 +185,7 @@ func TestRepository_closeBody(t *testing.T) {
 	}
 }
 
-func TestNewRepository(t *testing.T) {
+func TestNew(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -206,7 +206,7 @@ func TestNewRepository(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			repo := NewRepository(tt.logger)
+			repo := New(tt.logger)
 			assert.NotNil(t, repo)
 		})
 	}
@@ -279,8 +279,8 @@ func TestRepository_closeBody_ErrorTypes(t *testing.T) {
 					Times(1)
 			}
 
-			repo := NewRepository(mockLogger)
-			repo.closeBody(context.Background(), body)
+			repo := New(mockLogger)
+			repo.CloseBody(context.Background(), body)
 		})
 	}
 }

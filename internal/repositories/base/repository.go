@@ -1,4 +1,4 @@
-package repositories
+package base
 
 import (
 	"context"
@@ -11,13 +11,13 @@ type Repository struct {
 	logger logging.Logger
 }
 
-func NewRepository(logger logging.Logger) *Repository {
+func New(logger logging.Logger) *Repository {
 	return &Repository{
 		logger: logger,
 	}
 }
 
-func (r *Repository) closeBody(ctx context.Context, body io.ReadCloser) {
+func (r *Repository) CloseBody(ctx context.Context, body io.ReadCloser) {
 	if body == nil {
 		return
 	}

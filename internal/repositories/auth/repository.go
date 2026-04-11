@@ -1,4 +1,4 @@
-package repositories
+package auth
 
 import (
 	"bytes"
@@ -14,32 +14,33 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/base"
 )
 
-var (
+const (
 	accessTokenCookieName  = "accessToken"
 	refreshTokenCookieName = "refreshToken"
 )
 
-type AuthRepository struct {
-	Repository
+type Repository struct {
+	base.Repository
 
 	httpClient interfaces.HTTPClient
 	baseURL    string
 	mu         sync.Mutex
 }
 
-func NewAuthRepository(
+func New(
 	httpClient interfaces.HTTPClient,
 	baseURL string,
-) *AuthRepository {
-	return &AuthRepository{
+) *Repository {
+	return &Repository{
 		httpClient: httpClient,
 		baseURL:    baseURL,
 	}
 }
 
-func (r *AuthRepository) Register(
+func (r *Repository) Register(
 	ctx context.Context,
 	registerData domains.RegisterDTO,
 ) (*domains.User, error) {
@@ -68,7 +69,7 @@ func (r *AuthRepository) Register(
 		return nil, err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -87,7 +88,7 @@ func (r *AuthRepository) Register(
 	return &createdUser, nil
 }
 
-func (r *AuthRepository) Login(
+func (r *Repository) Login(
 	ctx context.Context,
 	email, password string,
 ) (*domains.TokensDTO, error) {
@@ -121,7 +122,7 @@ func (r *AuthRepository) Login(
 		return nil, err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	if resp.StatusCode != http.StatusNoContent {
 		data, err := io.ReadAll(resp.Body)
@@ -155,7 +156,7 @@ func (r *AuthRepository) Login(
 	return &tokens, nil
 }
 
-func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
+func (r *Repository) Logout(ctx context.Context, accessToken string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -181,7 +182,7 @@ func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
 		return err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	if resp.StatusCode != http.StatusNoContent {
 		data, err := io.ReadAll(resp.Body)
@@ -195,7 +196,7 @@ func (r *AuthRepository) Logout(ctx context.Context, accessToken string) error {
 	return nil
 }
 
-func (r *AuthRepository) RefreshTokens(
+func (r *Repository) RefreshTokens(
 	ctx context.Context,
 	refreshToken string,
 ) (*domains.TokensDTO, error) {
@@ -224,7 +225,7 @@ func (r *AuthRepository) RefreshTokens(
 		return nil, err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	if resp.StatusCode != http.StatusNoContent {
 		data, err := io.ReadAll(resp.Body)
@@ -258,7 +259,7 @@ func (r *AuthRepository) RefreshTokens(
 	return &tokens, nil
 }
 
-func (r *AuthRepository) SendVerifyEmailMessage(ctx context.Context, email string) error {
+func (r *Repository) SendVerifyEmailMessage(ctx context.Context, email string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -288,7 +289,7 @@ func (r *AuthRepository) SendVerifyEmailMessage(ctx context.Context, email strin
 		return err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	if resp.StatusCode != http.StatusNoContent {
 		data, err := io.ReadAll(resp.Body)
@@ -302,7 +303,7 @@ func (r *AuthRepository) SendVerifyEmailMessage(ctx context.Context, email strin
 	return nil
 }
 
-func (r *AuthRepository) SendForgetPasswordMessage(ctx context.Context, email string) error {
+func (r *Repository) SendForgetPasswordMessage(ctx context.Context, email string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -332,7 +333,7 @@ func (r *AuthRepository) SendForgetPasswordMessage(ctx context.Context, email st
 		return err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	if resp.StatusCode != http.StatusNoContent {
 		data, err := io.ReadAll(resp.Body)
@@ -346,7 +347,7 @@ func (r *AuthRepository) SendForgetPasswordMessage(ctx context.Context, email st
 	return nil
 }
 
-func (r *AuthRepository) ForgetPassword(
+func (r *Repository) ForgetPassword(
 	ctx context.Context,
 	forgetPasswordToken, newPassword string,
 ) error {
@@ -379,7 +380,7 @@ func (r *AuthRepository) ForgetPassword(
 		return err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	if resp.StatusCode != http.StatusNoContent {
 		data, err := io.ReadAll(resp.Body)

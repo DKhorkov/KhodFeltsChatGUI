@@ -1,4 +1,4 @@
-package repositories
+package settings
 
 import (
 	"context"
@@ -10,18 +10,23 @@ import (
 )
 
 const (
+	permission       = 0o600
 	settingsFilename = "settings.json"
+
+	// JSON view variables.
+	prefix = ""
+	indent = "  "
 )
 
-type SettingsRepository struct {
+type Repository struct {
 	mu sync.RWMutex
 }
 
-func NewSettingsRepository() *SettingsRepository {
-	return &SettingsRepository{}
+func New() *Repository {
+	return &Repository{}
 }
 
-func (r *SettingsRepository) Save(_ context.Context, settings domains.Settings) error {
+func (r *Repository) Save(_ context.Context, settings domains.Settings) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -33,7 +38,7 @@ func (r *SettingsRepository) Save(_ context.Context, settings domains.Settings) 
 	return os.WriteFile(settingsFilename, data, permission)
 }
 
-func (r *SettingsRepository) Load(_ context.Context) (*domains.Settings, error) {
+func (r *Repository) Load(_ context.Context) (*domains.Settings, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -50,7 +55,7 @@ func (r *SettingsRepository) Load(_ context.Context) (*domains.Settings, error) 
 	return &settings, nil
 }
 
-func (r *SettingsRepository) Delete(_ context.Context) error {
+func (r *Repository) Delete(_ context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

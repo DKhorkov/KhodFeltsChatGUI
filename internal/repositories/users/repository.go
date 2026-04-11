@@ -1,4 +1,4 @@
-package repositories
+package users
 
 import (
 	"context"
@@ -12,27 +12,32 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/base"
 )
 
-type UsersRepository struct {
-	Repository
+const (
+	accessTokenCookieName = "accessToken"
+)
+
+type Repository struct {
+	base.Repository
 
 	httpClient interfaces.HTTPClient
 	baseURL    string
 	mu         sync.RWMutex
 }
 
-func NewUsersRepository(
+func New(
 	httpClient interfaces.HTTPClient,
 	baseURL string,
-) *UsersRepository {
-	return &UsersRepository{
+) *Repository {
+	return &Repository{
 		httpClient: httpClient,
 		baseURL:    baseURL,
 	}
 }
 
-func (r *UsersRepository) GetCurrentUser(
+func (r *Repository) GetCurrentUser(
 	ctx context.Context,
 	accessToken string,
 ) (*domains.User, error) {
@@ -55,7 +60,7 @@ func (r *UsersRepository) GetCurrentUser(
 	if err != nil {
 		return nil, err
 	}
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -74,7 +79,7 @@ func (r *UsersRepository) GetCurrentUser(
 	return &user, nil
 }
 
-func (r *UsersRepository) SearchUsers(
+func (r *Repository) SearchUsers(
 	ctx context.Context,
 	username string,
 	limit, offset int,
@@ -102,7 +107,7 @@ func (r *UsersRepository) SearchUsers(
 	if err != nil {
 		return nil, err
 	}
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {

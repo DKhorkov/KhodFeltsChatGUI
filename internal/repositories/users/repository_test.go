@@ -1,4 +1,4 @@
-package repositories
+package users
 
 import (
 	"bytes"
@@ -16,7 +16,9 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestUsersRepository_GetCurrentUser(t *testing.T) {
+var validToken = "valid token"
+
+func TestRepository_GetCurrentUser(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -171,7 +173,7 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 				baseURL = ""
 			}
 
-			repo := NewUsersRepository(mockClient, baseURL)
+			repo := New(mockClient, baseURL)
 
 			user, err := repo.GetCurrentUser(context.Background(), tt.accessToken)
 
@@ -186,7 +188,7 @@ func TestUsersRepository_GetCurrentUser(t *testing.T) {
 	}
 }
 
-func TestUsersRepository_SearchUsers(t *testing.T) {
+func TestRepository_SearchUsers(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -419,7 +421,7 @@ func TestUsersRepository_SearchUsers(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewUsersRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			users, err := repo.SearchUsers(context.Background(), tt.username, tt.limit, tt.offset)
 

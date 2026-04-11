@@ -11,9 +11,14 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
-	"github.com/DKhorkov/kfcGUI/internal/repositories"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/auth"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/chats"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/settings"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/users"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/ws"
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
-	"github.com/DKhorkov/kfcGUI/internal/windows/auth"
+	authwindow "github.com/DKhorkov/kfcGUI/internal/windows/auth"
 	"github.com/DKhorkov/kfcGUI/internal/windows/chat"
 	createChat "github.com/DKhorkov/kfcGUI/internal/windows/create_chat"
 	forgetPassword "github.com/DKhorkov/kfcGUI/internal/windows/forget_password"
@@ -41,12 +46,12 @@ func main() {
 
 	httpClient := &http.Client{Timeout: cfg.HTTP.Timeout}
 
-	authRepository := repositories.NewAuthRepository(httpClient, cfg.HTTP.BaseURL)
-	usersRepository := repositories.NewUsersRepository(httpClient, cfg.HTTP.BaseURL)
-	chatsRepository := repositories.NewChatsRepository(httpClient, cfg.HTTP.BaseURL)
-	tokensRepository := repositories.NewTokensRepository()
-	settingsRepository := repositories.NewSettingsRepository()
-	websocketsRepository := repositories.NewWebSocketsRepository(cfg.HTTP.WebsocketURL, logger)
+	authRepository := auth.New(httpClient, cfg.HTTP.BaseURL)
+	usersRepository := users.New(httpClient, cfg.HTTP.BaseURL)
+	chatsRepository := chats.New(httpClient, cfg.HTTP.BaseURL)
+	tokensRepository := tokens.New()
+	settingsRepository := settings.New()
+	websocketsRepository := ws.New(cfg.HTTP.WebsocketURL, logger)
 
 	errorsMapper := errors.New()
 
@@ -76,7 +81,14 @@ func main() {
 		cfg.Validation,
 		errorsMapper,
 	)
-	authWindow := auth.New(kfc, nil, forgetPasswordWindow, useCases, cfg.Validation, errorsMapper)
+	authWindow := authwindow.New(
+		kfc,
+		nil,
+		forgetPasswordWindow,
+		useCases,
+		cfg.Validation,
+		errorsMapper,
+	)
 	notificationWindow := notification.New(kfc, useCases)
 	searchUsersWindow := searchUsers.New(kfc, useCases)
 	createChatWindow := createChat.New(kfc, useCases, nil)
