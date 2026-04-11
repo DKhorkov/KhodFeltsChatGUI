@@ -1,4 +1,4 @@
-package repositories
+package chats
 
 import (
 	"bytes"
@@ -14,24 +14,29 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/kfcGUI/internal/repositories/base"
 )
 
-type ChatsRepository struct {
-	Repository
+const (
+	accessTokenCookieName = "accessToken"
+)
+
+type Repository struct {
+	base.Repository
 
 	httpClient interfaces.HTTPClient
 	baseURL    string
 	mu         sync.RWMutex
 }
 
-func NewChatsRepository(httpClient interfaces.HTTPClient, baseURL string) *ChatsRepository {
-	return &ChatsRepository{
+func New(httpClient interfaces.HTTPClient, baseURL string) *Repository {
+	return &Repository{
 		httpClient: httpClient,
 		baseURL:    baseURL,
 	}
 }
 
-func (r *ChatsRepository) GetUserChats(
+func (r *Repository) GetUserChats(
 	ctx context.Context,
 	accessToken string,
 	limit, offset int,
@@ -61,7 +66,7 @@ func (r *ChatsRepository) GetUserChats(
 		return nil, err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -80,7 +85,7 @@ func (r *ChatsRepository) GetUserChats(
 	return chats, nil
 }
 
-func (r *ChatsRepository) CreateChat(
+func (r *Repository) CreateChat(
 	ctx context.Context,
 	accessToken string,
 	chat domains.Chat,
@@ -120,7 +125,7 @@ func (r *ChatsRepository) CreateChat(
 		return nil, err
 	}
 
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -139,7 +144,7 @@ func (r *ChatsRepository) CreateChat(
 	return &createdChat, nil
 }
 
-func (r *ChatsRepository) GetChatMessages(
+func (r *Repository) GetChatMessages(
 	ctx context.Context,
 	accessToken string,
 	chatID uint64,
@@ -169,7 +174,7 @@ func (r *ChatsRepository) GetChatMessages(
 	if err != nil {
 		return nil, err
 	}
-	defer r.closeBody(ctx, resp.Body)
+	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {

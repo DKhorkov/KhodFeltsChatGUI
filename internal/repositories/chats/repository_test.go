@@ -1,4 +1,4 @@
-package repositories
+package chats
 
 import (
 	"bytes"
@@ -21,7 +21,7 @@ import (
 
 var validToken = "valid token"
 
-func TestChatsRepository_GetUserChats(t *testing.T) {
+func TestRepository_GetUserChats(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
@@ -246,7 +246,7 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewChatsRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			chats, err := repo.GetUserChats(
 				context.Background(),
@@ -266,7 +266,7 @@ func TestChatsRepository_GetUserChats(t *testing.T) {
 	}
 }
 
-func TestChatsRepository_CreateChat(t *testing.T) {
+func TestRepository_CreateChat(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
@@ -459,7 +459,7 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewChatsRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			createdChat, err := repo.CreateChat(context.Background(), tt.accessToken, tt.chat)
 
@@ -474,7 +474,7 @@ func TestChatsRepository_CreateChat(t *testing.T) {
 	}
 }
 
-func TestChatsRepository_GetChatMessages(t *testing.T) {
+func TestRepository_GetChatMessages(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
@@ -848,7 +848,7 @@ func TestChatsRepository_GetChatMessages(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewChatsRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			messages, err := repo.GetChatMessages(
 				context.Background(),

@@ -253,16 +253,16 @@ linters:
           - errchkjson
           - err113 #  errors.New(string(data))
 
-      - path: internal/repositories/repository_test.go
+      - path: internal/repositories/base/repository_test.go
         linters:
           - nonamedreturns
           - staticcheck
 
-      - path: internal/repositories/tokens_test.go
+      - path: internal/repositories/tokens/repository_test.go
         linters:
           - paralleltest
 
-      - path: internal/repositories/settings_test.go
+      - path: internal/repositories/settings/repository_test.go
         linters:
           - paralleltest
 

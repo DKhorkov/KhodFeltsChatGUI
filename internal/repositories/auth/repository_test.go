@@ -1,4 +1,4 @@
-package repositories
+package auth
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestAuthRepository_Register(t *testing.T) {
+func TestRepository_Register(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
@@ -192,7 +192,7 @@ func TestAuthRepository_Register(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			user, err := repo.Register(context.Background(), tt.registerData)
 
@@ -207,7 +207,7 @@ func TestAuthRepository_Register(t *testing.T) {
 	}
 }
 
-func TestAuthRepository_Login(t *testing.T) {
+func TestRepository_Login(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -376,7 +376,7 @@ func TestAuthRepository_Login(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			tokens, err := repo.Login(context.Background(), tt.email, tt.password)
 
@@ -391,7 +391,7 @@ func TestAuthRepository_Login(t *testing.T) {
 	}
 }
 
-func TestAuthRepository_Logout(t *testing.T) {
+func TestRepository_Logout(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -493,7 +493,7 @@ func TestAuthRepository_Logout(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			err := repo.Logout(context.Background(), tt.accessToken)
 
@@ -506,7 +506,7 @@ func TestAuthRepository_Logout(t *testing.T) {
 	}
 }
 
-func TestAuthRepository_RefreshTokens(t *testing.T) {
+func TestRepository_RefreshTokens(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -680,7 +680,7 @@ func TestAuthRepository_RefreshTokens(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 
 			tokens, err := repo.RefreshTokens(context.Background(), tt.refreshToken)
 
@@ -695,7 +695,7 @@ func TestAuthRepository_RefreshTokens(t *testing.T) {
 	}
 }
 
-func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
+func TestRepository_SendVerifyEmailMessage(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -928,7 +928,7 @@ func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 			ctx := context.Background()
 
 			err := repo.SendVerifyEmailMessage(ctx, tt.email)
@@ -943,7 +943,7 @@ func TestAuthRepository_SendVerifyEmailMessage(t *testing.T) {
 	}
 }
 
-func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
+func TestRepository_SendForgetPasswordMessage(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -1138,7 +1138,7 @@ func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 			ctx := context.Background()
 
 			err := repo.SendForgetPasswordMessage(ctx, tt.email)
@@ -1153,7 +1153,7 @@ func TestAuthRepository_SendForgetPasswordMessage(t *testing.T) {
 	}
 }
 
-func TestAuthRepository_ForgetPassword(t *testing.T) {
+func TestRepository_ForgetPassword(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -1401,7 +1401,7 @@ func TestAuthRepository_ForgetPassword(t *testing.T) {
 				tt.setupMocks(mockClient)
 			}
 
-			repo := NewAuthRepository(mockClient, "http://api.example.com")
+			repo := New(mockClient, "http://api.example.com")
 			ctx := context.Background()
 
 			err := repo.ForgetPassword(ctx, tt.forgetPasswordToken, tt.newPassword)

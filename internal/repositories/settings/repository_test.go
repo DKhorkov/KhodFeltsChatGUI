@@ -1,4 +1,4 @@
-package repositories
+package settings
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSettingsRepository(t *testing.T) {
+func TestRepository(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
@@ -21,13 +21,13 @@ func TestNewSettingsRepository(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewSettingsRepository()
+			repo := New()
 			assert.NotNil(t, repo)
 		})
 	}
 }
 
-func TestSettingsRepository_Save(t *testing.T) {
+func TestRepository_Save(t *testing.T) {
 	tests := []struct {
 		name        string
 		settings    domains.Settings
@@ -115,7 +115,7 @@ func TestSettingsRepository_Save(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewSettingsRepository()
+			repo := New()
 			ctx := context.Background()
 
 			err := repo.Save(ctx, tt.settings)
@@ -129,7 +129,7 @@ func TestSettingsRepository_Save(t *testing.T) {
 	}
 }
 
-func TestSettingsRepository_Load(t *testing.T) {
+func TestRepository_Load(t *testing.T) {
 	tests := []struct {
 		name        string
 		setup       func() error
@@ -266,7 +266,7 @@ func TestSettingsRepository_Load(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewSettingsRepository()
+			repo := New()
 			ctx := context.Background()
 
 			result, err := repo.Load(ctx)
@@ -282,7 +282,7 @@ func TestSettingsRepository_Load(t *testing.T) {
 	}
 }
 
-func TestSettingsRepository_Delete(t *testing.T) {
+func TestRepository_Delete(t *testing.T) {
 	tests := []struct {
 		name        string
 		setup       func() error
@@ -375,7 +375,7 @@ func TestSettingsRepository_Delete(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewSettingsRepository()
+			repo := New()
 			ctx := context.Background()
 
 			err := repo.Delete(ctx)
@@ -395,7 +395,7 @@ func TestSettingsRepository_Delete(t *testing.T) {
 	}
 }
 
-func TestSettingsRepository_Constants(t *testing.T) {
+func TestRepository_Constants(t *testing.T) {
 	tests := []struct {
 		name     string
 		constant string
@@ -416,9 +416,9 @@ func TestSettingsRepository_Constants(t *testing.T) {
 }
 
 // Интеграционный тест полного цикла работы с настройками.
-func TestSettingsRepository_Integration(t *testing.T) {
+func TestRepository_Integration(t *testing.T) {
 	t.Run("full settings lifecycle", func(t *testing.T) {
-		repo := NewSettingsRepository()
+		repo := New()
 		ctx := context.Background()
 
 		// Очищаем перед тестом

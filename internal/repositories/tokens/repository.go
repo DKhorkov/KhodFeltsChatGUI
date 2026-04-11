@@ -1,4 +1,4 @@
-package repositories
+package tokens
 
 import (
 	"context"
@@ -19,15 +19,15 @@ const (
 	indent = "  "
 )
 
-type TokensRepository struct {
+type Repository struct {
 	mu sync.RWMutex
 }
 
-func NewTokensRepository() *TokensRepository {
-	return &TokensRepository{}
+func New() *Repository {
+	return &Repository{}
 }
 
-func (r *TokensRepository) Save(_ context.Context, tokens domains.TokensDTO) error {
+func (r *Repository) Save(_ context.Context, tokens domains.TokensDTO) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -39,7 +39,7 @@ func (r *TokensRepository) Save(_ context.Context, tokens domains.TokensDTO) err
 	return os.WriteFile(tokensFilename, data, permission)
 }
 
-func (r *TokensRepository) Load(_ context.Context) (*domains.TokensDTO, error) {
+func (r *Repository) Load(_ context.Context) (*domains.TokensDTO, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -56,7 +56,7 @@ func (r *TokensRepository) Load(_ context.Context) (*domains.TokensDTO, error) {
 	return &tokens, nil
 }
 
-func (r *TokensRepository) Delete(_ context.Context) error {
+func (r *Repository) Delete(_ context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

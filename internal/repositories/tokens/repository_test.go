@@ -1,4 +1,4 @@
-package repositories
+package tokens
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTokensRepository_Save(t *testing.T) {
+func TestRepository_Save(t *testing.T) {
 	tests := []struct {
 		name        string
 		tokens      domains.TokensDTO
@@ -121,7 +121,7 @@ func TestTokensRepository_Save(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewTokensRepository()
+			repo := New()
 			ctx := context.Background()
 
 			err := repo.Save(ctx, tt.tokens)
@@ -154,7 +154,7 @@ func TestTokensRepository_Save(t *testing.T) {
 	}
 }
 
-func TestTokensRepository_Load(t *testing.T) {
+func TestRepository_Load(t *testing.T) {
 	tests := []struct {
 		name        string
 		setup       func() error
@@ -309,7 +309,7 @@ func TestTokensRepository_Load(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewTokensRepository()
+			repo := New()
 			ctx := context.Background()
 
 			result, err := repo.Load(ctx)
@@ -325,7 +325,7 @@ func TestTokensRepository_Load(t *testing.T) {
 	}
 }
 
-func TestTokensRepository_Delete(t *testing.T) {
+func TestRepository_Delete(t *testing.T) {
 	tests := []struct {
 		name        string
 		setup       func() error
@@ -408,7 +408,7 @@ func TestTokensRepository_Delete(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewTokensRepository()
+			repo := New()
 			ctx := context.Background()
 
 			err := repo.Delete(ctx)
@@ -428,7 +428,7 @@ func TestTokensRepository_Delete(t *testing.T) {
 	}
 }
 
-func TestTokensRepository_Concurrency(t *testing.T) {
+func TestRepository_Concurrency(t *testing.T) {
 	tests := []struct {
 		name       string
 		operations []struct {
@@ -478,7 +478,7 @@ func TestTokensRepository_Concurrency(t *testing.T) {
 				defer tt.cleanup()
 			}
 
-			repo := NewTokensRepository()
+			repo := New()
 			ctx := context.Background()
 
 			var wg sync.WaitGroup
