@@ -17,7 +17,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/repositories/base"
 )
 
-var (
+const (
 	accessTokenCookieName  = "accessToken"
 	refreshTokenCookieName = "refreshToken"
 )
