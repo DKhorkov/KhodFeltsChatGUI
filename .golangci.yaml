@@ -340,6 +340,7 @@ linters:
       - path: internal/errors/mapper.go
         linters:
           - staticcheck
+          - gochecknoglobals
 
       - path: internal/errors/mapper_test.go
         linters:

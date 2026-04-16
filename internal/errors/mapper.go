@@ -48,45 +48,53 @@ var (
 	errCreateChat          = errors.New(`Не удалось создать чат`)
 	errGetChatMessages     = errors.New(`Не удалось получить сообщения для чата`)
 
+	// Limit.
+	errLimitExceeded = errors.New("Превышен лимит. Попробуйте позже")
+
 	// Default.
 	errDefault = errors.New("Что-то пошло не так...")
 )
 
+var mapping = map[string]error{
+	// Users
+	ErrUserNotFound.Error():      errUserNotFound,
+	ErrUserAlreadyExists.Error(): errUserAlreadyExist,
+
+	// Auth
+	ErrEmailAlreadyConfirmed.Error():                  errEmailAlreadyConfirmed,
+	ErrEmailNotConfirmed.Error():                      errEmailNotConfirmed,
+	ErrEmailAlreadyExists.Error():                     errEmailAlreadyExist,
+	ErrLogin.Error():                                  errLoginFailed,
+	ErrWrongPassword.Error():                          errLoginFailed,
+	ErrAccessTokenDoesNotBelongToRefreshToken.Error(): errAccessTokenDoesNotBelongToRefreshToken,
+	ErrInvalidJwtToken.Error():                        errInvalidJwtToken,
+	ErrValidationFailed.Error():                       errValidationFailed,
+	ErrInvalidPassword.Error():                        errInvalidPassword,
+	ErrInvalidUsername.Error():                        errInvalidUsername,
+	ErrInvalidEmail.Error():                           errInvalidEmail,
+	ErrPasswordDoesNotMatch.Error():                   errPasswordDoesNotMatch,
+	ErrRegister.Error():                               errRegister,
+	ErrWebsocket.Error():                              errDefault,
+	ErrWebsocketClosed.Error():                        errDefault,
+	ErrInvalidForgetPasswordToken.Error():             errInvalidForgetPasswordToken,
+	ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
+
+	// Chats
+	ErrInvalidChat.Error():         errInvalidChat,
+	ErrUserIsNotChatMember.Error(): errUserIsNotChatMember,
+	ErrChatNotFound.Error():        errChatNotFound,
+	ErrChatAlreadyExists.Error():   errChatAlreadyExist,
+	ErrGetUserChats.Error():        errGetUserChats,
+	ErrCreateChat.Error():          errCreateChat,
+	ErrGetChatMessages.Error():     errGetChatMessages,
+
+	// Limit
+	ErrLimitExceeded.Error(): errLimitExceeded,
+}
+
 func New() *Mapper {
 	return &Mapper{
-		mapping: map[string]error{
-			// Users
-			ErrUserNotFound.Error():      errUserNotFound,
-			ErrUserAlreadyExists.Error(): errUserAlreadyExist,
-
-			// Auth
-			ErrEmailAlreadyConfirmed.Error():                  errEmailAlreadyConfirmed,
-			ErrEmailNotConfirmed.Error():                      errEmailNotConfirmed,
-			ErrEmailAlreadyExists.Error():                     errEmailAlreadyExist,
-			ErrLogin.Error():                                  errLoginFailed,
-			ErrWrongPassword.Error():                          errLoginFailed,
-			ErrAccessTokenDoesNotBelongToRefreshToken.Error(): errAccessTokenDoesNotBelongToRefreshToken,
-			ErrInvalidJwtToken.Error():                        errInvalidJwtToken,
-			ErrValidationFailed.Error():                       errValidationFailed,
-			ErrInvalidPassword.Error():                        errInvalidPassword,
-			ErrInvalidUsername.Error():                        errInvalidUsername,
-			ErrInvalidEmail.Error():                           errInvalidEmail,
-			ErrPasswordDoesNotMatch.Error():                   errPasswordDoesNotMatch,
-			ErrRegister.Error():                               errRegister,
-			ErrWebsocket.Error():                              errDefault,
-			ErrWebsocketClosed.Error():                        errDefault,
-			ErrInvalidForgetPasswordToken.Error():             errInvalidForgetPasswordToken,
-			ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
-
-			// Chats
-			ErrInvalidChat.Error():         errInvalidChat,
-			ErrUserIsNotChatMember.Error(): errUserIsNotChatMember,
-			ErrChatNotFound.Error():        errChatNotFound,
-			ErrChatAlreadyExists.Error():   errChatAlreadyExist,
-			ErrGetUserChats.Error():        errGetUserChats,
-			ErrCreateChat.Error():          errCreateChat,
-			ErrGetChatMessages.Error():     errGetChatMessages,
-		},
+		mapping: mapping,
 	}
 }
 
