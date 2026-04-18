@@ -33,12 +33,12 @@ func TestMapper_Map(t *testing.T) {
 		{
 			name:     "Unknown error",
 			actual:   errors.New("unknown error"),
-			expected: errDefault,
+			expected: ErrDefault,
 		},
 		{
 			name:     "Similar but not matching",
 			actual:   errors.New("user missing"),
-			expected: errDefault,
+			expected: ErrDefault,
 		},
 	}
 

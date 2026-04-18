@@ -19,7 +19,7 @@ var (
 	// Auth.
 	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
 	errLoginFailed                            = errors.New("Неверный логин или пароль")
-	errEmailNotConfirmed                      = errors.New("Почта не была подтвержён")
+	errEmailNotConfirmed                      = errors.New("Почта не была подтверждена")
 	errEmailAlreadyConfirmed                  = errors.New("Эта почта уже подтверждена")
 	errAccessTokenDoesNotBelongToRefreshToken = errors.New("Ошибка авторизации")
 	errRegister                               = errors.New("Ошибка регистрации")
@@ -51,8 +51,8 @@ var (
 	// Limit.
 	errLimitExceeded = errors.New("Превышен лимит. Попробуйте позже")
 
-	// Default.
-	errDefault = errors.New("Что-то пошло не так...")
+	// ErrDefault - дефолтная ошибка для случаев, когда маппинг не произошел.
+	ErrDefault = errors.New("Что-то пошло не так...")
 )
 
 var mapping = map[string]error{
@@ -74,8 +74,8 @@ var mapping = map[string]error{
 	ErrInvalidEmail.Error():                           errInvalidEmail,
 	ErrPasswordDoesNotMatch.Error():                   errPasswordDoesNotMatch,
 	ErrRegister.Error():                               errRegister,
-	ErrWebsocket.Error():                              errDefault,
-	ErrWebsocketClosed.Error():                        errDefault,
+	ErrWebsocket.Error():                              ErrDefault,
+	ErrWebsocketClosed.Error():                        ErrDefault,
 	ErrInvalidForgetPasswordToken.Error():             errInvalidForgetPasswordToken,
 	ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
 
@@ -109,5 +109,5 @@ func (m *Mapper) Map(err error) error {
 		}
 	}
 
-	return errDefault
+	return ErrDefault
 }
