@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -11,7 +12,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	"github.com/DKhorkov/kfcGUI/internal/errors"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/libs/validation"
 )
@@ -147,7 +148,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				w.loginEmailEntry.Text,
 				w.validationConfig.EmailRegExp,
 			) {
-				err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+				err := w.errorsMapper.Map(customerrors.ErrInvalidEmail)
 				dialog.ShowError(err, w.window)
 
 				return
@@ -186,7 +187,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 				w.loginEmailEntry.Text,
 				w.validationConfig.EmailRegExp,
 			) {
-				err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+				err := w.errorsMapper.Map(customerrors.ErrInvalidEmail)
 				dialog.ShowError(err, w.window)
 
 				return
@@ -249,7 +250,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerEmailEntry.Text,
 			w.validationConfig.EmailRegExp,
 		) {
-			err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+			err := w.errorsMapper.Map(customerrors.ErrInvalidEmail)
 			dialog.ShowError(err, w.window)
 
 			return
@@ -259,7 +260,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerUsernameEntry.Text,
 			w.validationConfig.UsernameRegExps,
 		) {
-			err := w.errorsMapper.Map(errors.ErrInvalidUsername)
+			err := w.errorsMapper.Map(customerrors.ErrInvalidUsername)
 			dialog.ShowError(err, w.window)
 
 			return
@@ -269,14 +270,14 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerPasswordEntry.Text,
 			w.validationConfig.PasswordRegExps,
 		) {
-			err := w.errorsMapper.Map(errors.ErrInvalidPassword)
+			err := w.errorsMapper.Map(customerrors.ErrInvalidPassword)
 			dialog.ShowError(err, w.window)
 
 			return
 		}
 
 		if registerPasswordEntry.Text != registerConfirmPasswordEntry.Text {
-			err := w.errorsMapper.Map(errors.ErrPasswordDoesNotMatch)
+			err := w.errorsMapper.Map(customerrors.ErrPasswordDoesNotMatch)
 			dialog.ShowError(err, w.window)
 
 			return
@@ -296,7 +297,11 @@ func (w *Window) buildTabs() *container.AppTabs {
 			if _, err := w.useCases.Register(ctx, registerData); err != nil {
 				fyne.Do(func() {
 					w.progressBar.Hidden = true
-					err = w.errorsMapper.Map(errors.ErrRegister)
+
+					if errors.Is(err, customerrors.ErrDefault) {
+						err = w.errorsMapper.Map(customerrors.ErrRegister)
+					}
+
 					dialog.ShowError(err, w.window)
 				})
 
@@ -346,7 +351,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 
 func (w *Window) login() {
 	if !validation.ValidateValueByRule(w.loginEmailEntry.Text, w.validationConfig.EmailRegExp) {
-		err := w.errorsMapper.Map(errors.ErrInvalidEmail)
+		err := w.errorsMapper.Map(customerrors.ErrInvalidEmail)
 		dialog.ShowError(err, w.window)
 
 		return
@@ -356,7 +361,7 @@ func (w *Window) login() {
 		w.loginPasswordEntry.Text,
 		w.validationConfig.PasswordRegExps,
 	) {
-		err := w.errorsMapper.Map(errors.ErrInvalidPassword)
+		err := w.errorsMapper.Map(customerrors.ErrInvalidPassword)
 		dialog.ShowError(err, w.window)
 
 		return
@@ -374,7 +379,11 @@ func (w *Window) login() {
 		); err != nil {
 			fyne.Do(func() {
 				w.progressBar.Hidden = true
-				err = w.errorsMapper.Map(errors.ErrLogin)
+
+				if errors.Is(err, customerrors.ErrDefault) {
+					err = w.errorsMapper.Map(customerrors.ErrLogin)
+				}
+
 				dialog.ShowError(err, w.window)
 			})
 
