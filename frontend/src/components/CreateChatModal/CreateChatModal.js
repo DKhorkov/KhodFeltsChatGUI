@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { SearchUsers, CreateChat } from '../../../wailsjs/go/create_chat/Handler'
 
 export default {
   name: 'CreateChatModal',
@@ -25,7 +26,7 @@ export default {
 
     const searchUsers = async () => {
       try {
-        const users = await window.go.main.CreateChatHandler.SearchUsers(
+        const users = await SearchUsers(
             searchQuery.value,
             0,
             0
@@ -45,7 +46,7 @@ export default {
       loading.value = true
 
       try {
-        await window.go.main.CreateChatHandler.CreateChat({
+        await CreateChat({
           type: chatType.value,
           members: selectedUsers.value,
           title: chatType.value === 'group' ? chatTitle.value : null

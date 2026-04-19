@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { Login, Register, SendVerifyEmail } from '../../../wailsjs/go/auth/Handler'
 
 export default {
     name: 'LoginView',
@@ -27,11 +28,11 @@ export default {
             error.value = ''
 
             try {
-                const result = await window.go.main.AuthHandler.Login(loginForm.value)
-                if (result.Success) {
+                const result = await Login(loginForm.value)
+                if (result.success) {
                     emit('login-success')
                 } else {
-                    error.value = result.Message
+                    error.value = result.message
                 }
             } catch (err) {
                 error.value = err.message
@@ -50,14 +51,14 @@ export default {
             error.value = ''
 
             try {
-                const result = await window.go.main.AuthHandler.Register({
+                const result = await Register({
                     email: registerForm.value.email,
                     username: registerForm.value.username,
                     password: registerForm.value.password
                 })
 
-                if (result.Success) {
-                    success.value = result.Message
+                if (result.success) {
+                    success.value = result.message
                     activeTab.value = 'login'
                     loginForm.value.email = registerForm.value.email
                     loginForm.value.password = registerForm.value.password
@@ -70,7 +71,7 @@ export default {
                         confirmPassword: ''
                     }
                 } else {
-                    error.value = result.Message
+                    error.value = result.message
                 }
             } catch (err) {
                 error.value = err.message
@@ -86,7 +87,7 @@ export default {
             }
 
             try {
-                await window.go.main.AuthHandler.SendVerifyEmail(loginForm.value.email)
+                await SendVerifyEmail(loginForm.value.email)
                 success.value = `Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.email}`
                 setTimeout(() => {
                     success.value = ''

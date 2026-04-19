@@ -18,9 +18,8 @@ func New(useCases interfaces.UseCases) *Handler {
 }
 
 func (h *Handler) SearchUsers(
-	ctx context.Context,
 	username string,
 	limit, offset int,
 ) ([]domains.User, error) {
-	return h.useCases.SearchUsers(ctx, username, limit, offset)
+	return h.useCases.SearchUsers(context.Background(), username, limit, offset)
 }

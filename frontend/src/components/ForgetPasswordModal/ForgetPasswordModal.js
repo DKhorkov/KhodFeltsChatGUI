@@ -1,4 +1,6 @@
 import { ref } from 'vue'
+import { SendForgetPassword } from '../../../wailsjs/go/auth/Handler'
+import { ResetPassword } from '../../../wailsjs/go/forget_password/Handler'
 
 export default {
   name: 'ForgetPasswordModal',
@@ -25,7 +27,7 @@ export default {
       error.value = ''
 
       try {
-        await window.go.main.AuthHandler.SendForgetPassword(email.value)
+        await SendForgetPassword(email.value)
         message.value = `Письмо с кодом для сброса пароля было отправлено по адресу ${email.value}`
         tokenSent.value = true
       } catch (err) {
@@ -55,7 +57,7 @@ export default {
       error.value = ''
 
       try {
-        await window.go.main.ForgetPasswordHandler.ResetPassword({
+        await ResetPassword({
           token: token.value,
           newPassword: newPassword.value
         })

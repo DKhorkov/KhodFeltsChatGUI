@@ -35,24 +35,19 @@ func New(
 	}
 }
 
-func (h *Handler) Startup(ctx context.Context) {
-	h.ctx = ctx
+func (h *Handler) GetCurrentUser() (*domains.User, error) {
+	return h.useCases.GetCurrentUser(h.ctx)
 }
 
-func (h *Handler) GetCurrentUser(ctx context.Context) (*domains.User, error) {
-	return h.useCases.GetCurrentUser(ctx)
-}
-
-func (h *Handler) GetUserChats(ctx context.Context, limit, offset int) ([]domains.Chat, error) {
-	return h.useCases.GetUserChats(ctx, limit, offset)
+func (h *Handler) GetUserChats(limit, offset int) ([]domains.Chat, error) {
+	return h.useCases.GetUserChats(h.ctx, limit, offset)
 }
 
 func (h *Handler) GetChatMessages(
-	ctx context.Context,
 	chatID uint64,
 	limit, offset int,
 ) ([]domains.Message, error) {
-	return h.useCases.GetChatMessages(ctx, chatID, limit, offset)
+	return h.useCases.GetChatMessages(h.ctx, chatID, limit, offset)
 }
 
 type SendMessageRequest struct {
@@ -60,8 +55,8 @@ type SendMessageRequest struct {
 	Message string `json:"message"`
 }
 
-func (h *Handler) SendMessage(ctx context.Context, req SendMessageRequest) error {
-	sender, err := h.useCases.GetCurrentUser(ctx)
+func (h *Handler) SendMessage(req SendMessageRequest) error {
+	sender, err := h.useCases.GetCurrentUser(h.ctx)
 	if err != nil {
 		return err
 	}
@@ -74,11 +69,11 @@ func (h *Handler) SendMessage(ctx context.Context, req SendMessageRequest) error
 		},
 	}
 
-	return h.useCases.SendMessage(ctx, message)
+	return h.useCases.SendMessage(h.ctx, message)
 }
 
-func (h *Handler) StartListening(ctx context.Context) {
-	h.ctx, h.cancelFunc = context.WithCancel(ctx)
+func (h *Handler) StartListening() {
+	h.ctx, h.cancelFunc = context.WithCancel(context.Background())
 
 	// Запускаем горутину для чтения сообщений
 	h.wg.Add(1)

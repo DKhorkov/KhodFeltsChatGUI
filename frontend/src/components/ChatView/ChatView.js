@@ -1,4 +1,5 @@
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { GetUserChats, GetChatMessages, SendMessage, GetCurrentUser, StartListening, StopListening } from '../../../wailsjs/go/chat/Handler'
 
 export default {
   name: 'ChatView',
@@ -16,11 +17,11 @@ export default {
     let hasMoreMessages = true
 
     const loadChats = async () => {
-      chats.value = await window.go.main.ChatHandler.GetUserChats(0, 0)
+      chats.value = await GetUserChats(0, 0)
     }
 
     const loadMessages = async (chatId) => {
-      const msgs = await window.go.main.ChatHandler.GetChatMessages(chatId, 10, 0)
+      const msgs = await GetChatMessages(chatId, 10, 0)
       messages.value = msgs.reverse()
       hasMoreMessages = msgs.length >= 10
 
@@ -34,8 +35,8 @@ export default {
       loadMoreLock = true
       const offset = messages.value.length
 
-      const olderMessages = await window.go.main.ChatHandler.GetChatMessages(
-          currentChat.value.ID,
+      const olderMessages = await GetChatMessages(
+          currentChat.value.id,
           10,
           offset
       )
@@ -52,7 +53,7 @@ export default {
 
     const selectChat = async (chat) => {
       currentChat.value = chat
-      await loadMessages(chat.ID)
+      await loadMessages(chat.id)
 
       // Отмечаем чат как прочитанный
       chat.IsRead = true
@@ -61,8 +62,8 @@ export default {
     const sendMessage = async () => {
       if (!newMessage.value.trim() || !currentChat.value) return
 
-      await window.go.main.ChatHandler.SendMessage({
-        chatId: currentChat.value.ID,
+      await SendMessage({
+        chatId: currentChat.value.id,
         message: newMessage.value
       })
 
@@ -70,7 +71,7 @@ export default {
     }
 
     const handleNewMessage = (message) => {
-      if (currentChat.value?.ID === message.ChatID) {
+      if (currentChat.value?.id === message.chatId) {
         messages.value.push(message)
         scrollToBottom()
       } else {
@@ -80,7 +81,7 @@ export default {
         // Показываем уведомление
         if (Notification.permission === 'granted') {
           new Notification('Новое сообщение', {
-            body: `${message.Sender.Username}: ${message.Text}`
+            body: `${message.sender.username}: ${message.Text}`
           })
         }
       }
@@ -97,23 +98,23 @@ export default {
     }
 
     const getChatTitle = (chat) => {
-      if (chat.Title && chat.Title !== '') {
-        return chat.Title
+      if (chat.title && chat.title !== '') {
+        return chat.title
       }
 
-      if (chat.Type === 'private') {
-        const otherMember = chat.Members.find(m => m.ID !== currentUser.value?.ID)
-        if (otherMember) return otherMember.Username
+      if (chat.type === 'private') {
+        const otherMember = chat.members.find(m => m.id !== currentUser.value?.id)
+        if (otherMember) return otherMember.username
       }
 
-      return `Чат #${chat.ID}`
+      return `Чат #${chat.id}`
     }
 
     const getSenderName = (message) => {
-      if (message.Sender.ID === currentUser.value?.ID) {
+      if (message.sender.id === currentUser.value?.id) {
         return 'Вы'
       }
-      return message.Sender.Username
+      return message.sender.username
     }
 
     const formatTime = (dateStr) => {
@@ -132,13 +133,13 @@ export default {
       }
 
       // Загружаем текущего пользователя
-      currentUser.value = await window.go.main.ChatHandler.GetCurrentUser()
+      currentUser.value = await GetCurrentUser()
 
       // Загружаем чаты
       await loadChats()
 
       // Запускаем прослушивание сообщений
-      await window.go.main.ChatHandler.StartListening()
+      await StartListening()
 
       // Подписываемся на события
       window.runtime.EventsOn('new_message', handleNewMessage)
@@ -146,7 +147,7 @@ export default {
     })
 
     onUnmounted(() => {
-      window.go.main.ChatHandler.StopListening()
+      StopListening()
       window.runtime.EventsOff('new_message')
       window.runtime.EventsOff('chats_updated')
     })

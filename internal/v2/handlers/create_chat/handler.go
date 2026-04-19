@@ -24,15 +24,13 @@ type CreateChatRequest struct {
 }
 
 func (h *Handler) SearchUsers(
-	ctx context.Context,
 	username string,
 	limit, offset int,
 ) ([]domains.User, error) {
-	return h.useCases.SearchUsers(ctx, username, limit, offset)
+	return h.useCases.SearchUsers(context.Background(), username, limit, offset)
 }
 
 func (h *Handler) CreateChat(
-	ctx context.Context,
 	req CreateChatRequest,
 ) (*domains.Chat, error) {
 	members := make([]domains.User, len(req.Members))
@@ -46,5 +44,5 @@ func (h *Handler) CreateChat(
 		Title:   req.Title,
 	}
 
-	return h.useCases.CreateChat(ctx, *chat)
+	return h.useCases.CreateChat(context.Background(), *chat)
 }

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { SearchUsers } from '../../../wailsjs/go/search_users/Handler'
 
 export default {
   name: 'SearchUsersModal',
@@ -26,7 +27,7 @@ export default {
       loading.value = true
 
       try {
-        const users = await window.go.main.SearchUsersHandler.SearchUsers(
+        const users = await SearchUsers(
             searchQuery.value,
             0,
             0

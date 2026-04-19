@@ -34,7 +34,7 @@ type ForgetPasswordRequest struct {
 	NewPassword string `json:"newPassword"`
 }
 
-func (h *Handler) ValidateToken(ctx context.Context, token string) error {
+func (h *Handler) ValidateToken(token string) error {
 	bytesUserID, err := security.RawDecode(token)
 	if err != nil {
 		return h.errorsMapper.Map(errors.ErrInvalidForgetPasswordToken)
@@ -48,11 +48,10 @@ func (h *Handler) ValidateToken(ctx context.Context, token string) error {
 }
 
 func (h *Handler) ResetPassword(
-	ctx context.Context,
 	req ForgetPasswordRequest,
 ) error {
 	// Валидация токена
-	if err := h.ValidateToken(ctx, req.Token); err != nil {
+	if err := h.ValidateToken(req.Token); err != nil {
 		return err
 	}
 
@@ -61,5 +60,5 @@ func (h *Handler) ResetPassword(
 		return h.errorsMapper.Map(errors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(ctx, req.Token, req.NewPassword)
+	return h.useCases.ForgetPassword(context.Background(), req.Token, req.NewPassword)
 }

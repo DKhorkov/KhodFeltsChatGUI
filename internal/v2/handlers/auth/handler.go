@@ -38,7 +38,7 @@ type LoginResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
-func (h *Handler) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+func (h *Handler) Login(req LoginRequest) (*LoginResponse, error) {
 	// Валидация email
 	if !validation.ValidateValueByRule(req.Email, h.validationConfig.EmailRegExp) {
 		return &LoginResponse{
@@ -56,7 +56,7 @@ func (h *Handler) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 	}
 
 	// Вызов бизнес-логики
-	_, err := h.useCases.Login(ctx, req.Email, req.Password)
+	_, err := h.useCases.Login(context.Background(), req.Email, req.Password)
 	if err != nil {
 		return &LoginResponse{
 			Success: false,
@@ -76,7 +76,7 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
-func (h *Handler) Register(ctx context.Context, req RegisterRequest) (*LoginResponse, error) {
+func (h *Handler) Register(req RegisterRequest) (*LoginResponse, error) {
 	// Валидация email
 	if !validation.ValidateValueByRule(req.Email, h.validationConfig.EmailRegExp) {
 		return &LoginResponse{
@@ -108,7 +108,7 @@ func (h *Handler) Register(ctx context.Context, req RegisterRequest) (*LoginResp
 		Email:    req.Email,
 	}
 
-	_, err := h.useCases.Register(ctx, registerData)
+	_, err := h.useCases.Register(context.Background(), registerData)
 	if err != nil {
 		return &LoginResponse{
 			Success: false,
@@ -122,20 +122,20 @@ func (h *Handler) Register(ctx context.Context, req RegisterRequest) (*LoginResp
 	}, nil
 }
 
-func (h *Handler) SendVerifyEmail(ctx context.Context, email string) error {
+func (h *Handler) SendVerifyEmail(email string) error {
 	if !validation.ValidateValueByRule(email, h.validationConfig.EmailRegExp) {
 		return h.errorsMapper.Map(errors.ErrInvalidEmail)
 	}
 
-	return h.useCases.SendVerifyEmailMessage(ctx, email)
+	return h.useCases.SendVerifyEmailMessage(context.Background(), email)
 }
 
-func (h *Handler) SendForgetPassword(ctx context.Context, email string) error {
+func (h *Handler) SendForgetPassword(email string) error {
 	if !validation.ValidateValueByRule(email, h.validationConfig.EmailRegExp) {
 		return h.errorsMapper.Map(errors.ErrInvalidEmail)
 	}
 
-	return h.useCases.SendForgetPasswordMessage(ctx, email)
+	return h.useCases.SendForgetPasswordMessage(context.Background(), email)
 }
 
 type ForgetPasswordRequest struct {
@@ -143,11 +143,11 @@ type ForgetPasswordRequest struct {
 	NewPassword string `json:"newPassword"`
 }
 
-func (h *Handler) ForgetPassword(ctx context.Context, req ForgetPasswordRequest) error {
+func (h *Handler) ForgetPassword(req ForgetPasswordRequest) error {
 	// Валидация пароля
 	if !validation.ValidateValueByRules(req.NewPassword, h.validationConfig.PasswordRegExps) {
 		return h.errorsMapper.Map(errors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(ctx, req.Token, req.NewPassword)
+	return h.useCases.ForgetPassword(context.Background(), req.Token, req.NewPassword)
 }
