@@ -6,6 +6,12 @@
 task -d scripts build_v1
 ```
 
+### V2
+
+```shell
+task -d scripts build_v2
+```
+
 # Run
 
 ### V1

@@ -72,8 +72,8 @@ tasks:
     dir: ../
     cmds:
       - sudo rm -rf main.go
-      - go install github.com/wailsapp/wails/v2/cmd/wails@latest
       - ln -s cmd/v2/main.go main.go
+      - go install github.com/wailsapp/wails/v2/cmd/wails@latest
       - wails dev
 
   build_v1:
@@ -121,3 +121,20 @@ tasks:
       - rm -rf ./fyne-cross
 
       - echo "Все сборки готовы и находятся в папке {{.OUTPUT_DIR}}"
+
+  build_v2:
+    desc: "Сборка GUI-приложения под все платформы через wails"
+    dir: ../
+    vars:
+      ICON_PATH: ./assets/icon.png
+      OUTPUT_DIR: ./build/v2
+    cmds:
+      - rm -rf {{.OUTPUT_DIR}}
+
+      - mkdir -p {{.OUTPUT_DIR}}
+      - cp {{.ICON_PATH}} {{.OUTPUT_DIR}}/appicon.png
+
+      - sudo rm -rf main.go
+      - ln -s cmd/v2/main.go main.go
+      - go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - wails build -platform windows/amd64,darwin/universal,linux/amd64 -tags webkit2_41
