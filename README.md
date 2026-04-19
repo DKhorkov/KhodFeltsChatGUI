@@ -26,6 +26,14 @@ task -d scripts local_v1
 task -d scripts local_v2
 ```
 
+To debug V2 in IDE:
+1) ``` sudo apt update && sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config```
+2) ```sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc```
+3) Add Environment ```PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig``` 
+4) Add Go Tool Arguments ```-tags dev```
+5) ```task -d scripts local_v2``` and exit after completing
+6) Launch ```main.go``` in debug mode.
+
 # Linters
 
 To run linters, use next command:
