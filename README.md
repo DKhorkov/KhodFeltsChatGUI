@@ -6,14 +6,6 @@
 task -d scripts build_v1
 ```
 
-# Linters
-
-To run linters, use next command:
-
-```shell
- task -d scripts linters -v
-```
-
 # Run
 
 ### V1

@@ -73,7 +73,7 @@ tasks:
     cmds:
       - sudo rm -rf main.go
       - go install github.com/wailsapp/wails/v2/cmd/wails@latest
-      - ln -s cmd/v2/main.go ../main.go
+      - ln -s cmd/v2/main.go main.go
       - wails dev
 
   build_v1:
