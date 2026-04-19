@@ -14,6 +14,28 @@ To run linters, use next command:
  task -d scripts linters -v
 ```
 
+# Run
+
+### V1
+
+```shell
+task -d scripts local_v1
+```
+
+### V2
+
+```shell
+task -d scripts local_v2
+```
+
+# Linters
+
+To run linters, use next command:
+
+```shell
+ task -d scripts linters -v
+```
+
 # Tests
 
 To run test, use next commands. Coverage info will be

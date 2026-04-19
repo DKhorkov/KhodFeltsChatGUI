@@ -17,6 +17,7 @@ tasks:
       - sudo rm -rf frontend/node_modules
       - sudo rm -fr frontend/package.json.md5
       - sudo rm -fr frontend/package-lock.json
+      - sudo rm -rf main.go
 
   tests:
     desc: "Run tests and save coverage to coverage folder."
@@ -60,11 +61,24 @@ tasks:
       - sudo usermod -aG docker $USER
       - newgrp docker
 
+  local_v1:
+    desc: "Подготавливает сборку для дебага"
+    dir: ../
+    cmds:
+      - go run cmd/v1/main.go
+
+  local_v2:
+    desc: "Подготавливает сборку для дебага"
+    dir: ../
+    cmds:
+      - sudo rm -rf main.go
+      - go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - ln -s cmd/v2/main.go ../main.go
+      - wails dev
+
   build_v1:
     desc: "Сборка GUI-приложения под все платформы через fyne-cross"
     dir: ../
-    aliases:
-      - v1
     vars:
       PACKAGE_PATH: ./cmd/v1
       APP_NAME: kfc

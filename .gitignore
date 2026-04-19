@@ -43,7 +43,6 @@ frontend/dist
 frontend/wailsjs
 frontend/package-lock.json
 frontend/package.json.md5
-main.go
 cmd/v2/frontend
 
 # Environments
