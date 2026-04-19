@@ -5,7 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
-	"github.com/DKhorkov/kfcGUI/internal/widgets/entries"
+	"github.com/DKhorkov/kfcGUI/internal/v1/widgets/entries"
 	"github.com/stretchr/testify/assert"
 )
 

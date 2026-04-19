@@ -11,20 +11,20 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
-	"github.com/DKhorkov/kfcGUI/internal/repositories/auth"
-	"github.com/DKhorkov/kfcGUI/internal/repositories/chats"
-	"github.com/DKhorkov/kfcGUI/internal/repositories/settings"
-	"github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
-	"github.com/DKhorkov/kfcGUI/internal/repositories/users"
-	"github.com/DKhorkov/kfcGUI/internal/repositories/ws"
+	authrepository "github.com/DKhorkov/kfcGUI/internal/repositories/auth"
+	chatsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/chats"
+	settingsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/settings"
+	tokensrepository "github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
+	usersrepository "github.com/DKhorkov/kfcGUI/internal/repositories/users"
+	wsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/ws"
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
-	authwindow "github.com/DKhorkov/kfcGUI/internal/windows/auth"
-	"github.com/DKhorkov/kfcGUI/internal/windows/chat"
-	createChat "github.com/DKhorkov/kfcGUI/internal/windows/create_chat"
-	forgetPassword "github.com/DKhorkov/kfcGUI/internal/windows/forget_password"
-	"github.com/DKhorkov/kfcGUI/internal/windows/information"
-	"github.com/DKhorkov/kfcGUI/internal/windows/notification"
-	searchUsers "github.com/DKhorkov/kfcGUI/internal/windows/search_users"
+	authwindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/auth"
+	chatwindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/chat"
+	createchatwindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/create_chat"
+	forgetpasswordwindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/forget_password"
+	informationwindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/information"
+	notificationwindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/notification"
+	searchuserswindow "github.com/DKhorkov/kfcGUI/internal/v1/windows/search_users"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
 )
@@ -46,12 +46,12 @@ func main() {
 
 	httpClient := &http.Client{Timeout: cfg.HTTP.Timeout}
 
-	authRepository := auth.New(httpClient, cfg.HTTP.BaseURL)
-	usersRepository := users.New(httpClient, cfg.HTTP.BaseURL)
-	chatsRepository := chats.New(httpClient, cfg.HTTP.BaseURL)
-	tokensRepository := tokens.New()
-	settingsRepository := settings.New()
-	websocketsRepository := ws.New(cfg.HTTP.WebsocketURL, logger)
+	authRepository := authrepository.New(httpClient, cfg.HTTP.BaseURL)
+	usersRepository := usersrepository.New(httpClient, cfg.HTTP.BaseURL)
+	chatsRepository := chatsrepository.New(httpClient, cfg.HTTP.BaseURL)
+	tokensRepository := tokensrepository.New()
+	settingsRepository := settingsrepository.New()
+	websocketsRepository := wsrepository.New(cfg.HTTP.WebsocketURL, logger)
 
 	errorsMapper := errors.New()
 
@@ -74,9 +74,9 @@ func main() {
 	kfc := app.New()
 	kfc.Settings().SetTheme(appTheme)
 
-	forgetPasswordWindow := forgetPassword.New(
+	forgetPasswordWindow := forgetpasswordwindow.New(
 		kfc,
-		information.New(kfc, passwordChangedInformationWindowTitle),
+		informationwindow.New(kfc, passwordChangedInformationWindowTitle),
 		useCases,
 		cfg.Validation,
 		errorsMapper,
@@ -89,10 +89,10 @@ func main() {
 		cfg.Validation,
 		errorsMapper,
 	)
-	notificationWindow := notification.New(kfc, useCases)
-	searchUsersWindow := searchUsers.New(kfc, useCases)
-	createChatWindow := createChat.New(kfc, useCases, nil)
-	chatWindow := chat.New(
+	notificationWindow := notificationwindow.New(kfc, useCases)
+	searchUsersWindow := searchuserswindow.New(kfc, useCases)
+	createChatWindow := createchatwindow.New(kfc, useCases, nil)
+	chatWindow := chatwindow.New(
 		kfc,
 		authWindow,
 		createChatWindow,

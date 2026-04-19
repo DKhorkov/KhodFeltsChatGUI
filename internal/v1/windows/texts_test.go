@@ -3,7 +3,7 @@ package windows_test
 import (
 	"testing"
 
-	"github.com/DKhorkov/kfcGUI/internal/windows"
+	"github.com/DKhorkov/kfcGUI/internal/v1/windows"
 	"github.com/stretchr/testify/assert"
 )
 

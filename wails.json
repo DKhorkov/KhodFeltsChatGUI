@@ -1,0 +1,12 @@
+{
+  "name": "KhodFeltsChatGUI",
+  "outputfilename": "kfc-gui",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "DKhorkov",
+    "email": "your.email@example.com"
+  }
+}

@@ -19,7 +19,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
-	"github.com/DKhorkov/kfcGUI/internal/widgets/entries"
+	"github.com/DKhorkov/kfcGUI/internal/v1/widgets/entries"
 	"github.com/DKhorkov/libs/logging"
 )
 

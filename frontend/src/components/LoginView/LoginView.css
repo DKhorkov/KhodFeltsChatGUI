@@ -1,0 +1,115 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-card {
+    background: white;
+    border-radius: 10px;
+    padding: 40px;
+    width: 450px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.tabs button.active {
+    color: #667eea;
+    border-bottom: 2px solid #667eea;
+    margin-bottom: -2px;
+}
+
+.tab-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+button[type="submit"] {
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+    background: #5a67d8;
+}
+
+button[type="submit"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.additional-buttons {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.secondary, .danger {
+    padding: 10px;
+    background: none;
+    border: 1px solid;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.secondary {
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.danger {
+    color: #e53e3e;
+    border-color: #e53e3e;
+}
+
+.error {
+    margin-top: 20px;
+    padding: 10px;
+    background: #fed7d7;
+    color: #c53030;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.success {
+    margin-top: 20px;
+    padding: 10px;
+    background: #c6f6d5;
+    color: #22543d;
+    border-radius: 5px;
+    font-size: 14px;
+}

@@ -1,9 +1,12 @@
 # Build
+
+### V1
+
 ```shell
-task -d scripts build
+task -d scripts build_v1
 ```
 
-## Linters
+# Linters
 
 To run linters, use next command:
 
@@ -11,7 +14,7 @@ To run linters, use next command:
  task -d scripts linters -v
 ```
 
-## Tests
+# Tests
 
 To run test, use next commands. Coverage info will be
 recorded to ```coverage``` folder:
@@ -26,7 +29,7 @@ To include integration tests, add `integration` flag:
 task -d scripts tests integration=true -v
 ```
 
-## Benchmarks
+# Benchmarks
 
 To run benchmarks, use next command:
 

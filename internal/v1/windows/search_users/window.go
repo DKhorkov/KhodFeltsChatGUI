@@ -10,7 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
-	"github.com/DKhorkov/kfcGUI/internal/windows"
+	"github.com/DKhorkov/kfcGUI/internal/v1/windows"
 )
 
 const (

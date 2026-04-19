@@ -10,7 +10,13 @@ tasks:
       #      - sudo rm -rf logs/
       - sudo rm -rf coverage/
       - sudo rm -rf tokens.json
-      - sudo rm -rf bin/
+      - sudo rm -rf build/
+      - sudo rm -rf cmd/v2/frontend
+      - sudo rm -rf frontend/dist
+      - sudo rm -rf frontend/wailsjs
+      - sudo rm -rf frontend/node_modules
+      - sudo rm -fr frontend/package.json.md5
+      - sudo rm -fr frontend/package-lock.json
 
   tests:
     desc: "Run tests and save coverage to coverage folder."
@@ -54,15 +60,17 @@ tasks:
       - sudo usermod -aG docker $USER
       - newgrp docker
 
-  build:
+  build_v1:
     desc: "Сборка GUI-приложения под все платформы через fyne-cross"
     dir: ../
+    aliases:
+      - v1
     vars:
-      PACKAGE_PATH: ./cmd
+      PACKAGE_PATH: ./cmd/v1
       APP_NAME: kfc
       ICON_PATH: ./assets/icon.png
       APP_ID: "com.dkhorkov.kfc"
-      OUTPUT_DIR: ./build
+      OUTPUT_DIR: ./build/v1
       DIST_PATH: fyne-cross/dist
     cmds:
       - rm -rf {{.OUTPUT_DIR}}

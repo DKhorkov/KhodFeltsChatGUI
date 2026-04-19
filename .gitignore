@@ -38,6 +38,13 @@ bench.txt
 tokens.json
 kfc
 settings.json
+frontend/node_modules
+frontend/dist
+frontend/wailsjs
+frontend/package-lock.json
+frontend/package.json.md5
+main.go
+cmd/v2/frontend
 
 # Environments
 .venv
