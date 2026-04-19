@@ -32,7 +32,12 @@ func New(
 		useCases:         useCases,
 		errorsMapper:     errorsMapper,
 		validationConfig: validationConfig,
+		ctx:              context.Background(),
 	}
+}
+
+func (h *Handler) SetContext(ctx context.Context) {
+	h.ctx = ctx
 }
 
 func (h *Handler) GetCurrentUser() (*domains.User, error) {
@@ -73,7 +78,7 @@ func (h *Handler) SendMessage(req SendMessageRequest) error {
 }
 
 func (h *Handler) StartListening() {
-	h.ctx, h.cancelFunc = context.WithCancel(context.Background())
+	h.ctx, h.cancelFunc = context.WithCancel(h.ctx)
 
 	// Запускаем горутину для чтения сообщений
 	h.wg.Add(1)

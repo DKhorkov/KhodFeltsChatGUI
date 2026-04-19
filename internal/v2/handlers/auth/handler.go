@@ -14,6 +14,8 @@ type Handler struct {
 	useCases         interfaces.UseCases
 	errorsMapper     interfaces.ErrorsMapper
 	validationConfig config.ValidationConfig
+
+	ctx context.Context
 }
 
 func New(
@@ -25,7 +27,12 @@ func New(
 		useCases:         useCases,
 		errorsMapper:     errorsMapper,
 		validationConfig: validationConfig,
+		ctx:              context.Background(),
 	}
+}
+
+func (h *Handler) SetContext(ctx context.Context) {
+	h.ctx = ctx
 }
 
 type LoginRequest struct {
@@ -56,7 +63,7 @@ func (h *Handler) Login(req LoginRequest) (*LoginResponse, error) {
 	}
 
 	// Вызов бизнес-логики
-	_, err := h.useCases.Login(context.Background(), req.Email, req.Password)
+	_, err := h.useCases.Login(h.ctx, req.Email, req.Password)
 	if err != nil {
 		return &LoginResponse{
 			Success: false,
@@ -108,7 +115,7 @@ func (h *Handler) Register(req RegisterRequest) (*LoginResponse, error) {
 		Email:    req.Email,
 	}
 
-	_, err := h.useCases.Register(context.Background(), registerData)
+	_, err := h.useCases.Register(h.ctx, registerData)
 	if err != nil {
 		return &LoginResponse{
 			Success: false,
@@ -127,7 +134,7 @@ func (h *Handler) SendVerifyEmail(email string) error {
 		return h.errorsMapper.Map(errors.ErrInvalidEmail)
 	}
 
-	return h.useCases.SendVerifyEmailMessage(context.Background(), email)
+	return h.useCases.SendVerifyEmailMessage(h.ctx, email)
 }
 
 func (h *Handler) SendForgetPassword(email string) error {
@@ -135,7 +142,7 @@ func (h *Handler) SendForgetPassword(email string) error {
 		return h.errorsMapper.Map(errors.ErrInvalidEmail)
 	}
 
-	return h.useCases.SendForgetPasswordMessage(context.Background(), email)
+	return h.useCases.SendForgetPasswordMessage(h.ctx, email)
 }
 
 type ForgetPasswordRequest struct {
@@ -149,5 +156,5 @@ func (h *Handler) ForgetPassword(req ForgetPasswordRequest) error {
 		return h.errorsMapper.Map(errors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(context.Background(), req.Token, req.NewPassword)
+	return h.useCases.ForgetPassword(h.ctx, req.Token, req.NewPassword)
 }

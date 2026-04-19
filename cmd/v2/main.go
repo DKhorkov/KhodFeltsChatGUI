@@ -77,9 +77,11 @@ func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 
 	// Инициализируем хендлеры с контекстом
-	if startupHandler, ok := any(a.chatHandler).(interface{ Startup(context.Context) }); ok {
-		startupHandler.Startup(ctx)
-	}
+	a.chatHandler.SetContext(ctx)
+	a.authHandler.SetContext(ctx)
+	a.searchUsersHandler.SetContext(ctx)
+	a.forgetPasswordHandler.SetContext(ctx)
+	a.createChatHandler.SetContext(ctx)
 
 	logging.LogInfo(a.logger, "Приложение успешно запущено")
 }

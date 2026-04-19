@@ -15,6 +15,8 @@ type Handler struct {
 	useCases         interfaces.UseCases
 	errorsMapper     interfaces.ErrorsMapper
 	validationConfig config.ValidationConfig
+
+	ctx context.Context
 }
 
 func New(
@@ -26,7 +28,12 @@ func New(
 		useCases:         useCases,
 		errorsMapper:     errorsMapper,
 		validationConfig: validationConfig,
+		ctx:              context.Background(),
 	}
+}
+
+func (h *Handler) SetContext(ctx context.Context) {
+	h.ctx = ctx
 }
 
 type ForgetPasswordRequest struct {
@@ -60,5 +67,5 @@ func (h *Handler) ResetPassword(
 		return h.errorsMapper.Map(errors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(context.Background(), req.Token, req.NewPassword)
+	return h.useCases.ForgetPassword(h.ctx, req.Token, req.NewPassword)
 }
