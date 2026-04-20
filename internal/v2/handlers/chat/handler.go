@@ -20,8 +20,6 @@ type Handler struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 	wg         sync.WaitGroup
-
-	currentUser *domains.User
 }
 
 func New(
@@ -81,14 +79,17 @@ func (h *Handler) StartListening() {
 
 	// Запускаем горутину для чтения сообщений
 	h.wg.Add(1)
+
 	go h.readMessages()
 
 	// Запускаем обновление токенов
 	h.wg.Add(1)
+
 	go h.refreshTokens()
 
 	// Запускаем обновление чатов
 	h.wg.Add(1)
+
 	go h.updateChats()
 }
 
@@ -96,6 +97,7 @@ func (h *Handler) StopListening() {
 	if h.cancelFunc != nil {
 		h.cancelFunc()
 	}
+
 	h.wg.Wait()
 }
 
@@ -110,6 +112,7 @@ func (h *Handler) readMessages() {
 			message, err := h.useCases.ReadMessage(h.ctx)
 			if err != nil {
 				time.Sleep(1 * time.Second)
+
 				continue
 			}
 

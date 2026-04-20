@@ -301,39 +301,39 @@ linters:
           - gochecknoglobals
           - gochecknoinits
 
-      - path: internal/windows/*
+      - path: internal/v1/windows/*
         linters:
           - testpackage
           - tparallel
           - paralleltest
 
-      - path: internal/windows/texts.go
+      - path: internal/v1/windows/texts.go
         linters:
           - mnd
 
-      - path: internal/windows/chat/window.go
+      - path: internal/v1/windows/chat/window.go
         linters:
           - containedctx
           - forcetypeassert
           - staticcheck
 
-      - path: internal/windows/auth/window.go
+      - path: internal/v1/windows/auth/window.go
         linters:
           - maintidx
 
-      - path: internal/windows/create_chat/window.go
+      - path: internal/v1/windows/create_chat/window.go
         linters:
           - forcetypeassert
 
-      - path: internal/windows/search_users/window.go
+      - path: internal/v1/windows/search_users/window.go
         linters:
           - forcetypeassert
 
-      - path: internal/windows/notification/window_test.go
+      - path: internal/v1/windows/notification/window_test.go
         linters:
           - gocritic
 
-      - path: internal/windows/forget_password/window_test.go
+      - path: internal/v1/windows/forget_password/window_test.go
         linters:
           - gocritic
 

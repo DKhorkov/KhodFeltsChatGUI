@@ -590,8 +590,6 @@ func TestWindow_Title(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			app := test.NewApp()
 
 			w := New(app, tt.title)

@@ -185,6 +185,7 @@ func (r *Repository) GetChatMessages(
 	}
 
 	path := fmt.Sprintf("%s/chats/%d/messages", r.baseURL, chatID)
+
 	fullURL, err := url.Parse(path)
 	if err != nil {
 		return nil, err

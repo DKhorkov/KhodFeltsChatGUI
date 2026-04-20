@@ -242,8 +242,6 @@ func TestWindow_Close(t *testing.T) {
 }
 
 func TestWindow_Integration(t *testing.T) {
-	t.Parallel()
-
 	t.Run("full window lifecycle", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 

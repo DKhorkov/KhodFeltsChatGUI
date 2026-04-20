@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
@@ -98,11 +98,11 @@ func (r *Repository) SearchUsers(
 
 	if pagination != nil {
 		if pagination.Limit != nil {
-			queryParams.Add(limitQueryParamName, fmt.Sprintf("%d", *pagination.Limit))
+			queryParams.Add(limitQueryParamName, strconv.FormatUint(*pagination.Limit, 10))
 		}
 
 		if pagination.Offset != nil {
-			queryParams.Add(offsetQueryParamName, fmt.Sprintf("%d", *pagination.Offset))
+			queryParams.Add(offsetQueryParamName, strconv.FormatUint(*pagination.Offset, 10))
 		}
 	}
 
