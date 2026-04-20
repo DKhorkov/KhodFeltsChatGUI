@@ -317,7 +317,7 @@ func TestRepository_SearchUsers(t *testing.T) {
 
 				mockClient.EXPECT().
 					Do(gomock.Any()).
-					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+					DoAndReturn(func(_ *http.Request) (*http.Response, error) {
 						return &http.Response{
 							StatusCode: http.StatusOK,
 							Body:       io.NopCloser(bytes.NewReader(usersData)),

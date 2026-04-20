@@ -133,7 +133,7 @@ func (h *Handler) refreshTokens() {
 		case <-h.ctx.Done():
 			return
 		case <-ticker.C:
-			h.useCases.RefreshTokens(h.ctx)
+			_, _ = h.useCases.RefreshTokens(h.ctx)
 		}
 	}
 }

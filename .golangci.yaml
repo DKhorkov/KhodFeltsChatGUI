@@ -281,7 +281,7 @@ linters:
         linters:
           - iface
 
-      - path: cmd/main.go
+      - path: cmd/v1/main.go
         linters:
           - exhaustruct
           - staticcheck

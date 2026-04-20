@@ -32,7 +32,7 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-// App struct - основной структура приложения Wails
+// App struct - основной структура приложения Wails.
 type App struct {
 	ctx context.Context
 
@@ -49,7 +49,7 @@ type App struct {
 	errorsMapper interfaces.ErrorsMapper
 }
 
-// NewApp создает новый экземпляр приложения
+// NewApp создает новый экземпляр приложения.
 func NewApp(
 	authHandler *authhandler.Handler,
 	chatHandler *chathandler.Handler,
@@ -72,7 +72,7 @@ func NewApp(
 	}
 }
 
-// Startup вызывается при запуске приложения
+// Startup вызывается при запуске приложения.
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 
@@ -86,8 +86,8 @@ func (a *App) Startup(ctx context.Context) {
 	logging.LogInfo(a.logger, "Приложение успешно запущено")
 }
 
-// Shutdown вызывается при закрытии приложения
-func (a *App) Shutdown(ctx context.Context) {
+// Shutdown вызывается при закрытии приложения.
+func (a *App) Shutdown(_ context.Context) {
 	// Останавливаем все горутины в хендлерах
 	if a.chatHandler != nil {
 		a.chatHandler.StopListening()
@@ -96,7 +96,7 @@ func (a *App) Shutdown(ctx context.Context) {
 	logging.LogInfo(a.logger, "Приложение успешно остановлено")
 }
 
-// Биндим хендлеры для доступа из фронтенда
+// BindHandlers Биндим хендлеры для доступа из фронтенда.
 func (a *App) BindHandlers() []any {
 	return []any{
 		a.authHandler,
