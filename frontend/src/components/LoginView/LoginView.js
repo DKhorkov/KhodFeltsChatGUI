@@ -1,26 +1,21 @@
-import { ref } from 'vue'
-import { Login, Register, SendVerifyEmail } from '../../../wailsjs/go/auth/Handler'
+import {ref} from 'vue'
+import {Login, Register, SendVerifyEmail} from '../../../wailsjs/go/auth/Handler'
 
 export default {
-    name: 'LoginView',
-    emits: ['login-success', 'show-forget-password'],
+    name: 'LoginView', emits: ['login-success', 'show-forget-password'],
 
-    setup(props, { emit }) {
+    setup(props, {emit}) {
         const activeTab = ref('login')
         const loading = ref(false)
         const error = ref('')
         const success = ref('')
 
         const loginForm = ref({
-            email: '',
-            password: ''
+            email: '', password: ''
         })
 
         const registerForm = ref({
-            email: '',
-            username: '',
-            password: '',
-            confirmPassword: ''
+            email: '', username: '', password: '', confirmPassword: ''
         })
 
         const handleLogin = async () => {
@@ -28,12 +23,9 @@ export default {
             error.value = ''
 
             try {
-                const result = await Login(loginForm.value)
-                if (result.success) {
-                    emit('login-success')
-                } else {
-                    error.value = result.message
-                }
+                await Login(loginForm.value.email, loginForm.value.password)
+
+                emit('login-success')
             } catch (err) {
                 error.value = err.message
             } finally {
@@ -51,27 +43,20 @@ export default {
             error.value = ''
 
             try {
-                const result = await Register({
+                await Register({
                     email: registerForm.value.email,
                     username: registerForm.value.username,
                     password: registerForm.value.password
                 })
 
-                if (result.success) {
-                    success.value = result.message
-                    activeTab.value = 'login'
-                    loginForm.value.email = registerForm.value.email
-                    loginForm.value.password = registerForm.value.password
+                success.value = 'Регистрация прошла успешно. Теперь войдите'
+                activeTab.value = 'login'
+                loginForm.value.email = registerForm.value.email
+                loginForm.value.password = registerForm.value.password
 
-                    // Очищаем форму регистрации
-                    registerForm.value = {
-                        email: '',
-                        username: '',
-                        password: '',
-                        confirmPassword: ''
-                    }
-                } else {
-                    error.value = result.message
+                // Очищаем форму регистрации
+                registerForm.value = {
+                    email: '', username: '', password: '', confirmPassword: ''
                 }
             } catch (err) {
                 error.value = err.message
@@ -98,15 +83,7 @@ export default {
         }
 
         return {
-            activeTab,
-            loading,
-            error,
-            success,
-            loginForm,
-            registerForm,
-            handleLogin,
-            handleRegister,
-            sendVerifyEmail
+            activeTab, loading, error, success, loginForm, registerForm, handleLogin, handleRegister, sendVerifyEmail
         }
     }
 }

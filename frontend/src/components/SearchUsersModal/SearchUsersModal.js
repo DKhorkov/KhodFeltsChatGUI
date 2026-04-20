@@ -1,51 +1,44 @@
-import { ref } from 'vue'
-import { SearchUsers } from '../../../wailsjs/go/search_users/Handler'
+import {ref} from 'vue'
+import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
 
 export default {
-  name: 'SearchUsersModal',
-  emits: ['close'],
+    name: 'SearchUsersModal', emits: ['close'],
 
-  setup() {
-    const searchQuery = ref('')
-    const searchResults = ref([])
-    const searched = ref(false)
-    const loading = ref(false)
+    setup() {
+        const searchQuery = ref('')
+        const searchResults = ref([])
+        const searched = ref(false)
+        const loading = ref(false)
 
-    let debounceTimer = null
+        let debounceTimer = null
 
-    const debouncedSearch = () => {
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(() => {
-        if (searchQuery.value) {
-          searchUsers()
+        const debouncedSearch = () => {
+            clearTimeout(debounceTimer)
+            debounceTimer = setTimeout(() => {
+                if (searchQuery.value) {
+                    searchUsers()
+                }
+            }, 500)
         }
-      }, 500)
-    }
 
-    const searchUsers = async () => {
-      searched.value = true
-      loading.value = true
+        const searchUsers = async () => {
+            searched.value = true
+            loading.value = true
 
-      try {
-        const users = await SearchUsers(
-            searchQuery.value,
-            0,
-            0
-        )
-        searchResults.value = users
-      } catch (err) {
-        console.error('Ошибка поиска:', err)
-      } finally {
-        loading.value = false
-      }
-    }
+            try {
+                const users = await SearchUsers({
+                    username: searchQuery.value,
+                }, null)
+                searchResults.value = users
+            } catch (err) {
+                console.error('Ошибка поиска:', err)
+            } finally {
+                loading.value = false
+            }
+        }
 
-    return {
-      searchQuery,
-      searchResults,
-      searched,
-      loading,
-      debouncedSearch
+        return {
+            searchQuery, searchResults, searched, loading, debouncedSearch
+        }
     }
-  }
 }

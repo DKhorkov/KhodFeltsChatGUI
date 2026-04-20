@@ -17,6 +17,9 @@ import (
 
 const (
 	accessTokenCookieName = "accessToken"
+
+	limitQueryParamName  = "limit"
+	offsetQueryParamName = "offset"
 )
 
 type Repository struct {
@@ -81,24 +84,36 @@ func (r *Repository) GetCurrentUser(
 
 func (r *Repository) SearchUsers(
 	ctx context.Context,
-	username string,
-	limit, offset int,
+	filters *domains.UsersFilters,
+	pagination *domains.Pagination,
 ) ([]domains.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf(
-			"%s/users?username=%s&limit=%d&offset=%d",
-			r.baseURL,
-			url.QueryEscape(username),
-			limit,
-			offset,
-		),
-		http.NoBody,
-	)
+	queryParams := url.Values{}
+
+	if filters != nil && filters.Username != nil {
+		queryParams.Add("username", *filters.Username)
+	}
+
+	if pagination != nil {
+		if pagination.Limit != nil {
+			queryParams.Add(limitQueryParamName, fmt.Sprintf("%d", *pagination.Limit))
+		}
+
+		if pagination.Offset != nil {
+			queryParams.Add(offsetQueryParamName, fmt.Sprintf("%d", *pagination.Offset))
+		}
+	}
+
+	fullURL, err := url.Parse(r.baseURL + "/users")
+	if err != nil {
+		return nil, err
+	}
+
+	fullURL.RawQuery = queryParams.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL.String(), http.NoBody)
 	if err != nil {
 		return nil, err
 	}

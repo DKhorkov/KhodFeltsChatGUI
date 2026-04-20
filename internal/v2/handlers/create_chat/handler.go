@@ -30,13 +30,6 @@ type CreateChatRequest struct {
 	Title   *string  `json:"title,omitempty"`
 }
 
-func (h *Handler) SearchUsers(
-	username string,
-	limit, offset int,
-) ([]domains.User, error) {
-	return h.useCases.SearchUsers(h.ctx, username, limit, offset)
-}
-
 func (h *Handler) CreateChat(
 	req CreateChatRequest,
 ) (*domains.Chat, error) {

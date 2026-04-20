@@ -1,5 +1,6 @@
 import { ref } from 'vue'
-import { SearchUsers, CreateChat } from '../../../wailsjs/go/create_chat/Handler'
+import { CreateChat } from '../../../wailsjs/go/create_chat/Handler'
+import { SearchUsers } from '../../../wailsjs/go/search_users/Handler'
 
 export default {
   name: 'CreateChatModal',
@@ -17,9 +18,9 @@ export default {
 
     const debouncedSearch = () => {
       clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(() => {
+      debounceTimer = setTimeout(async () => { // Добавили async
         if (searchQuery.value) {
-          searchUsers()
+          await searchUsers() // Теперь промис не игнорируется
         }
       }, 500)
     }
@@ -28,8 +29,7 @@ export default {
       try {
         const users = await SearchUsers(
             searchQuery.value,
-            0,
-            0
+            null
         )
         searchResults.value = users
       } catch (err) {

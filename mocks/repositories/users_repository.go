@@ -57,16 +57,16 @@ func (mr *MockUsersRepositoryMockRecorder) GetCurrentUser(ctx, accessToken any) 
 }
 
 // SearchUsers mocks base method.
-func (m *MockUsersRepository) SearchUsers(ctx context.Context, username string, limit, offset int) ([]domains.User, error) {
+func (m *MockUsersRepository) SearchUsers(ctx context.Context, filters domains.UsersFilters, pagination domains.Pagination) ([]domains.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchUsers", ctx, username, limit, offset)
+	ret := m.ctrl.Call(m, "SearchUsers", ctx, filters, pagination)
 	ret0, _ := ret[0].([]domains.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SearchUsers indicates an expected call of SearchUsers.
-func (mr *MockUsersRepositoryMockRecorder) SearchUsers(ctx, username, limit, offset any) *gomock.Call {
+func (mr *MockUsersRepositoryMockRecorder) SearchUsers(ctx, filters, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUsersRepository)(nil).SearchUsers), ctx, username, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUsersRepository)(nil).SearchUsers), ctx, filters, pagination)
 }

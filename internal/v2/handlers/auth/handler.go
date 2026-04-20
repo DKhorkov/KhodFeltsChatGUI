@@ -2,10 +2,11 @@ package auth
 
 import (
 	"context"
+	"errors"
 
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	"github.com/DKhorkov/kfcGUI/internal/errors"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/libs/validation"
 )
@@ -35,103 +36,60 @@ func (h *Handler) SetContext(ctx context.Context) {
 	h.ctx = ctx
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message,omitempty"`
-}
-
-func (h *Handler) Login(req LoginRequest) (*LoginResponse, error) {
+func (h *Handler) Login(email, password string) error {
 	// Валидация email
-	if !validation.ValidateValueByRule(req.Email, h.validationConfig.EmailRegExp) {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrInvalidEmail).Error(),
-		}, nil
+	if !validation.ValidateValueByRule(email, h.validationConfig.EmailRegExp) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidEmail)
 	}
 
 	// Валидация пароля
-	if !validation.ValidateValueByRules(req.Password, h.validationConfig.PasswordRegExps) {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrInvalidPassword).Error(),
-		}, nil
+	if !validation.ValidateValueByRules(password, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
 	}
 
 	// Вызов бизнес-логики
-	_, err := h.useCases.Login(h.ctx, req.Email, req.Password)
-	if err != nil {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrLogin).Error(),
-		}, nil
+
+	if _, err := h.useCases.Login(h.ctx, email, password); err != nil {
+		if errors.Is(err, customerrors.ErrDefault) {
+			return h.errorsMapper.Map(customerrors.ErrLogin)
+		}
+
+		return err
 	}
 
-	return &LoginResponse{
-		Success: true,
-		Message: "Успешный вход",
-	}, nil
+	return nil
 }
 
-type RegisterRequest struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func (h *Handler) Register(req RegisterRequest) (*LoginResponse, error) {
+func (h *Handler) Register(in domains.RegisterDTO) error {
 	// Валидация email
-	if !validation.ValidateValueByRule(req.Email, h.validationConfig.EmailRegExp) {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrInvalidEmail).Error(),
-		}, nil
+	if !validation.ValidateValueByRule(in.Email, h.validationConfig.EmailRegExp) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidEmail)
 	}
 
 	// Валидация username
-	if !validation.ValidateValueByRules(req.Username, h.validationConfig.UsernameRegExps) {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrInvalidUsername).Error(),
-		}, nil
+	if !validation.ValidateValueByRules(in.Username, h.validationConfig.UsernameRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidUsername)
 	}
 
 	// Валидация пароля
-	if !validation.ValidateValueByRules(req.Password, h.validationConfig.PasswordRegExps) {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrInvalidPassword).Error(),
-		}, nil
+	if !validation.ValidateValueByRules(in.Password, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
 	}
 
-	// Регистрация
-	registerData := domains.RegisterDTO{
-		Username: req.Username,
-		Password: req.Password,
-		Email:    req.Email,
+	if _, err := h.useCases.Register(h.ctx, in); err != nil {
+		if errors.Is(err, customerrors.ErrDefault) {
+			return h.errorsMapper.Map(customerrors.ErrRegister)
+		}
+
+		return err
 	}
 
-	_, err := h.useCases.Register(h.ctx, registerData)
-	if err != nil {
-		return &LoginResponse{
-			Success: false,
-			Message: h.errorsMapper.Map(errors.ErrRegister).Error(),
-		}, nil
-	}
-
-	return &LoginResponse{
-		Success: true,
-		Message: "Регистрация успешна! Теперь войдите.",
-	}, nil
+	return nil
 }
 
 func (h *Handler) SendVerifyEmail(email string) error {
 	if !validation.ValidateValueByRule(email, h.validationConfig.EmailRegExp) {
-		return h.errorsMapper.Map(errors.ErrInvalidEmail)
+		return h.errorsMapper.Map(customerrors.ErrInvalidEmail)
 	}
 
 	return h.useCases.SendVerifyEmailMessage(h.ctx, email)
@@ -139,22 +97,17 @@ func (h *Handler) SendVerifyEmail(email string) error {
 
 func (h *Handler) SendForgetPassword(email string) error {
 	if !validation.ValidateValueByRule(email, h.validationConfig.EmailRegExp) {
-		return h.errorsMapper.Map(errors.ErrInvalidEmail)
+		return h.errorsMapper.Map(customerrors.ErrInvalidEmail)
 	}
 
 	return h.useCases.SendForgetPasswordMessage(h.ctx, email)
 }
 
-type ForgetPasswordRequest struct {
-	Token       string `json:"token"`
-	NewPassword string `json:"newPassword"`
-}
-
-func (h *Handler) ForgetPassword(req ForgetPasswordRequest) error {
+func (h *Handler) ForgetPassword(token string, in domains.ForgetPasswordDTO) error {
 	// Валидация пароля
-	if !validation.ValidateValueByRules(req.NewPassword, h.validationConfig.PasswordRegExps) {
-		return h.errorsMapper.Map(errors.ErrInvalidPassword)
+	if !validation.ValidateValueByRules(in.NewPassword, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(h.ctx, req.Token, req.NewPassword)
+	return h.useCases.ForgetPassword(h.ctx, token, in.NewPassword)
 }

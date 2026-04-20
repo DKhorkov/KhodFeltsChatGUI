@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 	"sync"
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
@@ -19,6 +21,9 @@ import (
 
 const (
 	accessTokenCookieName = "accessToken"
+
+	limitQueryParamName  = "limit"
+	offsetQueryParamName = "offset"
 )
 
 type Repository struct {
@@ -39,17 +44,31 @@ func New(httpClient interfaces.HTTPClient, baseURL string) *Repository {
 func (r *Repository) GetUserChats(
 	ctx context.Context,
 	accessToken string,
-	limit, offset int,
+	pagination *domains.Pagination,
 ) ([]domains.Chat, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf("%s/chats?limit=%d&offset=%d", r.baseURL, limit, offset),
-		http.NoBody,
-	)
+	queryParams := url.Values{}
+
+	if pagination != nil {
+		if pagination.Limit != nil {
+			queryParams.Add(limitQueryParamName, strconv.FormatUint(*pagination.Limit, 10))
+		}
+
+		if pagination.Offset != nil {
+			queryParams.Add(offsetQueryParamName, strconv.FormatUint(*pagination.Offset, 10))
+		}
+	}
+
+	fullURL, err := url.Parse(r.baseURL + "/chats")
+	if err != nil {
+		return nil, err
+	}
+
+	fullURL.RawQuery = queryParams.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL.String(), http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -148,17 +167,32 @@ func (r *Repository) GetChatMessages(
 	ctx context.Context,
 	accessToken string,
 	chatID uint64,
-	limit, offset int,
+	pagination *domains.Pagination,
 ) ([]domains.Message, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodGet,
-		fmt.Sprintf("%s/chats/%d/messages?limit=%d&offset=%d", r.baseURL, chatID, limit, offset),
-		http.NoBody,
-	)
+	queryParams := url.Values{}
+
+	if pagination != nil {
+		if pagination.Limit != nil {
+			queryParams.Add(limitQueryParamName, strconv.FormatUint(*pagination.Limit, 10))
+		}
+
+		if pagination.Offset != nil {
+			queryParams.Add(offsetQueryParamName, strconv.FormatUint(*pagination.Offset, 10))
+		}
+	}
+
+	path := fmt.Sprintf("%s/chats/%d/messages", r.baseURL, chatID)
+	fullURL, err := url.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+
+	fullURL.RawQuery = queryParams.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL.String(), http.NoBody)
 	if err != nil {
 		return nil, err
 	}

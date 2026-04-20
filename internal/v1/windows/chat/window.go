@@ -21,6 +21,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/kfcGUI/internal/v1/widgets/entries"
 	"github.com/DKhorkov/libs/logging"
+	"github.com/DKhorkov/libs/pointers"
 )
 
 const (
@@ -141,7 +142,12 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		return
 	}
 
-	w.chats, err = w.useCases.GetUserChats(w.ctx, chatsLimit, chatsOffset)
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](chatsLimit),
+		Offset: pointers.New[uint64](chatsOffset),
+	}
+
+	w.chats, err = w.useCases.GetUserChats(w.ctx, pagination)
 	if err != nil {
 		logging.LogErrorContext(w.ctx, w.logger, "ошибка загрузки чатов", err)
 	}
@@ -270,7 +276,12 @@ func (w *Window) startUpdateChatsGoroutine() {
 }
 
 func (w *Window) updateChats() error {
-	chats, err := w.useCases.GetUserChats(w.ctx, chatsLimit, chatsOffset)
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](chatsLimit),
+		Offset: pointers.New[uint64](chatsOffset),
+	}
+
+	chats, err := w.useCases.GetUserChats(w.ctx, pagination)
 	if err != nil {
 		return err
 	}
@@ -524,7 +535,11 @@ func (w *Window) selectChat(chat domains.Chat) {
 	w.minMessageSize = 0
 	w.messagesMu.Unlock()
 
-	messages, err := w.useCases.GetChatMessages(w.ctx, chat.ID, messagesLimit, 0)
+	pagination := &domains.Pagination{
+		Limit: pointers.New[uint64](messagesLimit),
+	}
+
+	messages, err := w.useCases.GetChatMessages(w.ctx, chat.ID, pagination)
 	if err != nil {
 		dialog.ShowError(err, w.window)
 
@@ -919,9 +934,12 @@ func (w *Window) loadMoreMessages() {
 		w.messagesMu.Unlock()
 	}()
 
-	offset := len(w.messages)
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](messagesLimit),
+		Offset: pointers.New(uint64(len(w.messages))),
+	}
 
-	messages, err := w.useCases.GetChatMessages(w.ctx, w.currentChat.ID, messagesLimit, offset)
+	messages, err := w.useCases.GetChatMessages(w.ctx, w.currentChat.ID, pagination)
 	if err != nil {
 		dialog.ShowError(err, w.window)
 

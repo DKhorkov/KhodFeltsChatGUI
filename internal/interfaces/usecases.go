@@ -25,15 +25,19 @@ type UseCases interface {
 	GetChatMessages(
 		ctx context.Context,
 		chatID uint64,
-		limit, offset int,
+		pagination *domains.Pagination,
 	) ([]domains.Message, error)
 
 	// Chats
 	CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error)
-	GetUserChats(ctx context.Context, limit, offset int) ([]domains.Chat, error)
+	GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error)
 
 	// Users
-	SearchUsers(ctx context.Context, username string, limit, offset int) ([]domains.User, error)
+	SearchUsers(
+		ctx context.Context,
+		filters *domains.UsersFilters,
+		pagination *domains.Pagination,
+	) ([]domains.User, error)
 
 	// Settings
 	GetTheme(ctx context.Context) domains.ThemeType

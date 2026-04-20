@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
@@ -44,34 +45,32 @@ func (h *Handler) GetCurrentUser() (*domains.User, error) {
 	return h.useCases.GetCurrentUser(h.ctx)
 }
 
-func (h *Handler) GetUserChats(limit, offset int) ([]domains.Chat, error) {
-	return h.useCases.GetUserChats(h.ctx, limit, offset)
+func (h *Handler) GetUserChats(pagination *domains.Pagination) ([]domains.Chat, error) {
+	return h.useCases.GetUserChats(h.ctx, pagination)
 }
 
 func (h *Handler) GetChatMessages(
 	chatID uint64,
-	limit, offset int,
+	pagination *domains.Pagination,
 ) ([]domains.Message, error) {
-	return h.useCases.GetChatMessages(h.ctx, chatID, limit, offset)
+	return h.useCases.GetChatMessages(h.ctx, chatID, pagination)
 }
 
-type SendMessageRequest struct {
-	ChatID  uint64 `json:"chatId"`
-	Message string `json:"message"`
-}
-
-func (h *Handler) SendMessage(req SendMessageRequest) error {
+func (h *Handler) SendMessage(chatID uint64, text string) error {
 	sender, err := h.useCases.GetCurrentUser(h.ctx)
 	if err != nil {
 		return err
 	}
 
 	message := domains.Message{
-		ChatID: req.ChatID,
-		Text:   req.Message,
+		ChatID: chatID,
+		Text:   text,
 		Sender: domains.User{
 			ID: sender.ID,
 		},
+		CreatedAt: time.Now().In(common.Timezone),
+		UpdatedAt: time.Now().In(common.Timezone),
+		IsRead:    true, // Сообщение прочитано для отправителя
 	}
 
 	return h.useCases.SendMessage(h.ctx, message)
@@ -147,7 +146,7 @@ func (h *Handler) updateChats() {
 		case <-h.ctx.Done():
 			return
 		case <-ticker.C:
-			chats, err := h.useCases.GetUserChats(h.ctx, 0, 0)
+			chats, err := h.useCases.GetUserChats(h.ctx, nil)
 			if err == nil {
 				runtime.EventsEmit(h.ctx, "chats_updated", chats)
 			}

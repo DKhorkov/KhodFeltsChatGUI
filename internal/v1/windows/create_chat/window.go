@@ -12,6 +12,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/kfcGUI/internal/v1/windows"
+	"github.com/DKhorkov/libs/pointers"
 )
 
 const (
@@ -127,7 +128,16 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		go func() {
 			ctx := context.Background()
 
-			users, err = w.useCases.SearchUsers(ctx, username, limit, offset)
+			filters := &domains.UsersFilters{
+				Username: pointers.New(username),
+			}
+
+			pagination := &domains.Pagination{
+				Limit:  pointers.New[uint64](limit),
+				Offset: pointers.New[uint64](offset),
+			}
+
+			users, err = w.useCases.SearchUsers(ctx, filters, pagination)
 			if err != nil {
 				fyne.Do(func() {
 					dialog.ShowError(err, w.window)
@@ -153,7 +163,16 @@ func (w *Window) Build(_ fyne.CanvasObject) {
 		go func() {
 			ctx := context.Background()
 
-			users, err = w.useCases.SearchUsers(ctx, username, limit, offset)
+			filters := &domains.UsersFilters{
+				Username: pointers.New(username),
+			}
+
+			pagination := &domains.Pagination{
+				Limit:  pointers.New[uint64](limit),
+				Offset: pointers.New[uint64](offset),
+			}
+
+			users, err = w.useCases.SearchUsers(ctx, filters, pagination)
 			if err != nil {
 				fyne.Do(func() {
 					dialog.ShowError(err, w.window)

@@ -1,90 +1,88 @@
-import { ref } from 'vue'
-import { SendForgetPassword } from '../../../wailsjs/go/auth/Handler'
-import { ResetPassword } from '../../../wailsjs/go/forget_password/Handler'
+import {ref} from 'vue'
+import {SendForgetPassword} from '../../../wailsjs/go/auth/Handler'
+import {ForgetPassword} from '../../../wailsjs/go/forget_password/Handler'
 
 export default {
-  name: 'ForgetPasswordModal',
-  emits: ['close'],
+    name: 'ForgetPasswordModal', emits: ['close'],
 
-  setup(props, { emit }) {
-    const email = ref('')
-    const token = ref('')
-    const newPassword = ref('')
-    const confirmPassword = ref('')
-    const tokenSent = ref(false)
-    const message = ref('')
-    const loading = ref(false)
-    const error = ref('')
-    const success = ref('')
+    setup(props, {emit}) {
+        const email = ref('')
+        const token = ref('')
+        const newPassword = ref('')
+        const confirmPassword = ref('')
+        const tokenSent = ref(false)
+        const message = ref('')
+        const loading = ref(false)
+        const error = ref('')
+        const success = ref('')
 
-    const sendResetCode = async () => {
-      if (!email.value) {
-        error.value = 'Введите email'
-        return
-      }
+        const sendResetCode = async () => {
+            if (!email.value) {
+                error.value = 'Введите email'
+                return
+            }
 
-      loading.value = true
-      error.value = ''
+            loading.value = true
+            error.value = ''
 
-      try {
-        await SendForgetPassword(email.value)
-        message.value = `Письмо с кодом для сброса пароля было отправлено по адресу ${email.value}`
-        tokenSent.value = true
-      } catch (err) {
-        error.value = err.message
-      } finally {
-        loading.value = false
-      }
+            try {
+                await SendForgetPassword(email.value)
+                message.value = `Письмо с кодом для сброса пароля было отправлено по адресу ${email.value}`
+                tokenSent.value = true
+            } catch (err) {
+                error.value = err.message
+            } finally {
+                loading.value = false
+            }
+        }
+
+        const resetPassword = async () => {
+            if (!token.value || !newPassword.value || !confirmPassword.value) {
+                error.value = 'Заполните все поля'
+                return
+            }
+
+            if (newPassword.value !== confirmPassword.value) {
+                error.value = 'Пароли не совпадают'
+                return
+            }
+
+            if (newPassword.value.length < 6) {
+                error.value = 'Пароль должен содержать минимум 6 символов'
+                return
+            }
+
+            loading.value = true
+            error.value = ''
+
+            try {
+                await ForgetPassword(token.value, {
+                    newPassword: newPassword.value
+                })
+
+                success.value = 'Пароль был успешно сброшен. Теперь вы можете авторизоваться.'
+                setTimeout(() => {
+                    emit('close')
+                }, 2000)
+            } catch (err) {
+                error.value = err.message
+            } finally {
+                loading.value = false
+            }
+        }
+
+        return {
+            email,
+            token,
+            newPassword,
+            confirmPassword,
+            tokenSent,
+            message,
+            loading,
+            error,
+            success,
+            sendResetCode,
+            resetPassword
+        }
     }
-
-    const resetPassword = async () => {
-      if (!token.value || !newPassword.value || !confirmPassword.value) {
-        error.value = 'Заполните все поля'
-        return
-      }
-
-      if (newPassword.value !== confirmPassword.value) {
-        error.value = 'Пароли не совпадают'
-        return
-      }
-
-      if (newPassword.value.length < 6) {
-        error.value = 'Пароль должен содержать минимум 6 символов'
-        return
-      }
-
-      loading.value = true
-      error.value = ''
-
-      try {
-        await ResetPassword({
-          token: token.value,
-          newPassword: newPassword.value
-        })
-
-        success.value = 'Пароль был успешно сброшен. Теперь вы можете авторизоваться.'
-        setTimeout(() => {
-          emit('close')
-        }, 2000)
-      } catch (err) {
-        error.value = err.message
-      } finally {
-        loading.value = false
-      }
-    }
-
-    return {
-      email,
-      token,
-      newPassword,
-      confirmPassword,
-      tokenSent,
-      message,
-      loading,
-      error,
-      success,
-      sendResetCode,
-      resetPassword
-    }
-  }
 }

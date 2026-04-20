@@ -25,8 +25,8 @@ func (h *Handler) SetContext(ctx context.Context) {
 }
 
 func (h *Handler) SearchUsers(
-	username string,
-	limit, offset int,
+	filters *domains.UsersFilters,
+	pagination *domains.Pagination,
 ) ([]domains.User, error) {
-	return h.useCases.SearchUsers(h.ctx, username, limit, offset)
+	return h.useCases.SearchUsers(h.ctx, filters, pagination)
 }
