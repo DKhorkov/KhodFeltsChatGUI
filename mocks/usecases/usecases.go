@@ -86,7 +86,7 @@ func (mr *MockUseCasesMockRecorder) ForgetPassword(ctx, forgetPasswordToken, new
 }
 
 // GetChatMessages mocks base method.
-func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID uint64, pagination domains.Pagination) ([]domains.Message, error) {
+func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChatMessages", ctx, chatID, pagination)
 	ret0, _ := ret[0].([]domains.Message)
@@ -130,7 +130,7 @@ func (mr *MockUseCasesMockRecorder) GetTheme(ctx any) *gomock.Call {
 }
 
 // GetUserChats mocks base method.
-func (m *MockUseCases) GetUserChats(ctx context.Context, pagination domains.Pagination) ([]domains.Chat, error) {
+func (m *MockUseCases) GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserChats", ctx, pagination)
 	ret0, _ := ret[0].([]domains.Chat)
@@ -219,7 +219,7 @@ func (mr *MockUseCasesMockRecorder) Register(ctx, registerData any) *gomock.Call
 }
 
 // SearchUsers mocks base method.
-func (m *MockUseCases) SearchUsers(ctx context.Context, filters domains.UsersFilters, pagination domains.Pagination) ([]domains.User, error) {
+func (m *MockUseCases) SearchUsers(ctx context.Context, filters *domains.UsersFilters, pagination *domains.Pagination) ([]domains.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchUsers", ctx, filters, pagination)
 	ret0, _ := ret[0].([]domains.User)

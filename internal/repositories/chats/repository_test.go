@@ -29,8 +29,7 @@ func TestRepository_GetUserChats(t *testing.T) {
 	tests := []struct {
 		name          string
 		accessToken   string
-		limit         int
-		offset        int
+		pagination    *domains.Pagination
 		setupMocks    func(*mockhttp.MockHTTPClient)
 		expectedChats []domains.Chat
 		expectedError error
@@ -38,8 +37,10 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "successful get user chats",
 			accessToken: validToken,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				chats := []domains.Chat{
 					{
@@ -70,7 +71,7 @@ func TestRepository_GetUserChats(t *testing.T) {
 							return nil, errors.New("invalid limit parameter")
 						}
 
-						if query.Get("offset") != "0" {
+						if query.Get("offset") != "10" {
 							return nil, errors.New("invalid offset parameter")
 						}
 
@@ -100,8 +101,9 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "empty chats list",
 			accessToken: validToken,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				chatsData, _ := json.Marshal([]domains.Chat{})
 
@@ -119,8 +121,10 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "with pagination - large offset",
 			accessToken: validToken,
-			limit:       20,
-			offset:      100,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](20),
+				Offset: pointers.New[uint64](100),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				chatsData, _ := json.Marshal([]domains.Chat{})
 
@@ -149,8 +153,9 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "http client error",
 			accessToken: "token",
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -163,8 +168,9 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "unauthorized access",
 			accessToken: "invalid_token",
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -182,8 +188,9 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "not found",
 			accessToken: "token",
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -201,8 +208,9 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "invalid json response",
 			accessToken: "token",
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -218,8 +226,9 @@ func TestRepository_GetUserChats(t *testing.T) {
 		{
 			name:        "zero limit",
 			accessToken: "token",
-			limit:       0,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				chatsData, _ := json.Marshal([]domains.Chat{})
 				mockClient.EXPECT().
@@ -251,8 +260,7 @@ func TestRepository_GetUserChats(t *testing.T) {
 			chats, err := repo.GetUserChats(
 				context.Background(),
 				tt.accessToken,
-				tt.limit,
-				tt.offset,
+				tt.pagination,
 			)
 
 			if tt.expectedError != nil {
@@ -483,8 +491,7 @@ func TestRepository_GetChatMessages(t *testing.T) {
 		name             string
 		accessToken      string
 		chatID           uint64
-		limit            int
-		offset           int
+		pagination       *domains.Pagination
 		setupMocks       func(*mockhttp.MockHTTPClient)
 		expectedMessages []domains.Message
 		expectedError    error
@@ -493,8 +500,10 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "successful get messages",
 			accessToken: validToken,
 			chatID:      1,
-			limit:       20,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](20),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				messages := []domains.Message{
 					{
@@ -545,7 +554,7 @@ func TestRepository_GetChatMessages(t *testing.T) {
 							return nil, errors.New("invalid limit")
 						}
 
-						if query.Get("offset") != "0" {
+						if query.Get("offset") != "10" {
 							return nil, errors.New("invalid offset")
 						}
 
@@ -601,8 +610,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "empty messages list",
 			accessToken: "token",
 			chatID:      1,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				messagesData, _ := json.Marshal([]domains.Message{})
 
@@ -621,8 +631,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "message with empty sender",
 			accessToken: "token",
 			chatID:      2,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				messages := []domains.Message{
 					{
@@ -660,8 +671,10 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "with pagination",
 			accessToken: "token",
 			chatID:      5,
-			limit:       50,
-			offset:      100,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](50),
+				Offset: pointers.New[uint64](100),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				messagesData, _ := json.Marshal([]domains.Message{})
 
@@ -691,8 +704,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "chat not found",
 			accessToken: "token",
 			chatID:      999,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -711,8 +725,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "unauthorized access",
 			accessToken: "invalid_token",
 			chatID:      1,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -731,8 +746,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "http client error",
 			accessToken: "token",
 			chatID:      1,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -746,8 +762,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "invalid json response",
 			accessToken: "token",
 			chatID:      1,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -764,8 +781,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "forbidden access",
 			accessToken: "token",
 			chatID:      1,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -784,8 +802,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 			name:        "message with all fields populated",
 			accessToken: "token",
 			chatID:      3,
-			limit:       10,
-			offset:      0,
+			pagination: &domains.Pagination{
+				Limit: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				messages := []domains.Message{
 					{
@@ -854,8 +873,7 @@ func TestRepository_GetChatMessages(t *testing.T) {
 				context.Background(),
 				tt.accessToken,
 				tt.chatID,
-				tt.limit,
-				tt.offset,
+				tt.pagination,
 			)
 
 			if tt.expectedError != nil {

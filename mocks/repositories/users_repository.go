@@ -57,7 +57,7 @@ func (mr *MockUsersRepositoryMockRecorder) GetCurrentUser(ctx, accessToken any) 
 }
 
 // SearchUsers mocks base method.
-func (m *MockUsersRepository) SearchUsers(ctx context.Context, filters domains.UsersFilters, pagination domains.Pagination) ([]domains.User, error) {
+func (m *MockUsersRepository) SearchUsers(ctx context.Context, filters *domains.UsersFilters, pagination *domains.Pagination) ([]domains.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchUsers", ctx, filters, pagination)
 	ret0, _ := ret[0].([]domains.User)

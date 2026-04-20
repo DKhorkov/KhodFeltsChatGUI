@@ -57,7 +57,7 @@ func (mr *MockChatsRepositoryMockRecorder) CreateChat(ctx, accessToken, chat any
 }
 
 // GetChatMessages mocks base method.
-func (m *MockChatsRepository) GetChatMessages(ctx context.Context, accessToken string, chatID uint64, pagination domains.Pagination) ([]domains.Message, error) {
+func (m *MockChatsRepository) GetChatMessages(ctx context.Context, accessToken string, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChatMessages", ctx, accessToken, chatID, pagination)
 	ret0, _ := ret[0].([]domains.Message)
@@ -72,7 +72,7 @@ func (mr *MockChatsRepositoryMockRecorder) GetChatMessages(ctx, accessToken, cha
 }
 
 // GetUserChats mocks base method.
-func (m *MockChatsRepository) GetUserChats(ctx context.Context, accessToken string, pagination domains.Pagination) ([]domains.Chat, error) {
+func (m *MockChatsRepository) GetUserChats(ctx context.Context, accessToken string, pagination *domains.Pagination) ([]domains.Chat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserChats", ctx, accessToken, pagination)
 	ret0, _ := ret[0].([]domains.Chat)

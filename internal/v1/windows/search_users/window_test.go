@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
+	"github.com/DKhorkov/libs/pointers"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -68,6 +69,11 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_SearchFunctionality(t *testing.T) {
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](limit),
+		Offset: pointers.New[uint64](offset),
+	}
+
 	tests := []struct {
 		name          string
 		searchQuery   string
@@ -79,7 +85,7 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			searchQuery: "john",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "john", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("john")}, pagination).
 					Return([]domains.User{
 						{ID: 1, Username: "john_doe", Email: "john@example.com"},
 						{ID: 2, Username: "john_smith", Email: "john.smith@example.com"},
@@ -92,7 +98,7 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			searchQuery: "nonexistent",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "nonexistent", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("nonexistent")}, pagination).
 					Return([]domains.User{}, nil)
 			},
 			expectedError: false,
@@ -107,7 +113,7 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			searchQuery: "error",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "error", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("error")}, pagination).
 					Return(nil, errors.New("network error"))
 			},
 			expectedError: true,
@@ -150,6 +156,11 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 }
 
 func TestWindow_SearchButton(t *testing.T) {
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](limit),
+		Offset: pointers.New[uint64](offset),
+	}
+
 	tests := []struct {
 		name        string
 		searchQuery string
@@ -160,7 +171,7 @@ func TestWindow_SearchButton(t *testing.T) {
 			searchQuery: "test_user",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "test_user", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("test_user")}, pagination).
 					Return([]domains.User{
 						{ID: 1, Username: "test_user", Email: "test@example.com"},
 					}, nil)
@@ -366,6 +377,11 @@ func TestWindow_Constants(t *testing.T) {
 }
 
 func TestWindow_UsersList(t *testing.T) {
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](limit),
+		Offset: pointers.New[uint64](offset),
+	}
+
 	tests := []struct {
 		name       string
 		users      []domains.User
@@ -380,7 +396,7 @@ func TestWindow_UsersList(t *testing.T) {
 			},
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "test", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("test")}, pagination).
 					Return([]domains.User{
 						{ID: 1, Username: "user1", Email: "user1@example.com"},
 						{ID: 2, Username: "user2", Email: "user2@example.com"},
@@ -393,7 +409,7 @@ func TestWindow_UsersList(t *testing.T) {
 			users: []domains.User{},
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "test", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("test")}, pagination).
 					Return([]domains.User{}, nil)
 			},
 		},
@@ -500,6 +516,11 @@ func findSearchButton(window fyne.Window) *widget.Button {
 
 func TestWindow_Integration(t *testing.T) {
 	t.Run("full window lifecycle", func(t *testing.T) {
+		pagination := &domains.Pagination{
+			Limit:  pointers.New[uint64](limit),
+			Offset: pointers.New[uint64](offset),
+		}
+
 		ctrl := gomock.NewController(t)
 
 		app := test.NewApp()
@@ -507,7 +528,7 @@ func TestWindow_Integration(t *testing.T) {
 
 		// Настраиваем мок для успешного поиска
 		mockUseCases.EXPECT().
-			SearchUsers(gomock.Any(), "test_user", limit, offset).
+			SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("test_user")}, pagination).
 			Return([]domains.User{
 				{ID: 1, Username: "test_user", Email: "test@example.com"},
 			}, nil)

@@ -11,6 +11,7 @@ import (
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	mockwindows "github.com/DKhorkov/kfcGUI/mocks/window"
 	"github.com/DKhorkov/libs/logging/mocks"
+	"github.com/DKhorkov/libs/pointers"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -62,6 +63,11 @@ func TestNew(t *testing.T) {
 func TestWindow_Build(t *testing.T) {
 	now := time.Now()
 
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](chatsLimit),
+		Offset: pointers.New[uint64](chatsOffset),
+	}
+
 	tests := []struct {
 		name        string
 		setupMocks  func(*mockusecases.MockUseCases, *mocks.MockLogger)
@@ -81,7 +87,7 @@ func TestWindow_Build(t *testing.T) {
 					}, nil)
 
 				mockUseCases.EXPECT().
-					GetUserChats(gomock.Any(), chatsLimit, chatsOffset).
+					GetUserChats(gomock.Any(), pagination).
 					Return([]domains.Chat{}, nil)
 			},
 			expectError: false,
@@ -113,7 +119,7 @@ func TestWindow_Build(t *testing.T) {
 					}, nil)
 
 				mockUseCases.EXPECT().
-					GetUserChats(gomock.Any(), chatsLimit, chatsOffset).
+					GetUserChats(gomock.Any(), pagination).
 					Return(nil, errors.New("failed to load chats"))
 
 				mockLogger.EXPECT().
@@ -165,6 +171,11 @@ func TestWindow_Build(t *testing.T) {
 func TestWindow_Show(t *testing.T) {
 	now := time.Now()
 
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](chatsLimit),
+		Offset: pointers.New[uint64](chatsOffset),
+	}
+
 	tests := []struct {
 		name        string
 		setupWindow func(*Window)
@@ -204,7 +215,7 @@ func TestWindow_Show(t *testing.T) {
 				}, nil).AnyTimes()
 
 			mockUseCases.EXPECT().
-				GetUserChats(gomock.Any(), chatsLimit, chatsOffset).
+				GetUserChats(gomock.Any(), pagination).
 				Return([]domains.Chat{}, nil).AnyTimes()
 
 			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
@@ -235,6 +246,11 @@ func TestWindow_Show(t *testing.T) {
 
 func TestWindow_Close(t *testing.T) {
 	now := time.Now()
+
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](chatsLimit),
+		Offset: pointers.New[uint64](chatsOffset),
+	}
 
 	tests := []struct {
 		name        string
@@ -282,7 +298,7 @@ func TestWindow_Close(t *testing.T) {
 				}, nil).AnyTimes()
 
 			mockUseCases.EXPECT().
-				GetUserChats(gomock.Any(), chatsLimit, chatsOffset).
+				GetUserChats(gomock.Any(), pagination).
 				Return([]domains.Chat{}, nil).AnyTimes()
 
 			w := New(
@@ -427,6 +443,11 @@ func TestWindow_Integration(t *testing.T) {
 	t.Run("full window lifecycle", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 
+		pagination := &domains.Pagination{
+			Limit:  pointers.New[uint64](chatsLimit),
+			Offset: pointers.New[uint64](chatsOffset),
+		}
+
 		app := test.NewApp()
 		mockUseCases := mockusecases.NewMockUseCases(ctrl)
 		mockAuthWindow := mockwindows.NewMockWindow(ctrl)
@@ -449,7 +470,7 @@ func TestWindow_Integration(t *testing.T) {
 			}, nil)
 
 		mockUseCases.EXPECT().
-			GetUserChats(gomock.Any(), chatsLimit, chatsOffset).
+			GetUserChats(gomock.Any(), pagination).
 			Return([]domains.Chat{
 				{
 					ID:        1,

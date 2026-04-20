@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
+	"github.com/DKhorkov/libs/pointers"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -124,6 +125,11 @@ func TestWindow_Build(t *testing.T) {
 }
 
 func TestWindow_SearchFunctionality(t *testing.T) {
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](limit),
+		Offset: pointers.New[uint64](offset),
+	}
+
 	tests := []struct {
 		name          string
 		searchQuery   string
@@ -135,7 +141,7 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			searchQuery: "john",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "john", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("john")}, pagination).
 					Return([]domains.User{
 						{ID: 1, Username: "john_doe", Email: "john@example.com"},
 						{ID: 2, Username: "john_smith", Email: "john.smith@example.com"},
@@ -148,7 +154,7 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			searchQuery: "nonexistent",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "nonexistent", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("nonexistent")}, pagination).
 					Return([]domains.User{}, nil)
 			},
 			expectedError: false,
@@ -163,7 +169,7 @@ func TestWindow_SearchFunctionality(t *testing.T) {
 			searchQuery: "error",
 			setupMocks: func(mockUseCases *mockusecases.MockUseCases) {
 				mockUseCases.EXPECT().
-					SearchUsers(gomock.Any(), "error", limit, offset).
+					SearchUsers(gomock.Any(), &domains.UsersFilters{Username: pointers.New("error")}, pagination).
 					Return(nil, errors.New("network error"))
 			},
 			expectedError: true,
