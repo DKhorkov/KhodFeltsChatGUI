@@ -72,12 +72,33 @@ export default {
         const sendMessage = async () => {
             if (!newMessage.value.trim() || !currentChat.value) return
 
-            await SendMessage(
-                currentChat.value.id,
-                newMessage.value
-            )
+            const text = newMessage.value
+            newMessage.value = '' // Очищаем поле сразу (UX)
 
-            newMessage.value = ''
+            try {
+                await SendMessage(currentChat.value.id, text)
+
+                // Создаем объект сообщения вручную
+                const localMessage = {
+                    id: Date.now(), // Временный ID для :key
+                    text: text,
+                    chatId: currentChat.value.id,
+                    createdAt: new Date().toISOString(), // Формат ISO для функции даты
+                    sender: {
+                        id: currentUser.value?.id,
+                        username: currentUser.value?.username
+                    }
+                }
+
+                // Кладем в массив — Vue мгновенно его отрисует
+                messages.value.push(localMessage)
+
+                await nextTick()
+                scrollToBottom()
+            } catch (e) {
+                console.error("Ошибка сети/рантайма:", e)
+                newMessage.value = text
+            }
         }
 
         const handleNewMessage = (message) => {
