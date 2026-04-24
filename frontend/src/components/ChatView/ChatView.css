@@ -1,6 +1,7 @@
 .chat-container {
   display: flex;
   height: 100vh;
+  background-color: #ffffff; /* Чтобы под панелями не было «пустоты» */
 }
 
 .chats-panel {
@@ -183,4 +184,7 @@
   align-items: center;
   justify-content: center;
   color: #999;
+  background-color: #ffffff;    /* Явный белый фон вместо прозрачного */
+  transform: translateZ(0);     /* Включает аппаратное ускорение для слоя */
+  will-change: transform;       /* Подсказка браузеру о необходимости перерисовки */
 }
