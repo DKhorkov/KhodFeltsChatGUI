@@ -188,3 +188,40 @@
   transform: translateZ(0);     /* Включает аппаратное ускорение для слоя */
   will-change: transform;       /* Подсказка браузеру о необходимости перерисовки */
 }
+
+.close-chat-btn {
+  background: none;
+  border: none;
+  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  font-size: 36px;
+  color: #999;
+  cursor: pointer;
+
+  /* Центрируем и добавляем область для клика */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Убираем лишние отступы браузера */
+  line-height: 1;
+  padding: 0;
+
+  transition: all 0.2s ease;
+}
+
+.close-chat-btn:hover {
+  color: #e53e3e;
+  transform: scale(1.2); /* Можно добавить легкое увеличение при наведении */
+}
+
+/* Стили для верхушки панели чата */
+.chat-header-top {
+  padding: 20px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

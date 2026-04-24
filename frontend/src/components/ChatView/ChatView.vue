@@ -31,8 +31,10 @@
 
     <!-- Правая панель - сообщения -->
     <div class="messages-panel" v-if="currentChat">
-      <div class="messages-header">
+      <div class="chat-header-top">
         <h3>{{ getChatTitle(currentChat) }}</h3>
+        <!-- Кнопка закрытия -->
+        <button @click="currentChat = null" class="close-chat-btn" title="Закрыть чат">×</button>
       </div>
 
       <div class="messages-list" ref="messagesList">
