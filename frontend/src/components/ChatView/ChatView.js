@@ -41,24 +41,27 @@ export default {
 
         const loadMoreMessages = async () => {
             if (loadMoreLock || !hasMoreMessages || !currentChat.value) return
-
             loadMoreLock = true
-            const offset = messages.value.length
 
-            const olderMessages = await GetChatMessages(currentChat.value.id, {
+            try {
+                const offset = messages.value.length
+                const olderMessages = await GetChatMessages(currentChat.value.id, {
                     limit: 10,
                     offset: offset
+                })
+
+                if (olderMessages && olderMessages.length > 0) {
+                    // Разворачиваем и добавляем в НАЧАЛО массива
+                    messages.value = [...olderMessages.reverse(), ...messages.value]
+                    hasMoreMessages = olderMessages.length >= 10
+                } else {
+                    hasMoreMessages = false
                 }
-            )
-
-            if (olderMessages.length > 0) {
-                messages.value = [...olderMessages.reverse(), ...messages.value]
-                hasMoreMessages = olderMessages.length >= 10
-            } else {
-                hasMoreMessages = false
+            } catch (e) {
+                console.error("Ошибка загрузки истории:", e)
+            } finally {
+                loadMoreLock = false // Всегда снимаем лок
             }
-
-            loadMoreLock = false
         }
 
         const selectChat = async (chat) => {
@@ -187,9 +190,17 @@ export default {
         watch(messagesList, (el) => {
             if (!el) return
 
-            const handleScroll = () => {
-                if (el.scrollTop === 0) {
-                    loadMoreMessages()
+            const handleScroll = async () => {
+                // Срабатывает, если до верха осталось меньше 10 пикселей
+                if (el.scrollTop <= 10 && !loadMoreLock && hasMoreMessages && currentChat.value) {
+
+                    const prevHeight = el.scrollHeight // Запоминаем высоту ДО загрузки
+
+                    await loadMoreMessages()
+
+                    await nextTick()
+                    // Вычисляем новую позицию, чтобы экран не прыгал
+                    el.scrollTop = el.scrollHeight - prevHeight
                 }
             }
 
