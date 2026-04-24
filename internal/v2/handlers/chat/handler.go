@@ -2,19 +2,28 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/libs/logging"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+)
+
+const (
+	refreshTokensInterval = 1 * time.Minute
+	updateChatsInterval   = 5 * time.Second
 )
 
 type Handler struct {
 	useCases         interfaces.UseCases
 	errorsMapper     interfaces.ErrorsMapper
+	logger           logging.Logger
 	validationConfig config.ValidationConfig
 
 	ctx        context.Context
@@ -25,11 +34,13 @@ type Handler struct {
 func New(
 	useCases interfaces.UseCases,
 	errorsMapper interfaces.ErrorsMapper,
+	logger logging.Logger,
 	validationConfig config.ValidationConfig,
 ) *Handler {
 	return &Handler{
 		useCases:         useCases,
 		errorsMapper:     errorsMapper,
+		logger:           logger,
 		validationConfig: validationConfig,
 		ctx:              context.Background(),
 	}
@@ -111,7 +122,17 @@ func (h *Handler) readMessages() {
 		default:
 			message, err := h.useCases.ReadMessage(h.ctx)
 			if err != nil {
-				time.Sleep(1 * time.Second)
+				// Соккет закрыт, отключаем горутину
+				if errors.Is(err, customerrors.ErrWebsocketClosed) {
+					logging.LogInfo(
+						h.logger,
+						"startReadMessagesGoroutine завершена из-за закрытия соединения",
+					)
+
+					return
+				}
+
+				logging.LogErrorContext(h.ctx, h.logger, "Не удалось прочитать сообщение", err)
 
 				continue
 			}
@@ -125,7 +146,7 @@ func (h *Handler) readMessages() {
 func (h *Handler) refreshTokens() {
 	defer h.wg.Done()
 
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(refreshTokensInterval)
 	defer ticker.Stop()
 
 	for {
@@ -141,7 +162,7 @@ func (h *Handler) refreshTokens() {
 func (h *Handler) updateChats() {
 	defer h.wg.Done()
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(updateChatsInterval)
 	defer ticker.Stop()
 
 	for {

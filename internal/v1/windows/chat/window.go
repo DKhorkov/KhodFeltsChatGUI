@@ -353,7 +353,7 @@ func (w *Window) startReadMessagesGoroutine() {
 
 					logging.LogErrorContext(w.ctx, w.logger, "Не удалось прочитать сообщение", err)
 
-					break
+					continue
 				}
 
 				w.readMessage(*message)

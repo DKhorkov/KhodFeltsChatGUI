@@ -152,6 +152,7 @@ func main() {
 	chatHandler := chathandler.New(
 		useCases,
 		errorsMapper,
+		logger,
 		cfg.Validation,
 	)
 

@@ -22,11 +22,11 @@
           class="user-item"
         >
           <div class="user-avatar">
-            {{ user.Username.charAt(0).toUpperCase() }}
+            {{ user.username.charAt(0).toUpperCase() }}
           </div>
           <div class="user-info">
-            <div class="username">{{ user.Username }}</div>
-            <div class="email">{{ user.Email }}</div>
+            <div class="username">{{ user.username }}</div>
+            <div class="email">{{ user.email }}</div>
           </div>
         </div>
       </div>

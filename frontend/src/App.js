@@ -6,7 +6,7 @@ import SearchUsersModal from './components/SearchUsersModal/SearchUsersModal.vue
 import ForgetPasswordModal from './components/ForgetPasswordModal/ForgetPasswordModal.vue'
 import NotificationToast from './components/NotificationToast/NotificationToast.vue'
 
-import {Authenticate} from '../wailsjs/go/auth/Handler'
+import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
 
 
 export default {
@@ -21,7 +21,7 @@ export default {
     },
 
     setup() {
-        const currentView = ref('login')
+        const currentView = ref('loading')
         const showCreateChatModal = ref(false)
         const showSearchUsersModal = ref(false)
         const showForgetPasswordModal = ref(false)
@@ -36,6 +36,7 @@ export default {
                 currentView.value = 'chat'
             } catch (err) {
                 console.error("Ошибка проверки сессии:", err)
+                currentView.value = 'login'
             }
         }
 
@@ -47,7 +48,13 @@ export default {
             currentView.value = 'chat'
         }
 
-        const handleLogout = () => {
+        const handleLogout = async () => { // Оставили только один уровень
+            try {
+                await Logout()
+            } catch (err) {
+                console.error("Ошибка logout:", err)
+            }
+
             currentView.value = 'login'
         }
 

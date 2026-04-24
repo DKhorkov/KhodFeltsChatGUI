@@ -28,17 +28,17 @@
       <div v-if="searchResults.length > 0" class="users-list">
         <div
           v-for="user in searchResults"
-          :key="user.ID"
+          :key="user.id"
           class="user-item"
         >
           <input
             type="checkbox"
-            :value="user.ID"
+            :value="user.id"
             v-model="selectedUsers"
           />
           <div class="user-info">
-            <div class="username">{{ user.Username }}</div>
-            <div class="email">{{ user.Email }}</div>
+            <div class="username">{{ user.username }}</div>
+            <div class="email">{{ user.email }}</div>
           </div>
         </div>
       </div>

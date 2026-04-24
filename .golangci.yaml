@@ -287,6 +287,10 @@ linters:
           - staticcheck
           - gochecknoglobals
 
+      - path: cmd/v2/main.go
+        linters:
+          - containedctx
+
       - path: internal/domains/chat.go
         linters:
           - gochecknoglobals
@@ -324,10 +328,12 @@ linters:
       - path: internal/v1/windows/create_chat/window.go
         linters:
           - forcetypeassert
+          - dupl
 
       - path: internal/v1/windows/search_users/window.go
         linters:
           - forcetypeassert
+          - dupl
 
       - path: internal/v1/windows/notification/window_test.go
         linters:
@@ -336,6 +342,10 @@ linters:
       - path: internal/v1/windows/forget_password/window_test.go
         linters:
           - gocritic
+
+      - path: internal/v2/handlers/*
+        linters:
+          - containedctx
 
       - path: internal/errors/mapper.go
         linters:

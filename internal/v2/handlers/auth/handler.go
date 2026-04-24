@@ -119,3 +119,7 @@ func (h *Handler) Authenticate() error {
 
 	return nil
 }
+
+func (h *Handler) Logout() error {
+	return h.useCases.Logout(h.ctx)
+}
