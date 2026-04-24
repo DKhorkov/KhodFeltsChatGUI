@@ -111,3 +111,11 @@ func (h *Handler) ForgetPassword(token string, in domains.ForgetPasswordDTO) err
 
 	return h.useCases.ForgetPassword(h.ctx, token, in.NewPassword)
 }
+
+func (h *Handler) Authenticate() error {
+	if _, err := h.useCases.Authenticate(h.ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
