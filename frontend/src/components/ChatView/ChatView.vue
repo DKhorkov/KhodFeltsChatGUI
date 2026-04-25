@@ -2,13 +2,14 @@
   <div class="chat-container">
     <!-- Левая панель - список чатов -->
     <div class="chats-panel">
+      <!-- 1. Шапка (теперь без логаута) -->
       <div class="chats-header">
         <h3>Чаты</h3>
-        <button @click="$emit('show-create-chat')" class="icon-btn">+</button>
-        <button @click="$emit('show-search-users')" class="icon-btn">🔍</button>
-        <button @click="handleLogout" class="icon-btn logout">🚪</button>
+        <button @click="$emit('show-create-chat')" class="icon-btn" title="Создать чат">+</button>
+        <button @click="$emit('show-search-users')" class="icon-btn" title="Поиск пользователей">🔍</button>
       </div>
 
+      <!-- 2. Список чатов -->
       <div class="chats-list">
         <div
           v-for="chat in chats"
@@ -26,6 +27,14 @@
           </div>
           <div v-if="!chat.isRead" class="unread-indicator">●</div>
         </div>
+      </div>
+
+      <!-- 3. Новый футер с логаутом -->
+      <div class="chats-footer">
+        <button @click="handleLogout" class="logout-btn">
+          <span class="icon">🚪</span>
+          <span>Выйти из аккаунта</span>
+        </button>
       </div>
     </div>
 
