@@ -27,10 +27,9 @@ export default {
 
     const searchUsers = async () => {
       try {
-        const users = await SearchUsers(
-            searchQuery.value,
-            null
-        )
+        const users = await SearchUsers({
+          username: searchQuery.value,
+        }, null)
         searchResults.value = users
       } catch (err) {
         console.error('Ошибка поиска:', err)

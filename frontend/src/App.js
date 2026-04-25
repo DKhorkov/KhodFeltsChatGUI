@@ -22,6 +22,7 @@ export default {
 
     setup() {
         const currentView = ref('loading')
+        const chatViewComponent = ref(null)
         const showCreateChatModal = ref(false)
         const showSearchUsersModal = ref(false)
         const showForgetPasswordModal = ref(false)
@@ -61,6 +62,12 @@ export default {
         const handleChatCreated = () => {
             showCreateChatModal.value = false
             notification.value = 'Чат успешно создан!'
+
+            // Проверяем, что компонент смонтирован, и вызываем его метод
+            if (chatViewComponent.value) {
+                chatViewComponent.value.loadChats()
+            }
+
             setTimeout(() => {
                 notification.value = null
             }, 3000)
@@ -68,6 +75,7 @@ export default {
 
         return {
             currentView,
+            chatViewComponent,
             showCreateChatModal,
             showSearchUsersModal,
             showForgetPasswordModal,

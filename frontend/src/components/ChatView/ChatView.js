@@ -220,7 +220,8 @@ export default {
             getChatTitle,
             getSenderName,
             formatTime,
-            handleLogout
+            handleLogout,
+            loadChats  // делаем публичным для использования при создании чата в модалке CreateChatModal
         }
     }
 }

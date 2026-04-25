@@ -6,6 +6,7 @@
       @show-forget-password="showForgetPasswordModal = true"
     />
     <ChatView
+      ref="chatViewComponent"
       v-else-if="currentView === 'chat'"
       @logout="handleLogout"
       @show-create-chat="showCreateChatModal = true"
