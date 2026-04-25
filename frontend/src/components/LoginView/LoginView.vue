@@ -76,9 +76,6 @@
           </button>
         </form>
       </div>
-
-      <div v-if="error" class="error">{{ error }}</div>
-      <div v-if="success" class="success">{{ success }}</div>
     </div>
   </div>
 </template>

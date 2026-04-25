@@ -13,24 +13,24 @@ export default {
         const tokenSent = ref(false)
         const message = ref('')
         const loading = ref(false)
-        const error = ref('')
-        const success = ref('')
 
         const sendResetCode = async () => {
             if (!email.value) {
-                error.value = 'Введите email'
+                alert(`Введите email`)
+
                 return
             }
 
             loading.value = true
-            error.value = ''
 
             try {
                 await SendForgetPassword(email.value)
+
                 message.value = `Письмо с кодом для сброса пароля было отправлено по адресу ${email.value}`
+
                 tokenSent.value = true
             } catch (err) {
-                error.value = err.message
+                alert(err)
             } finally {
                 loading.value = false
             }
@@ -38,34 +38,27 @@ export default {
 
         const resetPassword = async () => {
             if (!token.value || !newPassword.value || !confirmPassword.value) {
-                error.value = 'Заполните все поля'
+                alert(`Заполните все поля`)
+
                 return
             }
 
             if (newPassword.value !== confirmPassword.value) {
-                error.value = 'Пароли не совпадают'
-                return
-            }
+                alert(`Пароли не совпадают`)
 
-            if (newPassword.value.length < 6) {
-                error.value = 'Пароль должен содержать минимум 6 символов'
                 return
             }
 
             loading.value = true
-            error.value = ''
 
             try {
                 await ForgetPassword(token.value, {
                     newPassword: newPassword.value
                 })
 
-                success.value = 'Пароль был успешно сброшен. Теперь вы можете авторизоваться.'
-                setTimeout(() => {
-                    emit('close')
-                }, 2000)
+                alert(`Пароль был успешно сброшен. Теперь вы можете авторизоваться.`)
             } catch (err) {
-                error.value = err.message
+                alert(err)
             } finally {
                 loading.value = false
             }
@@ -79,8 +72,6 @@ export default {
             tokenSent,
             message,
             loading,
-            error,
-            success,
             sendResetCode,
             resetPassword
         }

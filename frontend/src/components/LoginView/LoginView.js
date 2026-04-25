@@ -7,8 +7,6 @@ export default {
     setup(props, {emit}) {
         const activeTab = ref('login')
         const loading = ref(false)
-        const error = ref('')
-        const success = ref('')
 
         const loginForm = ref({
             email: '', password: ''
@@ -20,14 +18,13 @@ export default {
 
         const handleLogin = async () => {
             loading.value = true
-            error.value = ''
 
             try {
                 await Login(loginForm.value.email, loginForm.value.password)
 
                 emit('login-success')
             } catch (err) {
-                error.value = err.message
+                alert(err)
             } finally {
                 loading.value = false
             }
@@ -35,12 +32,12 @@ export default {
 
         const handleRegister = async () => {
             if (registerForm.value.password !== registerForm.value.confirmPassword) {
-                error.value = 'Пароли не совпадают'
+                alert(`Пароли не совпадают`)
+
                 return
             }
 
             loading.value = true
-            error.value = ''
 
             try {
                 await Register({
@@ -49,7 +46,6 @@ export default {
                     password: registerForm.value.password
                 })
 
-                success.value = 'Регистрация прошла успешно. Теперь войдите'
                 activeTab.value = 'login'
                 loginForm.value.email = registerForm.value.email
                 loginForm.value.password = registerForm.value.password
@@ -58,8 +54,10 @@ export default {
                 registerForm.value = {
                     email: '', username: '', password: '', confirmPassword: ''
                 }
+
+                alert(`Регистрация прошла успешно. Теперь войдите`)
             } catch (err) {
-                error.value = err.message
+                alert(err)
             } finally {
                 loading.value = false
             }
@@ -67,23 +65,21 @@ export default {
 
         const sendVerifyEmail = async () => {
             if (!loginForm.value.email) {
-                error.value = 'Введите email'
+                alert('Введите email')
                 return
             }
 
             try {
                 await SendVerifyEmail(loginForm.value.email)
-                success.value = `Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.email}`
-                setTimeout(() => {
-                    success.value = ''
-                }, 5000)
+
+                alert(`Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.email}`)
             } catch (err) {
-                error.value = err.message
+                alert(err)
             }
         }
 
         return {
-            activeTab, loading, error, success, loginForm, registerForm, handleLogin, handleRegister, sendVerifyEmail
+            activeTab, loading, loginForm, registerForm, handleLogin, handleRegister, sendVerifyEmail
         }
     }
 }

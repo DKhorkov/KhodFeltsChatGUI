@@ -31,7 +31,7 @@ export default {
                 }, null)
                 searchResults.value = users
             } catch (err) {
-                console.error('Ошибка поиска:', err)
+                alert(`Ошибка поиска: ${err}`)
             } finally {
                 loading.value = false
             }

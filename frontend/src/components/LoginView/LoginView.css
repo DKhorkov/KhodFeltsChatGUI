@@ -95,21 +95,3 @@ button[type="submit"]:disabled {
     color: #e53e3e;
     border-color: #e53e3e;
 }
-
-.error {
-    margin-top: 20px;
-    padding: 10px;
-    background: #fed7d7;
-    color: #c53030;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.success {
-    margin-top: 20px;
-    padding: 10px;
-    background: #c6f6d5;
-    color: #22543d;
-    border-radius: 5px;
-    font-size: 14px;
-}

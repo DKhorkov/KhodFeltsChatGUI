@@ -33,13 +33,14 @@ export default {
         }, null)
         searchResults.value = users
       } catch (err) {
-        console.error('Ошибка поиска:', err)
+        alert(err)
       }
     }
 
     const createChat = async () => {
       if (chatType.value === 'private' && selectedUsers.value.length === 0) {
         alert('Укажите хотя бы одного участника')
+
         return
       }
 
@@ -55,8 +56,7 @@ export default {
 
         emit('chat-created')
       } catch (err) {
-        console.error('Ошибка создания чата:', err)
-        alert('Ошибка создания чата')
+        alert(err)
       } finally {
         loading.value = false
       }

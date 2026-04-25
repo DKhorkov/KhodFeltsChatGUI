@@ -57,8 +57,8 @@ export default {
                 } else {
                     hasMoreMessages = false
                 }
-            } catch (e) {
-                console.error("Ошибка загрузки истории:", e)
+            } catch (err) {
+                alert(err)
             } finally {
                 loadMoreLock = false // Всегда снимаем лок
             }
@@ -69,7 +69,7 @@ export default {
             await loadMessages(chat.id)
 
             // Отмечаем чат как прочитанный
-            chat.IsRead = true
+            chat.isRead = true
         }
 
         const sendMessage = async () => {
@@ -98,26 +98,32 @@ export default {
 
                 await nextTick()
                 scrollToBottom()
-            } catch (e) {
-                console.error("Ошибка сети/рантайма:", e)
-                newMessage.value = text
+            } catch (err) {
+                alert(err)
+
+                newMessage.value = text  // Возвращаем текст сообщеняи, чтобы пользователь не печатал заново
             }
         }
 
         const handleNewMessage = (message) => {
+            // 1. Если чат открыт — просто добавляем в список
             if (currentChat.value?.id === message.chatId) {
                 messages.value.push(message)
-                scrollToBottom()
-            } else {
-                // Обновляем список чатов для показа индикатора
-                loadChats()
 
-                // Показываем уведомление
-                if (Notification.permission === 'granted') {
-                    new Notification('Новое сообщение', {
-                        body: `${message.sender.username}: ${message.Text}`
-                    })
-                }
+                // Используем nextTick, чтобы скролл сработал после отрисовки
+                nextTick(() => scrollToBottom())
+
+                return
+            }
+
+            // 2. Если чат другой — обновляем список «в фоне» для показа индикатора, что чат непросмотрен
+            loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
+
+            // 3. Показываем уведомление
+            if (Notification.permission === 'granted') {
+                new Notification('Новое сообщение', {
+                    body: `${message.sender.username}: ${message.text}`
+                })
             }
         }
 
