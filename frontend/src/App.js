@@ -10,14 +10,8 @@ import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
 
 
 export default {
-    name: 'App',
-    components: {
-        LoginView,
-        ChatView,
-        CreateChatModal,
-        SearchUsersModal,
-        ForgetPasswordModal,
-        NotificationToast
+    name: 'App', components: {
+        LoginView, ChatView, CreateChatModal, SearchUsersModal, ForgetPasswordModal, NotificationToast
     },
 
     setup() {

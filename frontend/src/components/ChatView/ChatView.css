@@ -1,256 +1,256 @@
 .chat-container {
-  display: flex;
-  height: 100vh;
-  background-color: #ffffff; /* Чтобы под панелями не было «пустоты» */
+    display: flex;
+    height: 100vh;
+    background-color: #ffffff; /* Чтобы под панелями не было «пустоты» */
 }
 
 .chats-panel {
-  width: 300px;
-  background: #f7f7f7;
-  border-right: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: column;
-  height: 100vh; /* Гарантируем полную высоту */
+    width: 300px;
+    background: #f7f7f7;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Гарантируем полную высоту */
 }
 
 .chats-header {
-  padding: 20px;
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  gap: 10px;
-  align-items: center;
+    padding: 20px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .chats-header h3 {
-  flex: 1;
-  margin: 0;
+    flex: 1;
+    margin: 0;
 }
 
 .icon-btn {
-  width: 35px;
-  height: 35px;
-  border: none;
-  background: #f0f0f0;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 18px;
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
 }
 
 .logout-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid #fee;
-  background: #fff5f5;
-  color: #e53e3e;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #fee;
+    background: #fff5f5;
+    color: #e53e3e;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .logout-btn:hover {
-  background: #fff0f0;
-  border-color: #feb2b2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background: #fff0f0;
+    border-color: #feb2b2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .logout-btn .icon {
-  font-size: 18px;
+    font-size: 18px;
 }
 
 .chats-list {
-  flex: 1;
-  overflow-y: auto;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .chat-item {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .chat-item:hover {
-  background: #f0f0f0;
+    background: #f0f0f0;
 }
 
 .chat-item.active {
-  background: #e3e8ff;
+    background: #e3e8ff;
 }
 
 .chat-avatar {
-  width: 45px;
-  height: 45px;
-  background: #667eea;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 12px;
+    width: 45px;
+    height: 45px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
 }
 
 .chat-info {
-  flex: 1;
+    flex: 1;
 }
 
 .chat-title {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 .chat-title.bold {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .unread-indicator {
-  color: #e53e3e;
-  font-size: 20px;
+    color: #e53e3e;
+    font-size: 20px;
 }
 
 /* Стили футера */
 .chats-footer {
-  padding: 15px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
 }
 
 .messages-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
 }
 
 .messages-header {
-  padding: 20px;
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
+    padding: 20px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .messages-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .message {
-  max-width: 70%;
-  padding: 10px 15px;
-  border-radius: 10px;
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 10px;
 }
 
 .message.own {
-  align-self: flex-end;
-  background: #667eea;
-  color: white;
+    align-self: flex-end;
+    background: #667eea;
+    color: white;
 }
 
 .message:not(.own) {
-  align-self: flex-start;
-  background: #f0f0f0;
+    align-self: flex-start;
+    background: #f0f0f0;
 }
 
 .message-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
-  font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 12px;
 }
 
 .message.own .message-header {
-  color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .message-text {
-  font-size: 14px;
-  word-wrap: break-word;
+    font-size: 14px;
+    word-wrap: break-word;
 }
 
 .message-input {
-  padding: 20px;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  gap: 10px;
+    padding: 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
 }
 
 .message-input textarea {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  resize: none;
-  font-family: inherit;
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: none;
+    font-family: inherit;
 }
 
 .message-input button {
-  padding: 10px 20px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .message-input button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .empty-panel {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  background-color: #ffffff;    /* Явный белый фон вместо прозрачного */
-  transform: translateZ(0);     /* Включает аппаратное ускорение для слоя */
-  will-change: transform;       /* Подсказка браузеру о необходимости перерисовки */
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    background-color: #ffffff; /* Явный белый фон вместо прозрачного */
+    transform: translateZ(0); /* Включает аппаратное ускорение для слоя */
+    will-change: transform; /* Подсказка браузеру о необходимости перерисовки */
 }
 
 .close-chat-btn {
-  background: none;
-  border: none;
-  font-weight: bold;
-  width: 40px;
-  height: 40px;
-  font-size: 36px;
-  color: #999;
-  cursor: pointer;
+    background: none;
+    border: none;
+    font-weight: bold;
+    width: 40px;
+    height: 40px;
+    font-size: 36px;
+    color: #999;
+    cursor: pointer;
 
-  /* Центрируем и добавляем область для клика */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    /* Центрируем и добавляем область для клика */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  /* Убираем лишние отступы браузера */
-  line-height: 1;
-  padding: 0;
+    /* Убираем лишние отступы браузера */
+    line-height: 1;
+    padding: 0;
 
-  transition: all 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .close-chat-btn:hover {
-  color: #e53e3e;
-  transform: scale(1.2); /* Можно добавить легкое увеличение при наведении */
+    color: #e53e3e;
+    transform: scale(1.2); /* Можно добавить легкое увеличение при наведении */
 }
 
 /* Стили для верхушки панели чата */
 .chat-header-top {
-  padding: 20px;
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    padding: 20px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

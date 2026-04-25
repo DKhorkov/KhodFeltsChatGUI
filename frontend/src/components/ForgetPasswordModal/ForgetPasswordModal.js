@@ -65,15 +65,7 @@ export default {
         }
 
         return {
-            email,
-            token,
-            newPassword,
-            confirmPassword,
-            tokenSent,
-            message,
-            loading,
-            sendResetCode,
-            resetPassword
+            email, token, newPassword, confirmPassword, tokenSent, message, loading, sendResetCode, resetPassword
         }
     }
 }
