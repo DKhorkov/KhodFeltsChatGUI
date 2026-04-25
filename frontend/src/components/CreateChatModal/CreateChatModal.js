@@ -9,6 +9,7 @@ export default {
   setup(props, { emit }) {
     const chatType = ref('private')
     const chatTitle = ref('')
+    const chatDescription = ref('')
     const searchQuery = ref('')
     const searchResults = ref([])
     const selectedUsers = ref([])
@@ -47,8 +48,9 @@ export default {
       try {
         await CreateChat({
           type: chatType.value,
-          members: selectedUsers.value,
-          title: chatType.value === 'group' ? chatTitle.value : null
+          memberIDs: selectedUsers.value,
+          title: chatType.value === 'group' ? chatTitle.value : null,
+          description: chatType.value === 'group' ? chatDescription.value : null
         })
 
         emit('chat-created')

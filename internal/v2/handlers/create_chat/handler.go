@@ -2,47 +2,60 @@ package create_chat
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 )
 
 type Handler struct {
-	useCases interfaces.UseCases
+	useCases     interfaces.UseCases
+	errorsMapper interfaces.ErrorsMapper
 
-	ctx context.Context
+	wailsCtx context.Context
 }
 
-func New(useCases interfaces.UseCases) *Handler {
+func New(
+	useCases interfaces.UseCases,
+	errorsMapper interfaces.ErrorsMapper,
+) *Handler {
 	return &Handler{
-		useCases: useCases,
-		ctx:      context.Background(),
+		useCases:     useCases,
+		errorsMapper: errorsMapper,
 	}
 }
 
 func (h *Handler) SetContext(ctx context.Context) {
-	h.ctx = ctx
-}
-
-type CreateChatRequest struct {
-	Type    string   `json:"type"`
-	Members []uint64 `json:"members"`
-	Title   *string  `json:"title,omitempty"`
+	h.wailsCtx = ctx
 }
 
 func (h *Handler) CreateChat(
-	req CreateChatRequest,
+	in domains.CreateChatDTO,
 ) (*domains.Chat, error) {
-	members := make([]domains.User, len(req.Members))
-	for i, id := range req.Members {
-		members[i] = domains.User{ID: id}
+	ctx := context.Background()
+
+	if !in.IsValid() {
+		return nil, h.errorsMapper.Map(
+			fmt.Errorf("%w: chat is not valid: %v+", customerrors.ErrInvalidChat, in),
+		)
+	}
+
+	members := make([]domains.User, 0, len(in.MemberIDs))
+	for _, id := range in.MemberIDs {
+		members = append(members, domains.User{ID: id})
 	}
 
 	chat := &domains.Chat{
-		Type:    domains.ChatType(req.Type),
-		Members: members,
-		Title:   req.Title,
+		Type:        in.Type,
+		Members:     members,
+		Title:       in.Title,
+		Description: in.Description,
 	}
 
-	return h.useCases.CreateChat(h.ctx, *chat)
+	return h.useCases.CreateChat(ctx, *chat)
 }
+
+func (h *Handler) StartListening() {}
+
+func (h *Handler) StopListening() {}

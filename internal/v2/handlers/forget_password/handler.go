@@ -17,7 +17,7 @@ type Handler struct {
 	errorsMapper     interfaces.ErrorsMapper
 	validationConfig config.ValidationConfig
 
-	ctx context.Context
+	wailsCtx context.Context
 }
 
 func New(
@@ -29,18 +29,19 @@ func New(
 		useCases:         useCases,
 		errorsMapper:     errorsMapper,
 		validationConfig: validationConfig,
-		ctx:              context.Background(),
 	}
 }
 
 func (h *Handler) SetContext(ctx context.Context) {
-	h.ctx = ctx
+	h.wailsCtx = ctx
 }
 
 func (h *Handler) ForgetPassword(
 	forgetPasswordToken string,
 	in domains.ForgetPasswordDTO,
 ) error {
+	ctx := context.Background()
+
 	bytesUserID, err := security.RawDecode(forgetPasswordToken)
 	if err != nil {
 		return h.errorsMapper.Map(errors.ErrInvalidForgetPasswordToken)
@@ -55,5 +56,9 @@ func (h *Handler) ForgetPassword(
 		return h.errorsMapper.Map(errors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(h.ctx, forgetPasswordToken, in.NewPassword)
+	return h.useCases.ForgetPassword(ctx, forgetPasswordToken, in.NewPassword)
 }
+
+func (h *Handler) StartListening() {}
+
+func (h *Handler) StopListening() {}

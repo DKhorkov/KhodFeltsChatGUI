@@ -18,6 +18,9 @@ import (
 const (
 	refreshTokensInterval = 1 * time.Minute
 	updateChatsInterval   = 5 * time.Second
+
+	chatsUpdatedEventName = "chats_updated"
+	newMessageEventName   = "new_message"
 )
 
 type Handler struct {
@@ -26,9 +29,10 @@ type Handler struct {
 	logger           logging.Logger
 	validationConfig config.ValidationConfig
 
-	ctx        context.Context
-	cancelFunc context.CancelFunc
-	wg         sync.WaitGroup
+	wailsCtx                context.Context
+	goroutinesCtx           context.Context
+	goroutinesCtxCancelFunc context.CancelFunc
+	wg                      sync.WaitGroup
 }
 
 func New(
@@ -42,31 +46,38 @@ func New(
 		errorsMapper:     errorsMapper,
 		logger:           logger,
 		validationConfig: validationConfig,
-		ctx:              context.Background(),
 	}
 }
 
 func (h *Handler) SetContext(ctx context.Context) {
-	h.ctx = ctx
+	h.wailsCtx = ctx
 }
 
 func (h *Handler) GetCurrentUser() (*domains.User, error) {
-	return h.useCases.GetCurrentUser(h.ctx)
+	ctx := context.Background()
+
+	return h.useCases.GetCurrentUser(ctx)
 }
 
 func (h *Handler) GetUserChats(pagination *domains.Pagination) ([]domains.Chat, error) {
-	return h.useCases.GetUserChats(h.ctx, pagination)
+	ctx := context.Background()
+
+	return h.useCases.GetUserChats(ctx, pagination)
 }
 
 func (h *Handler) GetChatMessages(
 	chatID uint64,
 	pagination *domains.Pagination,
 ) ([]domains.Message, error) {
-	return h.useCases.GetChatMessages(h.ctx, chatID, pagination)
+	ctx := context.Background()
+
+	return h.useCases.GetChatMessages(ctx, chatID, pagination)
 }
 
 func (h *Handler) SendMessage(chatID uint64, text string) error {
-	sender, err := h.useCases.GetCurrentUser(h.ctx)
+	ctx := context.Background()
+
+	sender, err := h.useCases.GetCurrentUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -82,11 +93,13 @@ func (h *Handler) SendMessage(chatID uint64, text string) error {
 		IsRead:    true, // Сообщение прочитано для отправителя
 	}
 
-	return h.useCases.SendMessage(h.ctx, message)
+	return h.useCases.SendMessage(ctx, message)
 }
 
 func (h *Handler) StartListening() {
-	h.ctx, h.cancelFunc = context.WithCancel(h.ctx)
+	h.goroutinesCtx, h.goroutinesCtxCancelFunc = context.WithCancel(context.Background())
+
+	// TODO Wails CLI v2.12.0 не умеет в wg.Go(), поэтому надо будет обновить в дальнейшем
 
 	// Запускаем горутину для чтения сообщений
 	h.wg.Add(1)
@@ -105,8 +118,8 @@ func (h *Handler) StartListening() {
 }
 
 func (h *Handler) StopListening() {
-	if h.cancelFunc != nil {
-		h.cancelFunc()
+	if h.goroutinesCtxCancelFunc != nil {
+		h.goroutinesCtxCancelFunc()
 	}
 
 	h.wg.Wait()
@@ -117,10 +130,10 @@ func (h *Handler) readMessages() {
 
 	for {
 		select {
-		case <-h.ctx.Done():
+		case <-h.goroutinesCtx.Done():
 			return
 		default:
-			message, err := h.useCases.ReadMessage(h.ctx)
+			message, err := h.useCases.ReadMessage(h.goroutinesCtx)
 			if err != nil {
 				// Соккет закрыт, отключаем горутину
 				if errors.Is(err, customerrors.ErrWebsocketClosed) {
@@ -132,13 +145,18 @@ func (h *Handler) readMessages() {
 					return
 				}
 
-				logging.LogErrorContext(h.ctx, h.logger, "Не удалось прочитать сообщение", err)
+				logging.LogErrorContext(
+					h.goroutinesCtx,
+					h.logger,
+					"Не удалось прочитать сообщение",
+					err,
+				)
 
 				continue
 			}
 
 			// Отправляем событие на фронтенд
-			runtime.EventsEmit(h.ctx, "new_message", message)
+			runtime.EventsEmit(h.wailsCtx, newMessageEventName, message)
 		}
 	}
 }
@@ -151,10 +169,10 @@ func (h *Handler) refreshTokens() {
 
 	for {
 		select {
-		case <-h.ctx.Done():
+		case <-h.goroutinesCtx.Done():
 			return
 		case <-ticker.C:
-			_, _ = h.useCases.RefreshTokens(h.ctx)
+			_, _ = h.useCases.RefreshTokens(h.goroutinesCtx)
 		}
 	}
 }
@@ -167,13 +185,21 @@ func (h *Handler) updateChats() {
 
 	for {
 		select {
-		case <-h.ctx.Done():
+		case <-h.goroutinesCtx.Done():
 			return
 		case <-ticker.C:
-			chats, err := h.useCases.GetUserChats(h.ctx, nil)
-			if err == nil {
-				runtime.EventsEmit(h.ctx, "chats_updated", chats)
+			chats, err := h.useCases.GetUserChats(h.goroutinesCtx, nil)
+			if err != nil {
+				logging.LogErrorContext(
+					h.goroutinesCtx,
+					h.logger,
+					"Не удалось обновить список чатов",
+					err,
+				)
 			}
+
+			// Отправляем событие на фронтенд
+			runtime.EventsEmit(h.wailsCtx, chatsUpdatedEventName, chats)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"embed"
 	"log"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	usersrepository "github.com/DKhorkov/kfcGUI/internal/repositories/users"
 	wsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/ws"
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
+	"github.com/DKhorkov/kfcGUI/internal/v2/application"
 	authhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/auth"
 	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chat"
 	createchathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
@@ -31,81 +31,6 @@ import (
 
 //go:embed all:frontend/dist
 var assets embed.FS
-
-// App struct - основной структура приложения Wails.
-type App struct {
-	ctx context.Context
-
-	// Хендлеры
-	authHandler           *authhandler.Handler
-	chatHandler           *chathandler.Handler
-	createChatHandler     *createchathandler.Handler
-	searchUsersHandler    *searchusershandler.Handler
-	forgetPasswordHandler *forgetpasswordhandler.Handler
-
-	// Сервисы
-	useCases     interfaces.UseCases
-	logger       logging.Logger
-	errorsMapper interfaces.ErrorsMapper
-}
-
-// NewApp создает новый экземпляр приложения.
-func NewApp(
-	authHandler *authhandler.Handler,
-	chatHandler *chathandler.Handler,
-	createChatHandler *createchathandler.Handler,
-	searchUsersHandler *searchusershandler.Handler,
-	forgetPasswordHandler *forgetpasswordhandler.Handler,
-	useCases interfaces.UseCases,
-	logger logging.Logger,
-	errorsMapper interfaces.ErrorsMapper,
-) *App {
-	return &App{
-		authHandler:           authHandler,
-		chatHandler:           chatHandler,
-		createChatHandler:     createChatHandler,
-		searchUsersHandler:    searchUsersHandler,
-		forgetPasswordHandler: forgetPasswordHandler,
-		useCases:              useCases,
-		logger:                logger,
-		errorsMapper:          errorsMapper,
-	}
-}
-
-// Startup вызывается при запуске приложения.
-func (a *App) Startup(ctx context.Context) {
-	a.ctx = ctx
-
-	// Инициализируем хендлеры с контекстом
-	a.chatHandler.SetContext(ctx)
-	a.authHandler.SetContext(ctx)
-	a.searchUsersHandler.SetContext(ctx)
-	a.forgetPasswordHandler.SetContext(ctx)
-	a.createChatHandler.SetContext(ctx)
-
-	logging.LogInfo(a.logger, "Приложение успешно запущено")
-}
-
-// Shutdown вызывается при закрытии приложения.
-func (a *App) Shutdown(_ context.Context) {
-	// Останавливаем все горутины в хендлерах
-	if a.chatHandler != nil {
-		a.chatHandler.StopListening()
-	}
-
-	logging.LogInfo(a.logger, "Приложение успешно остановлено")
-}
-
-// BindHandlers Биндим хендлеры для доступа из фронтенда.
-func (a *App) BindHandlers() []any {
-	return []any{
-		a.authHandler,
-		a.chatHandler,
-		a.createChatHandler,
-		a.searchUsersHandler,
-		a.forgetPasswordHandler,
-	}
-}
 
 func main() {
 	// Инициализируем переменные окружения для дальнейшего считывания в конфиге:
@@ -156,7 +81,7 @@ func main() {
 		cfg.Validation,
 	)
 
-	createChatHandler := createchathandler.New(useCases)
+	createChatHandler := createchathandler.New(useCases, errorsMapper)
 
 	searchUsersHandler := searchusershandler.New(useCases)
 
@@ -167,15 +92,17 @@ func main() {
 	)
 
 	// 8. Создаем главное приложение
-	app := NewApp(
-		authHandler,
-		chatHandler,
-		createChatHandler,
-		searchUsersHandler,
-		forgetPasswordHandler,
+	app := application.New(
 		useCases,
 		logger,
 		errorsMapper,
+		[]interfaces.Handler{
+			authHandler,
+			chatHandler,
+			createChatHandler,
+			searchUsersHandler,
+			forgetPasswordHandler,
+		},
 	)
 
 	// 9. Запускаем Wails приложение

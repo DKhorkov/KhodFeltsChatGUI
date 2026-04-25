@@ -14,7 +14,6 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/kfcGUI/internal/repositories/base"
 )
@@ -111,10 +110,6 @@ func (r *Repository) CreateChat(
 ) (*domains.Chat, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
-	if !chat.IsValid() {
-		return nil, fmt.Errorf("%w: chat is not valid: %v+", customerrors.ErrCreateChat, chat)
-	}
 
 	body, err := json.Marshal(chat)
 	if err != nil {
