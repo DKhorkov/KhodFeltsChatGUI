@@ -45,9 +45,7 @@
 
       <div class="modal-buttons">
         <button @click="$emit('close')">Отмена</button>
-        <button @click="createChat" :disabled="loading">
-          {{ loading ? 'Создание...' : 'Создать' }}
-        </button>
+        <button @click="createChat">Создать</button>
       </div>
     </div>
   </div>

@@ -12,7 +12,6 @@ export default {
         const searchQuery = ref('')
         const searchResults = ref([])
         const selectedUsers = ref([])
-        const loading = ref(false)
 
         let debounceTimer = null
 
@@ -43,8 +42,6 @@ export default {
                 return
             }
 
-            loading.value = true
-
             try {
                 await CreateChat({
                     type: chatType.value,
@@ -56,13 +53,11 @@ export default {
                 emit('chat-created')
             } catch (err) {
                 alert(err)
-            } finally {
-                loading.value = false
             }
         }
 
         return {
-            chatType, chatTitle, searchQuery, searchResults, selectedUsers, loading, debouncedSearch, createChat
+            chatType, chatTitle, searchQuery, searchResults, selectedUsers, debouncedSearch, createChat
         }
     }
 }

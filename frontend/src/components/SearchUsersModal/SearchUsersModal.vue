@@ -11,11 +11,7 @@
         />
       </div>
 
-      <div v-if="loading" class="loading">
-        Загрузка...
-      </div>
-
-      <div v-else-if="searchResults.length > 0" class="users-list">
+      <div v-if="searchResults.length > 0" class="users-list">
         <div
           v-for="user in searchResults"
           :key="user.ID"

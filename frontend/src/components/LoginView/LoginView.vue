@@ -22,17 +22,13 @@
             v-model="loginForm.email"
             type="email"
             placeholder="Почта"
-            required
           />
           <input
             v-model="loginForm.password"
             type="password"
             placeholder="Пароль"
-            required
           />
-          <button type="submit" :disabled="loading">
-            {{ loading ? 'Вход...' : 'Войти' }}
-          </button>
+          <button type="submit">Войти</button>
         </form>
 
         <div class="additional-buttons">
@@ -51,29 +47,23 @@
             v-model="registerForm.email"
             type="email"
             placeholder="Почта"
-            required
           />
           <input
             v-model="registerForm.username"
             type="text"
             placeholder="Логин"
-            required
           />
           <input
             v-model="registerForm.password"
             type="password"
             placeholder="Пароль"
-            required
           />
           <input
             v-model="registerForm.confirmPassword"
             type="password"
             placeholder="Подтверждение пароля"
-            required
           />
-          <button type="submit" :disabled="loading">
-            {{ loading ? 'Регистрация...' : 'Зарегистрироваться' }}
-          </button>
+          <button type="submit">Зарегистрироваться</button>
         </form>
       </div>
     </div>

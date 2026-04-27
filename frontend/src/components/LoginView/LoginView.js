@@ -6,7 +6,6 @@ export default {
 
     setup(props, {emit}) {
         const activeTab = ref('login')
-        const loading = ref(false)
 
         const loginForm = ref({
             email: '', password: ''
@@ -17,7 +16,17 @@ export default {
         })
 
         const handleLogin = async () => {
-            loading.value = true
+            if (loginForm.value.email === "") {
+                alert(`Пожалуйста, введите адрес электронной почты`)
+
+                return
+            }
+
+            if (loginForm.value.password === "") {
+                alert(`Пожалуйста, введите пароль`)
+
+                return
+            }
 
             try {
                 await Login(loginForm.value.email, loginForm.value.password)
@@ -25,19 +34,33 @@ export default {
                 emit('login-success')
             } catch (err) {
                 alert(err)
-            } finally {
-                loading.value = false
             }
         }
 
         const handleRegister = async () => {
+            if (registerForm.value.email === "") {
+                alert(`Пожалуйста, введите адрес электронной почты`)
+
+                return
+            }
+
+            if (registerForm.value.username === "") {
+                alert(`Пожалуйста, введите логин`)
+
+                return
+            }
+
+            if (registerForm.value.password === "") {
+                alert(`Пожалуйста, введите пароль`)
+
+                return
+            }
+
             if (registerForm.value.password !== registerForm.value.confirmPassword) {
                 alert(`Пароли не совпадают`)
 
                 return
             }
-
-            loading.value = true
 
             try {
                 await Register({
@@ -58,8 +81,6 @@ export default {
                 alert(`Регистрация прошла успешно. Теперь войдите`)
             } catch (err) {
                 alert(err)
-            } finally {
-                loading.value = false
             }
         }
 
@@ -97,7 +118,6 @@ export default {
 
         return {
             activeTab,
-            loading,
             loginForm,
             registerForm,
             handleLogin,

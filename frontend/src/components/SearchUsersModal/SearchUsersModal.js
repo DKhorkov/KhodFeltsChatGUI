@@ -8,7 +8,6 @@ export default {
         const searchQuery = ref('')
         const searchResults = ref([])
         const searched = ref(false)
-        const loading = ref(false)
 
         let debounceTimer = null
 
@@ -23,7 +22,6 @@ export default {
 
         const searchUsers = async () => {
             searched.value = true
-            loading.value = true
 
             try {
                 const users = await SearchUsers({
@@ -31,14 +29,14 @@ export default {
                 }, null)
                 searchResults.value = users
             } catch (err) {
+                searched.value = false
+
                 alert(`Ошибка поиска: ${err}`)
-            } finally {
-                loading.value = false
             }
         }
 
         return {
-            searchQuery, searchResults, searched, loading, debouncedSearch
+            searchQuery, searchResults, searched, debouncedSearch
         }
     }
 }
