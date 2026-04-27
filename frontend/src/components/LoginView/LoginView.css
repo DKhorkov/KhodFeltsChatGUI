@@ -7,17 +7,17 @@
 }
 
 .login-card {
-    background: white;
+    background: var(--bg-surface);
     border-radius: 10px;
     padding: 40px;
     width: 450px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .login-card__tabs {
     display: flex;
     margin-bottom: 30px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--border);
 }
 
 .login-card__tab {
@@ -27,13 +27,13 @@
     border: none;
     font-size: 16px;
     cursor: pointer;
-    color: #666;
+    color: var(--text-muted);
     transition: all 0.3s;
 }
 
 .login-card__tab--active {
-    color: #667eea;
-    border-bottom: 2px solid #667eea;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
     margin-bottom: -2px;
 }
 
@@ -50,15 +50,27 @@
 
 .login-form__input {
     padding: 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-input);
     border-radius: 5px;
     font-size: 14px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+}
+
+.login-form__input::placeholder {
+    color: var(--text-placeholder);
+}
+
+.login-form__input:focus {
+    outline: none;
+    border-color: var(--accent);
 }
 
 .login-form__submit {
     padding: 12px;
-    background: #667eea;
-    color: white;
+    background: var(--accent);
+    color: #ffffff;
     border: none;
     border-radius: 5px;
     font-size: 16px;
@@ -67,7 +79,7 @@
 }
 
 .login-form__submit:hover:not(:disabled) {
-    background: #5a67d8;
+    background: var(--accent-hover);
 }
 
 .login-form__submit:disabled {
@@ -90,14 +102,20 @@
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
+    transition: opacity 0.2s;
+}
+
+.login-form__btn--secondary:hover,
+.login-form__btn--danger:hover {
+    opacity: 0.75;
 }
 
 .login-form__btn--secondary {
-    color: #667eea;
-    border-color: #667eea;
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 .login-form__btn--danger {
-    color: #e53e3e;
-    border-color: #e53e3e;
+    color: var(--danger);
+    border-color: var(--danger);
 }

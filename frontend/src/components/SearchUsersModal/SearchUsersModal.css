@@ -12,7 +12,7 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg-surface);
     border-radius: 10px;
     padding: 30px;
     width: 500px;
@@ -22,7 +22,7 @@
 
 .modal-content__title {
     margin-bottom: 20px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .modal-content__form-group {
@@ -32,21 +32,27 @@
 .modal-content__form-group input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-input);
     border-radius: 5px;
     font-size: 14px;
+    background: var(--bg-input);
+    color: var(--text-primary);
     transition: border-color 0.2s;
+}
+
+.modal-content__form-group input::placeholder {
+    color: var(--text-placeholder);
 }
 
 .modal-content__form-group input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent);
 }
 
 .modal-content__users-list {
     max-height: 400px;
     overflow-y: auto;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border);
     border-radius: 5px;
     margin-bottom: 20px;
 }
@@ -55,12 +61,12 @@
     display: flex;
     align-items: center;
     padding: 15px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border);
     transition: background 0.2s;
 }
 
 .user-item:hover {
-    background: #f5f5f5;
+    background: var(--bg-hover);
 }
 
 .user-item:last-child {
@@ -70,8 +76,8 @@
 .user-item__avatar {
     width: 40px;
     height: 40px;
-    background: #667eea;
-    color: white;
+    background: var(--accent);
+    color: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -88,18 +94,18 @@
 .user-item__name {
     font-weight: bold;
     margin-bottom: 5px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .user-item__email {
     font-size: 12px;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .modal-content__no-results {
     text-align: center;
     padding: 40px;
-    color: #999;
+    color: var(--text-placeholder);
 }
 
 .modal-content__actions {
@@ -110,8 +116,8 @@
 
 .modal-content__actions button {
     padding: 10px 20px;
-    background: #667eea;
-    color: white;
+    background: var(--accent);
+    color: #ffffff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -120,5 +126,5 @@
 }
 
 .modal-content__actions button:hover {
-    background: #5a67d8;
+    background: var(--accent-hover);
 }

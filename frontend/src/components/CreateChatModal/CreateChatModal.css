@@ -12,7 +12,7 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg-surface);
     border-radius: 10px;
     padding: 30px;
     width: 500px;
@@ -22,7 +22,7 @@
 
 .modal-content__title {
     margin-bottom: 20px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .modal-content__form-group {
@@ -33,28 +33,34 @@
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
-    color: #555;
+    color: var(--text-secondary);
 }
 
 .modal-content__form-group input,
 .modal-content__form-group select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-input);
     border-radius: 5px;
     font-size: 14px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.modal-content__form-group input::placeholder {
+    color: var(--text-placeholder);
 }
 
 .modal-content__form-group input:focus,
 .modal-content__form-group select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent);
 }
 
 .modal-content__users-list {
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border);
     border-radius: 5px;
     margin-bottom: 20px;
 }
@@ -63,12 +69,12 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border);
     transition: background 0.2s;
 }
 
 .user-item:hover {
-    background: #f5f5f5;
+    background: var(--bg-hover);
 }
 
 .user-item input[type="checkbox"] {
@@ -83,12 +89,12 @@
 .user-item__name {
     font-weight: bold;
     margin-bottom: 4px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .user-item__email {
     font-size: 12px;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .modal-content__actions {
@@ -107,21 +113,21 @@
 }
 
 .modal-content__actions button:first-child {
-    background: #e0e0e0;
-    color: #333;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .modal-content__actions button:first-child:hover {
-    background: #d0d0d0;
+    background: var(--border);
 }
 
 .modal-content__actions button:last-child {
-    background: #667eea;
-    color: white;
+    background: var(--accent);
+    color: #ffffff;
 }
 
 .modal-content__actions button:last-child:hover:not(:disabled) {
-    background: #5a67d8;
+    background: var(--accent-hover);
 }
 
 .modal-content__actions button:disabled {
