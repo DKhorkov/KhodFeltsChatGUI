@@ -96,6 +96,23 @@ func (h *Handler) SendMessage(chatID uint64, text string) error {
 	return h.useCases.SendMessage(ctx, message)
 }
 
+func (h *Handler) ToggleTheme() (domains.ThemeType, error) {
+	ctx := context.Background()
+
+	currentTheme := h.useCases.GetTheme(ctx)
+
+	newTheme := domains.ThemeLight
+	if currentTheme == domains.ThemeLight {
+		newTheme = domains.ThemeDark
+	}
+
+	if err := h.useCases.SetTheme(ctx, newTheme); err != nil {
+		return domains.ThemeLight, err
+	}
+
+	return newTheme, nil
+}
+
 func (h *Handler) StartListening() {
 	h.goroutinesCtx, h.goroutinesCtxCancelFunc = context.WithCancel(context.Background())
 

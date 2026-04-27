@@ -7,6 +7,7 @@ import {
     StartListening,
     StopListening
 } from '../../../wailsjs/go/chat/Handler'
+import {ToggleTheme} from '../../../wailsjs/go/settings/Handler'
 
 export default {
     name: 'ChatView', emits: ['logout', 'show-create-chat', 'show-search-users'],
@@ -166,6 +167,16 @@ export default {
             emit('logout')
         }
 
+        const toggleTheme = async () => {
+            try {
+                const newTheme = await ToggleTheme();
+                const themeName = newTheme === 1 ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-bs-theme', themeName);
+            } catch (err) {
+                alert(err);
+            }
+        };
+
         onMounted(async () => {
             // Запрашиваем разрешение на уведомления
             if (Notification.permission !== 'granted') {
@@ -227,7 +238,8 @@ export default {
             getSenderName,
             formatTime,
             handleLogout,
-            loadChats  // делаем публичным для использования при создании чата в модалке CreateChatModal
+            loadChats,  // делаем публичным для использования при создании чата в модалке CreateChatModal
+            toggleTheme,
         }
     }
 }

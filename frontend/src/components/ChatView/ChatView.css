@@ -254,3 +254,14 @@
     justify-content: space-between;
     align-items: center;
 }
+
+.theme-toggle-btn {
+    background: #667eea;
+    color: white;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+

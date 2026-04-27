@@ -7,6 +7,7 @@ import ForgetPasswordModal from './components/ForgetPasswordModal/ForgetPassword
 import NotificationToast from './components/NotificationToast/NotificationToast.vue'
 
 import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
+import {GetTheme} from '../wailsjs/go/settings/Handler'
 
 
 export default {
@@ -36,8 +37,20 @@ export default {
             }
         }
 
-        onMounted(() => {
+        const applyTheme = (themeType) => {
+            const themeName = themeType === 1 ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-bs-theme', themeName);
+        };
+
+        onMounted(async () => {
             checkSession()
+
+            // try {
+            //     const theme = await GetTheme();
+            //     applyTheme(theme);
+            // } catch (err) {
+            //     console.error("Ошибка загрузки темы:", err);
+            // }
         })
 
         const handleLoginSuccess = () => {

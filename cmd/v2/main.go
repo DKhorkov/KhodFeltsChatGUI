@@ -22,6 +22,7 @@ import (
 	createchathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
 	forgetpasswordhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/forget_password"
 	searchusershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/search_users"
+	settingshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/settings"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
 	"github.com/wailsapp/wails/v2"
@@ -91,6 +92,8 @@ func main() {
 		cfg.Validation,
 	)
 
+	settingsHandler := settingshandler.New(useCases)
+
 	// 8. Создаем главное приложение
 	app := application.New(
 		useCases,
@@ -102,6 +105,7 @@ func main() {
 			createChatHandler,
 			searchUsersHandler,
 			forgetPasswordHandler,
+			settingsHandler,
 		},
 	)
 

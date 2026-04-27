@@ -31,6 +31,9 @@
 
       <!-- 3. Новый футер с логаутом -->
       <div class="chats-footer">
+        <button class="theme-toggle-btn" @click="toggleTheme">
+            <span class="btn-text">Сменить тему</span>
+        </button>
         <button @click="handleLogout" class="logout-btn">
           <span class="icon">🚪</span>
           <span>Выйти из аккаунта</span>
