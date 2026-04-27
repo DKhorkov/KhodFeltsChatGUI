@@ -58,7 +58,7 @@ func TestChat_IsValid(t *testing.T) {
 			name: "valid chat with minimum members (one member)",
 			chat: domains.Chat{
 				ID:        3,
-				Type:      domains.ChatTypePrivate,
+				Type:      domains.ChatTypeGroup,
 				CreatedAt: now,
 				UpdatedAt: now,
 				Members:   []domains.User{defaultUser},
@@ -217,7 +217,7 @@ func TestMinMembersCount(t *testing.T) {
 		Type:      domains.ChatTypePrivate,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Members:   []domains.User{{ID: 1, Username: "singleuser"}},
+		Members:   []domains.User{{ID: 1, Username: "singleuser"}, {ID: 2, Username: "test"}},
 	}
 
 	if !chat.IsValid() {

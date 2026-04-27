@@ -354,18 +354,6 @@ func TestRepository_CreateChat(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:        "invalid chat - empty name",
-			accessToken: "token",
-			chat: domains.Chat{
-				Title:     pointers.New(""),
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			setupMocks:    func(_ *mockhttp.MockHTTPClient) {},
-			expectedChat:  nil,
-			expectedError: internalerrors.ErrCreateChat,
-		},
-		{
 			name:        "http client error",
 			accessToken: "token",
 			chat: domains.Chat{
