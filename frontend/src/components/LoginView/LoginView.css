@@ -14,13 +14,13 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
-.tabs {
+.login-card__tabs {
     display: flex;
     margin-bottom: 30px;
     border-bottom: 2px solid #e0e0e0;
 }
 
-.tabs button {
+.login-card__tab {
     flex: 1;
     padding: 10px;
     background: none;
@@ -31,26 +31,31 @@
     transition: all 0.3s;
 }
 
-.tabs button.active {
+.login-card__tab--active {
     color: #667eea;
     border-bottom: 2px solid #667eea;
     margin-bottom: -2px;
 }
 
-.tab-content form {
+.login-card__tab-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-input {
+.login-form__input {
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 14px;
 }
 
-button[type="submit"] {
+.login-form__submit {
     padding: 12px;
     background: #667eea;
     color: white;
@@ -61,23 +66,24 @@ button[type="submit"] {
     transition: background 0.3s;
 }
 
-button[type="submit"]:hover:not(:disabled) {
+.login-form__submit:hover:not(:disabled) {
     background: #5a67d8;
 }
 
-button[type="submit"]:disabled {
+.login-form__submit:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.additional-buttons {
+.login-form__actions {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.secondary, .danger {
+.login-form__btn--secondary,
+.login-form__btn--danger {
     padding: 10px;
     background: none;
     border: 1px solid;
@@ -86,12 +92,12 @@ button[type="submit"]:disabled {
     font-size: 14px;
 }
 
-.secondary {
+.login-form__btn--secondary {
     color: #667eea;
     border-color: #667eea;
 }
 
-.danger {
+.login-form__btn--danger {
     color: #e53e3e;
     border-color: #e53e3e;
 }

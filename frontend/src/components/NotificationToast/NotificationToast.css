@@ -6,7 +6,7 @@
     animation: slideIn 0.3s ease;
 }
 
-.notification-content {
+.notification__content {
     background: #333;
     color: white;
     border-radius: 8px;
@@ -21,22 +21,22 @@
     transition: transform 0.2s;
 }
 
-.notification-content:hover {
+.notification__content:hover {
     transform: translateY(-2px);
 }
 
-.notification-icon {
+.notification__icon {
     font-size: 20px;
 }
 
-.notification-message {
+.notification__message {
     flex: 1;
     font-size: 14px;
     line-height: 1.4;
     word-break: break-word;
 }
 
-.notification-close {
+.notification__close {
     background: none;
     border: none;
     color: white;
@@ -52,7 +52,7 @@
     transition: background 0.2s;
 }
 
-.notification-close:hover {
+.notification__close:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 

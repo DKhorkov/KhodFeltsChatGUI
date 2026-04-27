@@ -1,12 +1,13 @@
 import {ref} from 'vue'
 import {CreateChat} from '../../../wailsjs/go/create_chat/Handler'
 import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
+import {CHAT_TYPE, SEARCH_DEBOUNCE_MS} from '../../constants'
 
 export default {
     name: 'CreateChatModal', emits: ['close', 'chat-created'],
 
     setup(props, {emit}) {
-        const chatType = ref('private')
+        const chatType = ref(CHAT_TYPE.PRIVATE)
         const chatTitle = ref('')
         const chatDescription = ref('')
         const searchQuery = ref('')
@@ -17,28 +18,24 @@ export default {
 
         const debouncedSearch = () => {
             clearTimeout(debounceTimer)
-            debounceTimer = setTimeout(async () => { // Добавили async
+            debounceTimer = setTimeout(async () => {
                 if (searchQuery.value) {
-                    await searchUsers() // Теперь промис не игнорируется
+                    await searchUsers()
                 }
-            }, 500)
+            }, SEARCH_DEBOUNCE_MS)
         }
 
         const searchUsers = async () => {
             try {
-                const users = await SearchUsers({
-                    username: searchQuery.value,
-                }, null)
-                searchResults.value = users
+                searchResults.value = await SearchUsers({username: searchQuery.value}, null)
             } catch (err) {
                 alert(err)
             }
         }
 
         const createChat = async () => {
-            if (chatType.value === 'private' && selectedUsers.value.length === 0) {
+            if (chatType.value === CHAT_TYPE.PRIVATE && selectedUsers.value.length === 0) {
                 alert('Укажите хотя бы одного участника')
-
                 return
             }
 
@@ -46,8 +43,8 @@ export default {
                 await CreateChat({
                     type: chatType.value,
                     memberIDs: selectedUsers.value,
-                    title: chatType.value === 'group' ? chatTitle.value : null,
-                    description: chatType.value === 'group' ? chatDescription.value : null
+                    title: chatType.value === CHAT_TYPE.GROUP ? chatTitle.value : null,
+                    description: chatType.value === CHAT_TYPE.GROUP ? chatDescription.value : null,
                 })
 
                 emit('chat-created')
@@ -57,7 +54,14 @@ export default {
         }
 
         return {
-            chatType, chatTitle, searchQuery, searchResults, selectedUsers, debouncedSearch, createChat
+            CHAT_TYPE,
+            chatType,
+            chatTitle,
+            searchQuery,
+            searchResults,
+            selectedUsers,
+            debouncedSearch,
+            createChat,
         }
     }
 }

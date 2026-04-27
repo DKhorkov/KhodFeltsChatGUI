@@ -1,7 +1,7 @@
 .chat-container {
     display: flex;
     height: 100vh;
-    background-color: #ffffff; /* Чтобы под панелями не было «пустоты» */
+    background-color: #ffffff;
 }
 
 .chats-panel {
@@ -10,10 +10,10 @@
     border-right: 1px solid #e0e0e0;
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Гарантируем полную высоту */
+    height: 100vh;
 }
 
-.chats-header {
+.chats-panel__header {
     padding: 20px;
     background: white;
     border-bottom: 1px solid #e0e0e0;
@@ -22,12 +22,12 @@
     align-items: center;
 }
 
-.chats-header h3 {
+.chats-panel__header h3 {
     flex: 1;
     margin: 0;
 }
 
-.icon-btn {
+.chats-panel__icon-btn {
     width: 35px;
     height: 35px;
     border: none;
@@ -37,7 +37,18 @@
     font-size: 18px;
 }
 
-.logout-btn {
+.chats-panel__list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chats-panel__footer {
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+}
+
+.chats-panel__logout-btn {
     width: 100%;
     display: flex;
     align-items: center;
@@ -53,19 +64,25 @@
     transition: all 0.2s;
 }
 
-.logout-btn:hover {
+.chats-panel__logout-btn:hover {
     background: #fff0f0;
     border-color: #feb2b2;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.logout-btn .icon {
+.chats-panel__logout-icon {
     font-size: 18px;
 }
 
-.chats-list {
-    flex: 1;
-    overflow-y: auto;
+.chats-panel__theme-btn {
+    background: #667eea;
+    color: white;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .chat-item {
@@ -81,11 +98,11 @@
     background: #f0f0f0;
 }
 
-.chat-item.active {
+.chat-item--active {
     background: #e3e8ff;
 }
 
-.chat-avatar {
+.chat-item__avatar {
     width: 45px;
     height: 45px;
     background: #667eea;
@@ -96,30 +113,24 @@
     justify-content: center;
     font-weight: bold;
     margin-right: 12px;
+    flex-shrink: 0;
 }
 
-.chat-info {
+.chat-item__info {
     flex: 1;
 }
 
-.chat-title {
+.chat-item__title {
     font-size: 14px;
 }
 
-.chat-title.bold {
+.chat-item__title--bold {
     font-weight: bold;
 }
 
-.unread-indicator {
+.chat-item__unread-indicator {
     color: #e53e3e;
     font-size: 20px;
-}
-
-/* Стили футера */
-.chats-footer {
-    padding: 15px;
-    background: white;
-    border-top: 1px solid #e0e0e0;
 }
 
 .messages-panel {
@@ -129,13 +140,16 @@
     background: white;
 }
 
-.messages-header {
+.messages-panel__header {
     padding: 20px;
     background: white;
     border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.messages-list {
+.messages-panel__list {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
@@ -144,81 +158,7 @@
     gap: 15px;
 }
 
-.message {
-    max-width: 70%;
-    padding: 10px 15px;
-    border-radius: 10px;
-}
-
-.message.own {
-    align-self: flex-end;
-    background: #667eea;
-    color: white;
-}
-
-.message:not(.own) {
-    align-self: flex-start;
-    background: #f0f0f0;
-}
-
-.message-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 12px;
-}
-
-.message.own .message-header {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.message-text {
-    font-size: 14px;
-    word-wrap: break-word;
-}
-
-.message-input {
-    padding: 20px;
-    border-top: 1px solid #e0e0e0;
-    display: flex;
-    gap: 10px;
-}
-
-.message-input textarea {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    resize: none;
-    font-family: inherit;
-}
-
-.message-input button {
-    padding: 10px 20px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.message-input button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.empty-panel {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    background-color: #ffffff; /* Явный белый фон вместо прозрачного */
-    transform: translateZ(0); /* Включает аппаратное ускорение для слоя */
-    will-change: transform; /* Подсказка браузеру о необходимости перерисовки */
-}
-
-.close-chat-btn {
+.messages-panel__close-btn {
     background: none;
     border: none;
     font-weight: bold;
@@ -227,41 +167,86 @@
     font-size: 36px;
     color: #999;
     cursor: pointer;
-
-    /* Центрируем и добавляем область для клика */
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* Убираем лишние отступы браузера */
     line-height: 1;
     padding: 0;
-
     transition: all 0.2s ease;
 }
 
-.close-chat-btn:hover {
+.messages-panel__close-btn:hover {
     color: #e53e3e;
-    transform: scale(1.2); /* Можно добавить легкое увеличение при наведении */
+    transform: scale(1.2);
 }
 
-/* Стили для верхушки панели чата */
-.chat-header-top {
+.messages-panel__input {
     padding: 20px;
-    background: white;
-    border-bottom: 1px solid #e0e0e0;
+    border-top: 1px solid #e0e0e0;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 10px;
 }
 
-.theme-toggle-btn {
+.messages-panel__input textarea {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: none;
+    font-family: inherit;
+}
+
+.messages-panel__input button {
+    padding: 10px 20px;
     background: #667eea;
     color: white;
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 4px;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
 
+.messages-panel__input button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.message {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 10px;
+    align-self: flex-start;
+    background: #f0f0f0;
+}
+
+.message--own {
+    align-self: flex-end;
+    background: #667eea;
+    color: white;
+}
+
+.message__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.message--own .message__header {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.message__text {
+    font-size: 14px;
+    word-wrap: break-word;
+}
+
+.chat-container__empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    background-color: #ffffff;
+    transform: translateZ(0);
+    will-change: transform;
+}

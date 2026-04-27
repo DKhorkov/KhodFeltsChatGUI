@@ -1,5 +1,6 @@
 import {ref} from 'vue'
 import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
+import {SEARCH_DEBOUNCE_MS} from '../../constants'
 
 export default {
     name: 'SearchUsersModal', emits: ['close'],
@@ -13,30 +14,29 @@ export default {
 
         const debouncedSearch = () => {
             clearTimeout(debounceTimer)
-            debounceTimer = setTimeout(() => {
+            debounceTimer = setTimeout(async () => {
                 if (searchQuery.value) {
-                    searchUsers()
+                    await searchUsers()
                 }
-            }, 500)
+            }, SEARCH_DEBOUNCE_MS)
         }
 
         const searchUsers = async () => {
             searched.value = true
 
             try {
-                const users = await SearchUsers({
-                    username: searchQuery.value,
-                }, null)
-                searchResults.value = users
+                searchResults.value = await SearchUsers({username: searchQuery.value}, null)
             } catch (err) {
                 searched.value = false
-
-                alert(`Ошибка поиска: ${err}`)
+                alert(err)
             }
         }
 
         return {
-            searchQuery, searchResults, searched, debouncedSearch
+            searchQuery,
+            searchResults,
+            searched,
+            debouncedSearch,
         }
     }
 }

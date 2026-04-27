@@ -1,29 +1,17 @@
+import {onUnmounted} from 'vue'
+
 export default {
     name: 'NotificationToast', props: {
         message: {
-            type: String, required: true
-        }, duration: {
-            type: Number, default: 3000
-        }
+            type: String, required: true,
+        },
+        duration: {
+            type: Number, default: 3000,
+        },
     }, emits: ['close'],
 
     setup(props, {emit}) {
-        // Автоматическое закрытие через указанное время
-        const timer = setTimeout(() => {
-            emit('close')
-        }, props.duration)
-
-        // Очищаем таймер при размонтировании
-        const cleanup = () => {
-            clearTimeout(timer)
-        }
-
-        return {
-            cleanup
-        }
+        const timer = setTimeout(() => emit('close'), props.duration)
+        onUnmounted(() => clearTimeout(timer))
     },
-
-    beforeUnmount() {
-        this.cleanup()
-    }
 }

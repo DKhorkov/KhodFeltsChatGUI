@@ -1,22 +1,22 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
-      <h2>Создать чат</h2>
+      <h2 class="modal-content__title">Создать чат</h2>
 
-      <div class="form-group">
+      <div class="modal-content__form-group">
         <label>Тип чата</label>
         <select v-model="chatType">
-          <option value="private">Приватный</option>
-          <option value="group">Групповой</option>
+          <option :value="CHAT_TYPE.PRIVATE">Приватный</option>
+          <option :value="CHAT_TYPE.GROUP">Групповой</option>
         </select>
       </div>
 
-      <div v-if="chatType === 'group'" class="form-group">
+      <div v-if="chatType === CHAT_TYPE.GROUP" class="modal-content__form-group">
         <label>Название чата</label>
         <input v-model="chatTitle" placeholder="Название чата" />
       </div>
 
-      <div class="form-group">
+      <div class="modal-content__form-group">
         <label>Поиск пользователей</label>
         <input
           v-model="searchQuery"
@@ -25,7 +25,7 @@
         />
       </div>
 
-      <div v-if="searchResults.length > 0" class="users-list">
+      <div v-if="searchResults.length > 0" class="modal-content__users-list">
         <div
           v-for="user in searchResults"
           :key="user.id"
@@ -36,14 +36,14 @@
             :value="user.id"
             v-model="selectedUsers"
           />
-          <div class="user-info">
-            <div class="username">{{ user.username }}</div>
-            <div class="email">{{ user.email }}</div>
+          <div class="user-item__info">
+            <div class="user-item__name">{{ user.username }}</div>
+            <div class="user-item__email">{{ user.email }}</div>
           </div>
         </div>
       </div>
 
-      <div class="modal-buttons">
+      <div class="modal-content__actions">
         <button @click="$emit('close')">Отмена</button>
         <button @click="createChat">Создать</button>
       </div>

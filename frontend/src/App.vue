@@ -1,13 +1,13 @@
 <template>
   <div id="app">
     <LoginView
-      v-if="currentView === 'login'"
+      v-if="currentView === VIEW.LOGIN"
       @login-success="handleLoginSuccess"
       @show-forget-password="handleShowForgetPassword"
     />
     <ChatView
       ref="chatViewComponent"
-      v-else-if="currentView === 'chat'"
+      v-else-if="currentView === VIEW.CHAT"
       @logout="handleLogout"
       @show-create-chat="showCreateChatModal = true"
       @show-search-users="showSearchUsersModal = true"

@@ -2,40 +2,37 @@
   <div class="chat-container">
     <!-- Левая панель - список чатов -->
     <div class="chats-panel">
-      <!-- 1. Шапка (теперь без логаута) -->
-      <div class="chats-header">
+      <div class="chats-panel__header">
         <h3>Чаты</h3>
-        <button @click="$emit('show-create-chat')" class="icon-btn" title="Создать чат">+</button>
-        <button @click="$emit('show-search-users')" class="icon-btn" title="Поиск пользователей">🔍</button>
+        <button @click="$emit('show-create-chat')" class="chats-panel__icon-btn" title="Создать чат">+</button>
+        <button @click="$emit('show-search-users')" class="chats-panel__icon-btn" title="Поиск пользователей">🔍</button>
       </div>
 
-      <!-- 2. Список чатов -->
-      <div class="chats-list">
+      <div class="chats-panel__list">
         <div
           v-for="chat in chats"
           :key="chat.id"
-          :class="['chat-item', { active: currentChat?.id === chat.id, unread: !chat.isRead }]"
+          :class="['chat-item', { 'chat-item--active': currentChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
           @click="selectChat(chat)"
         >
-          <div class="chat-avatar">
+          <div class="chat-item__avatar">
             {{ getChatTitle(chat).charAt(0).toUpperCase() }}
           </div>
-          <div class="chat-info">
-            <div class="chat-title" :class="{ bold: !chat.isRead }">
+          <div class="chat-item__info">
+            <div class="chat-item__title" :class="{ 'chat-item__title--bold': !chat.isRead }">
               {{ getChatTitle(chat) }}
             </div>
           </div>
-          <div v-if="!chat.isRead" class="unread-indicator">●</div>
+          <div v-if="!chat.isRead" class="chat-item__unread-indicator">●</div>
         </div>
       </div>
 
-      <!-- 3. Новый футер с логаутом -->
-      <div class="chats-footer">
-        <button class="theme-toggle-btn" @click="toggleTheme">
-            <span class="btn-text">Сменить тему</span>
+      <div class="chats-panel__footer">
+        <button class="chats-panel__theme-btn" @click="toggleTheme">
+          <span class="btn-text">Сменить тему</span>
         </button>
-        <button @click="handleLogout" class="logout-btn">
-          <span class="icon">🚪</span>
+        <button @click="handleLogout" class="chats-panel__logout-btn">
+          <span class="chats-panel__logout-icon">🚪</span>
           <span>Выйти из аккаунта</span>
         </button>
       </div>
@@ -43,27 +40,26 @@
 
     <!-- Правая панель - сообщения -->
     <div class="messages-panel" v-if="currentChat">
-      <div class="chat-header-top">
+      <div class="messages-panel__header">
         <h3>{{ getChatTitle(currentChat) }}</h3>
-        <!-- Кнопка закрытия -->
-        <button @click="currentChat = null" class="close-chat-btn" title="Закрыть чат">×</button>
+        <button @click="currentChat = null" class="messages-panel__close-btn" title="Закрыть чат">×</button>
       </div>
 
-      <div class="messages-list" ref="messagesList">
+      <div class="messages-panel__list" ref="messagesList">
         <div
           v-for="message in messages"
           :key="message.id"
-          :class="['message', { 'own': message.sender.id === currentUser?.id }]"
+          :class="['message', { 'message--own': message.sender.id === currentUser?.id }]"
         >
-          <div class="message-header">
-            <span class="sender">{{ getSenderName(message) }}</span>
-            <span class="time">{{ formatTime(message.createdAt) }}</span>
+          <div class="message__header">
+            <span class="message__sender">{{ getSenderName(message) }}</span>
+            <span class="message__time">{{ formatTime(message.createdAt) }}</span>
           </div>
-          <div class="message-text">{{ message.text }}</div>
+          <div class="message__text">{{ message.text }}</div>
         </div>
       </div>
 
-      <div class="message-input">
+      <div class="messages-panel__input">
         <textarea
           v-model="newMessage"
           @keydown.enter.prevent="sendMessage"
@@ -76,7 +72,7 @@
       </div>
     </div>
 
-    <div v-else class="empty-panel">
+    <div v-else class="chat-container__empty">
       <p>Выберите чат для начала общения</p>
     </div>
   </div>

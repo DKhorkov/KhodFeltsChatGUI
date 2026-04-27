@@ -8,6 +8,7 @@ import {
     StopListening
 } from '../../../wailsjs/go/chat/Handler'
 import {ToggleTheme} from '../../../wailsjs/go/settings/Handler'
+import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 export default {
     name: 'ChatView', emits: ['logout', 'show-create-chat', 'show-search-users'],
@@ -24,20 +25,27 @@ export default {
         let hasMoreMessages = true
 
         const loadChats = async () => {
-            chats.value = await GetUserChats(null)
+            try {
+                chats.value = await GetUserChats(null)
+            } catch (err) {
+                console.error("Ошибка загрузки чатов:", err)
+            }
         }
 
         const loadMessages = async (chatId) => {
-            const msgs = await GetChatMessages(chatId, {
-                    limit: 10,
-                    offset: 0
-                }
-            )
-            messages.value = msgs.reverse()
-            hasMoreMessages = msgs.length >= 10
+            try {
+                const msgs = await GetChatMessages(chatId, {
+                    limit: MESSAGES_PAGE_SIZE,
+                    offset: 0,
+                })
+                messages.value = msgs.reverse()
+                hasMoreMessages = msgs.length >= MESSAGES_PAGE_SIZE
 
-            await nextTick()
-            scrollToBottom()
+                await nextTick()
+                scrollToBottom()
+            } catch (err) {
+                console.error("Ошибка загрузки сообщений:", err)
+            }
         }
 
         const loadMoreMessages = async () => {
@@ -45,31 +53,27 @@ export default {
             loadMoreLock = true
 
             try {
-                const offset = messages.value.length
                 const olderMessages = await GetChatMessages(currentChat.value.id, {
-                    limit: 10,
-                    offset: offset
+                    limit: MESSAGES_PAGE_SIZE,
+                    offset: messages.value.length,
                 })
 
                 if (olderMessages && olderMessages.length > 0) {
-                    // Разворачиваем и добавляем в НАЧАЛО массива
                     messages.value = [...olderMessages.reverse(), ...messages.value]
-                    hasMoreMessages = olderMessages.length >= 10
+                    hasMoreMessages = olderMessages.length >= MESSAGES_PAGE_SIZE
                 } else {
                     hasMoreMessages = false
                 }
             } catch (err) {
-                alert(err)
+                console.error("Ошибка загрузки старых сообщений:", err)
             } finally {
-                loadMoreLock = false // Всегда снимаем лок
+                loadMoreLock = false
             }
         }
 
         const selectChat = async (chat) => {
             currentChat.value = chat
             await loadMessages(chat.id)
-
-            // Отмечаем чат как прочитанный
             chat.isRead = true
         }
 
@@ -77,53 +81,42 @@ export default {
             if (!newMessage.value.trim() || !currentChat.value) return
 
             const text = newMessage.value
-            newMessage.value = '' // Очищаем поле сразу (UX)
+            newMessage.value = ''
 
             try {
                 await SendMessage(currentChat.value.id, text)
 
-                // Создаем объект сообщения вручную
-                const localMessage = {
-                    id: Date.now(), // Временный ID для :key
-                    text: text,
+                messages.value.push({
+                    id: Date.now(),
+                    text,
                     chatId: currentChat.value.id,
-                    createdAt: new Date().toISOString(), // Формат ISO для функции даты
+                    createdAt: new Date().toISOString(),
                     sender: {
                         id: currentUser.value?.id,
-                        username: currentUser.value?.username
-                    }
-                }
-
-                // Кладем в массив — Vue мгновенно его отрисует
-                messages.value.push(localMessage)
+                        username: currentUser.value?.username,
+                    },
+                })
 
                 await nextTick()
                 scrollToBottom()
             } catch (err) {
                 alert(err)
-
-                newMessage.value = text  // Возвращаем текст сообщеняи, чтобы пользователь не печатал заново
+                newMessage.value = text
             }
         }
 
         const handleNewMessage = (message) => {
-            // 1. Если чат открыт — просто добавляем в список
             if (currentChat.value?.id === message.chatId) {
                 messages.value.push(message)
-
-                // Используем nextTick, чтобы скролл сработал после отрисовки
                 nextTick(() => scrollToBottom())
-
                 return
             }
 
-            // 2. Если чат другой — обновляем список «в фоне» для показа индикатора, что чат непросмотрен
             loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
 
-            // 3. Показываем уведомление
             if (Notification.permission === 'granted') {
                 new Notification('Новое сообщение', {
-                    body: `${message.sender.username}: ${message.text}`
+                    body: `${message.sender.username}: ${message.text}`,
                 })
             }
         }
@@ -139,11 +132,11 @@ export default {
         }
 
         const getChatTitle = (chat) => {
-            if (chat.title && chat.title !== '') {
+            if (chat.title) {
                 return chat.title
             }
 
-            if (chat.type === 'private') {
+            if (chat.type === CHAT_TYPE.PRIVATE) {
                 const otherMember = chat.members.find(m => m.id !== currentUser.value?.id)
                 if (otherMember) return otherMember.username
             }
@@ -152,15 +145,11 @@ export default {
         }
 
         const getSenderName = (message) => {
-            if (message.sender.id === currentUser.value?.id) {
-                return 'Вы'
-            }
-            return message.sender.username
+            return `${message.sender.id === currentUser.value?.id ? 'Вы' : message.sender.username} `
         }
 
         const formatTime = (dateStr) => {
-            const date = new Date(dateStr)
-            return date.toLocaleString('ru-RU')
+            return new Date(dateStr).toLocaleString('ru-RU')
         }
 
         const handleLogout = () => {
@@ -169,54 +158,45 @@ export default {
 
         const toggleTheme = async () => {
             try {
-                const newTheme = await ToggleTheme();
-                const themeName = newTheme === 1 ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-bs-theme', themeName);
+                const newTheme = await ToggleTheme()
+                const themeName = newTheme === THEME.DARK ? 'dark' : 'light'
+                document.documentElement.setAttribute('data-bs-theme', themeName)
             } catch (err) {
-                alert(err);
+                alert(err)
             }
-        };
+        }
 
         onMounted(async () => {
-            // Запрашиваем разрешение на уведомления
             if (Notification.permission !== 'granted') {
                 await Notification.requestPermission()
             }
 
-            // Загружаем текущего пользователя
-            currentUser.value = await GetCurrentUser()
+            try {
+                currentUser.value = await GetCurrentUser()
+                await loadChats()
+                await StartListening()
+            } catch (err) {
+                console.error("Ошибка инициализации:", err)
+            }
 
-            // Загружаем чаты
-            await loadChats()
-
-            // Запускаем прослушивание сообщений
-            await StartListening()
-
-            // Подписываемся на события
-            window.runtime.EventsOn('new_message', handleNewMessage)
-            window.runtime.EventsOn('chats_updated', handleChatsUpdated)
+            window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
+            window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
         })
 
         onUnmounted(() => {
             StopListening()
-            window.runtime.EventsOff('new_message')
-            window.runtime.EventsOff('chats_updated')
+            window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
+            window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
         })
 
-        // Наблюдатель за скроллом для подгрузки сообщений
         watch(messagesList, (el) => {
             if (!el) return
 
             const handleScroll = async () => {
-                // Срабатывает, если до верха осталось меньше 10 пикселей
                 if (el.scrollTop <= 10 && !loadMoreLock && hasMoreMessages && currentChat.value) {
-
-                    const prevHeight = el.scrollHeight // Запоминаем высоту ДО загрузки
-
+                    const prevHeight = el.scrollHeight
                     await loadMoreMessages()
-
                     await nextTick()
-                    // Вычисляем новую позицию, чтобы экран не прыгал
                     el.scrollTop = el.scrollHeight - prevHeight
                 }
             }
@@ -238,7 +218,7 @@ export default {
             getSenderName,
             formatTime,
             handleLogout,
-            loadChats,  // делаем публичным для использования при создании чата в модалке CreateChatModal
+            loadChats,
             toggleTheme,
         }
     }

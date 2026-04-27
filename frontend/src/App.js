@@ -7,8 +7,7 @@ import ForgetPasswordModal from './components/ForgetPasswordModal/ForgetPassword
 import NotificationToast from './components/NotificationToast/NotificationToast.vue'
 
 import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
-import {GetTheme} from '../wailsjs/go/settings/Handler'
-
+import {NOTIFICATION_DURATION_MS, VIEW} from './constants'
 
 export default {
     name: 'App', components: {
@@ -16,7 +15,7 @@ export default {
     },
 
     setup() {
-        const currentView = ref('loading')
+        const currentView = ref(VIEW.LOADING)
         const chatViewComponent = ref(null)
         const showCreateChatModal = ref(false)
         const showSearchUsersModal = ref(false)
@@ -26,59 +25,43 @@ export default {
 
         const checkSession = async () => {
             try {
-                // Мы просто ждем выполнения. Если ошибки нет — значит Authenticate вернул nil
                 await Authenticate()
-
-                // Если код дошел до этой строки, значит ошибки не было
-                currentView.value = 'chat'
+                currentView.value = VIEW.CHAT
             } catch (err) {
                 console.error("Ошибка проверки сессии:", err)
-                currentView.value = 'login'
+                currentView.value = VIEW.LOGIN
             }
         }
 
-        const applyTheme = (themeType) => {
-            const themeName = themeType === 1 ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-bs-theme', themeName);
-        };
-
         onMounted(async () => {
-            checkSession()
-
-            // try {
-            //     const theme = await GetTheme();
-            //     applyTheme(theme);
-            // } catch (err) {
-            //     console.error("Ошибка загрузки темы:", err);
-            // }
+            await checkSession()
         })
 
         const handleLoginSuccess = () => {
-            currentView.value = 'chat'
+            currentView.value = VIEW.CHAT
         }
 
-        const handleLogout = async () => { // Оставили только один уровень
+        const handleLogout = async () => {
             try {
                 await Logout()
             } catch (err) {
                 console.error("Ошибка logout:", err)
             }
 
-            currentView.value = 'login'
+            currentView.value = VIEW.LOGIN
         }
 
         const handleChatCreated = () => {
             showCreateChatModal.value = false
             notification.value = 'Чат успешно создан!'
 
-            // Проверяем, что компонент смонтирован, и вызываем его метод
             if (chatViewComponent.value) {
-                chatViewComponent.value.loadChats()
+                chatViewComponent.value.loadChats().catch(err => console.error("Ошибка обновления чатов:", err))
             }
 
             setTimeout(() => {
                 notification.value = null
-            }, 3000)
+            }, NOTIFICATION_DURATION_MS)
         }
 
         const handleShowForgetPassword = (msg) => {
@@ -87,6 +70,7 @@ export default {
         }
 
         return {
+            VIEW,
             currentView,
             chatViewComponent,
             showCreateChatModal,
@@ -97,7 +81,7 @@ export default {
             handleLogout,
             handleChatCreated,
             forgetPasswordMessage,
-            handleShowForgetPassword
+            handleShowForgetPassword,
         }
     }
 }

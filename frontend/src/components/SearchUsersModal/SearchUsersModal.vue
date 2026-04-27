@@ -1,9 +1,9 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
-      <h2>Поиск пользователей</h2>
+      <h2 class="modal-content__title">Поиск пользователей</h2>
 
-      <div class="form-group">
+      <div class="modal-content__form-group">
         <input
           v-model="searchQuery"
           @input="debouncedSearch"
@@ -11,27 +11,27 @@
         />
       </div>
 
-      <div v-if="searchResults.length > 0" class="users-list">
+      <div v-if="searchResults.length > 0" class="modal-content__users-list">
         <div
           v-for="user in searchResults"
           :key="user.ID"
           class="user-item"
         >
-          <div class="user-avatar">
+          <div class="user-item__avatar">
             {{ user.username.charAt(0).toUpperCase() }}
           </div>
-          <div class="user-info">
-            <div class="username">{{ user.username }}</div>
-            <div class="email">{{ user.email }}</div>
+          <div class="user-item__info">
+            <div class="user-item__name">{{ user.username }}</div>
+            <div class="user-item__email">{{ user.email }}</div>
           </div>
         </div>
       </div>
 
-      <div v-else-if="searched && searchResults.length === 0" class="no-results">
+      <div v-else-if="searched && searchResults.length === 0" class="modal-content__no-results">
         Пользователи не найдены
       </div>
 
-      <div class="modal-buttons">
+      <div class="modal-content__actions">
         <button @click="$emit('close')">Закрыть</button>
       </div>
     </div>

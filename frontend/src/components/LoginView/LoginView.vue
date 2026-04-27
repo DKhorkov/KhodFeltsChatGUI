@@ -1,69 +1,77 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <div class="tabs">
+      <div class="login-card__tabs">
         <button
-          :class="{ active: activeTab === 'login' }"
-          @click="activeTab = 'login'"
+          class="login-card__tab"
+          :class="{ 'login-card__tab--active': activeTab === TAB.LOGIN }"
+          @click="activeTab = TAB.LOGIN"
         >
           Вход
         </button>
         <button
-          :class="{ active: activeTab === 'register' }"
-          @click="activeTab = 'register'"
+          class="login-card__tab"
+          :class="{ 'login-card__tab--active': activeTab === TAB.REGISTER }"
+          @click="activeTab = TAB.REGISTER"
         >
           Регистрация
         </button>
       </div>
 
-      <div v-if="activeTab === 'login'" class="tab-content">
-        <form @submit.prevent="handleLogin">
+      <div v-if="activeTab === TAB.LOGIN" class="login-card__tab-content">
+        <form @submit.prevent="handleLogin" class="login-form">
           <input
             v-model="loginForm.email"
+            class="login-form__input"
             type="email"
             placeholder="Почта"
           />
           <input
             v-model="loginForm.password"
+            class="login-form__input"
             type="password"
             placeholder="Пароль"
           />
-          <button type="submit">Войти</button>
+          <button type="submit" class="login-form__submit">Войти</button>
         </form>
 
-        <div class="additional-buttons">
-          <button @click="sendVerifyEmail" class="secondary">
+        <div class="login-form__actions">
+          <button @click="sendVerifyEmail" class="login-form__btn--secondary">
             Отправить повторно письмо для подтверждения почты
           </button>
-          <button @click="sendForgetPassword" class="danger">
+          <button @click="sendForgetPassword" class="login-form__btn--danger">
             Сбросить пароль
           </button>
         </div>
       </div>
 
-      <div v-else class="tab-content">
-        <form @submit.prevent="handleRegister">
+      <div v-else class="login-card__tab-content">
+        <form @submit.prevent="handleRegister" class="login-form">
           <input
             v-model="registerForm.email"
+            class="login-form__input"
             type="email"
             placeholder="Почта"
           />
           <input
             v-model="registerForm.username"
+            class="login-form__input"
             type="text"
             placeholder="Логин"
           />
           <input
             v-model="registerForm.password"
+            class="login-form__input"
             type="password"
             placeholder="Пароль"
           />
           <input
             v-model="registerForm.confirmPassword"
+            class="login-form__input"
             type="password"
             placeholder="Подтверждение пароля"
           />
-          <button type="submit">Зарегистрироваться</button>
+          <button type="submit" class="login-form__submit">Зарегистрироваться</button>
         </form>
       </div>
     </div>

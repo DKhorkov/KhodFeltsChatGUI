@@ -9,31 +9,21 @@ export default {
         const newPassword = ref('')
         const confirmPassword = ref('')
 
-        const handleBack = () => {
-            emit('close') // Отправляем событие закрытия
-        }
-
         const resetPassword = async () => {
             if (!token.value || !newPassword.value || !confirmPassword.value) {
-                alert(`Заполните все поля`)
-
+                alert('Заполните все поля')
                 return
             }
 
             if (newPassword.value !== confirmPassword.value) {
-                alert(`Пароли не совпадают`)
-
+                alert('Пароли не совпадают')
                 return
             }
 
             try {
-                await ForgetPassword(token.value, {
-                    newPassword: newPassword.value
-                })
-
-                alert(`Пароль был успешно сброшен. Теперь вы можете авторизоваться.`)
-
-                emit('close') // Закрываем окно после успеха
+                await ForgetPassword(token.value, {newPassword: newPassword.value})
+                alert('Пароль был успешно сброшен. Теперь вы можете авторизоваться.')
+                emit('close')
             } catch (err) {
                 alert(err)
             }
@@ -44,7 +34,6 @@ export default {
             newPassword,
             confirmPassword,
             resetPassword,
-            handleBack,
         }
     }
 }
