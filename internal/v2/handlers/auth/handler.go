@@ -137,6 +137,6 @@ func (h *Handler) Logout() error {
 	return h.useCases.Logout(ctx)
 }
 
-func (h *Handler) StartListening() {}
+func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
-func (h *Handler) StopListening() {}
+func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

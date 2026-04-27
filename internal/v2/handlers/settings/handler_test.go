@@ -1,4 +1,4 @@
-package settings
+package settings_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	settings "github.com/DKhorkov/kfcGUI/internal/v2/handlers/settings"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -53,7 +54,7 @@ func TestHandler_GetTheme(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases)
+			h := settings.New(mockUseCases)
 
 			theme := h.GetTheme()
 
@@ -130,7 +131,7 @@ func TestHandler_ToggleTheme(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases)
+			h := settings.New(mockUseCases)
 
 			theme, err := h.ToggleTheme()
 
@@ -152,7 +153,7 @@ func TestHandler_SetContext(t *testing.T) {
 
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-	h := New(mockUseCases)
+	h := settings.New(mockUseCases)
 	h.SetContext(context.Background())
 }
 
@@ -163,7 +164,7 @@ func TestHandler_StartListening(t *testing.T) {
 
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-	h := New(mockUseCases)
+	h := settings.New(mockUseCases)
 	h.StartListening()
 }
 
@@ -174,6 +175,6 @@ func TestHandler_StopListening(t *testing.T) {
 
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-	h := New(mockUseCases)
+	h := settings.New(mockUseCases)
 	h.StopListening()
 }

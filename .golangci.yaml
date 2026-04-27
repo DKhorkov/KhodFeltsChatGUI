@@ -241,6 +241,8 @@ linters:
           - gocyclo
           - cyclop
           - nestif
+          - gochecknoglobals
+          - revive
 
       - path: internal/repositories/*
         linters:

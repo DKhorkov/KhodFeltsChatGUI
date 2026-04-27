@@ -48,6 +48,6 @@ func (h *Handler) ToggleTheme() (domains.ThemeType, error) {
 	return newTheme, nil
 }
 
-func (h *Handler) StartListening() {}
+func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
-func (h *Handler) StopListening() {}
+func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

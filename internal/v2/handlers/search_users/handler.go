@@ -32,6 +32,6 @@ func (h *Handler) SearchUsers(
 	return h.useCases.SearchUsers(ctx, filters, pagination)
 }
 
-func (h *Handler) StartListening() {}
+func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
-func (h *Handler) StopListening() {}
+func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

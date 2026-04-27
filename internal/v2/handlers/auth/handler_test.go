@@ -1,4 +1,4 @@
-package auth
+package auth_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
+	authhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/auth"
 	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	"github.com/stretchr/testify/assert"
@@ -57,8 +58,11 @@ func TestHandler_Login(t *testing.T) {
 			name:     "invalid email format",
 			email:    "not-an-email",
 			password: "Password1!",
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidEmail).Return(customerrors.ErrInvalidEmail).Times(1)
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidEmail).
+					Return(customerrors.ErrInvalidEmail).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidEmail,
 		},
@@ -66,8 +70,11 @@ func TestHandler_Login(t *testing.T) {
 			name:     "email with uppercase letters",
 			email:    "JOHN@EXAMPLE.COM",
 			password: "Password1!",
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidEmail).Return(customerrors.ErrInvalidEmail).Times(1)
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidEmail).
+					Return(customerrors.ErrInvalidEmail).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidEmail,
 		},
@@ -75,8 +82,11 @@ func TestHandler_Login(t *testing.T) {
 			name:     "invalid password - too weak",
 			email:    "john@example.com",
 			password: "password",
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidPassword).Return(customerrors.ErrInvalidPassword).Times(1)
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidPassword,
 		},
@@ -84,8 +94,11 @@ func TestHandler_Login(t *testing.T) {
 			name:     "invalid password - too short",
 			email:    "john@example.com",
 			password: "Pass1!",
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidPassword).Return(customerrors.ErrInvalidPassword).Times(1)
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidPassword,
 		},
@@ -106,7 +119,7 @@ func TestHandler_Login(t *testing.T) {
 			name:     "use case returns network error - returned as-is",
 			email:    "john@example.com",
 			password: "Password1!",
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					Login(gomock.Any(), "john@example.com", "Password1!").
 					Return(nil, errors.New("connection refused")).
@@ -129,7 +142,7 @@ func TestHandler_Login(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.Login(tt.email, tt.password)
 
@@ -158,7 +171,7 @@ func TestHandler_Register(t *testing.T) {
 				Username: "john123",
 				Password: "Password1!",
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					Register(gomock.Any(), domains.RegisterDTO{
 						Email:    "john@example.com",
@@ -178,7 +191,10 @@ func TestHandler_Register(t *testing.T) {
 				Password: "Password1!",
 			},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidEmail).Return(customerrors.ErrInvalidEmail).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidEmail).
+					Return(customerrors.ErrInvalidEmail).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidEmail,
 		},
@@ -190,7 +206,10 @@ func TestHandler_Register(t *testing.T) {
 				Password: "Password1!",
 			},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidUsername).Return(customerrors.ErrInvalidUsername).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidUsername).
+					Return(customerrors.ErrInvalidUsername).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidUsername,
 		},
@@ -202,7 +221,10 @@ func TestHandler_Register(t *testing.T) {
 				Password: "Password1!",
 			},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidUsername).Return(customerrors.ErrInvalidUsername).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidUsername).
+					Return(customerrors.ErrInvalidUsername).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidUsername,
 		},
@@ -214,7 +236,10 @@ func TestHandler_Register(t *testing.T) {
 				Password: "Password1",
 			},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidPassword).Return(customerrors.ErrInvalidPassword).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidPassword,
 		},
@@ -241,7 +266,7 @@ func TestHandler_Register(t *testing.T) {
 				Username: "john123",
 				Password: "Password1!",
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					Register(gomock.Any(), gomock.Any()).
 					Return(nil, customerrors.ErrEmailAlreadyExists).
@@ -264,7 +289,7 @@ func TestHandler_Register(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.Register(tt.in)
 
@@ -289,7 +314,7 @@ func TestHandler_SendVerifyEmail(t *testing.T) {
 		{
 			name:  "successful send",
 			email: "john@example.com",
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					SendVerifyEmailMessage(gomock.Any(), "john@example.com").
 					Return(nil).
@@ -301,7 +326,10 @@ func TestHandler_SendVerifyEmail(t *testing.T) {
 			name:  "invalid email",
 			email: "not-an-email",
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidEmail).Return(customerrors.ErrInvalidEmail).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidEmail).
+					Return(customerrors.ErrInvalidEmail).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidEmail,
 		},
@@ -331,7 +359,7 @@ func TestHandler_SendVerifyEmail(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.SendVerifyEmail(tt.email)
 
@@ -368,7 +396,10 @@ func TestHandler_SendForgetPassword(t *testing.T) {
 			name:  "invalid email",
 			email: "invalid",
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidEmail).Return(customerrors.ErrInvalidEmail).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidEmail).
+					Return(customerrors.ErrInvalidEmail).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidEmail,
 		},
@@ -398,7 +429,7 @@ func TestHandler_SendForgetPassword(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.SendForgetPassword(tt.email)
 
@@ -438,7 +469,10 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			token: "valid-token",
 			in:    domains.ForgetPasswordDTO{NewPassword: "weak"},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().Map(customerrors.ErrInvalidPassword).Return(customerrors.ErrInvalidPassword).Times(1)
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidPassword,
 		},
@@ -469,7 +503,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.ForgetPassword(tt.token, tt.in)
 
@@ -525,7 +559,7 @@ func TestHandler_Authenticate(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 			h.SetContext(context.Background())
 
 			err := h.Authenticate()
@@ -582,7 +616,7 @@ func TestHandler_Logout(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.Logout()
 
@@ -603,7 +637,7 @@ func TestHandler_SetContext(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, testValidationConfig())
+	h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 	h.SetContext(context.Background())
 }
 
@@ -615,7 +649,7 @@ func TestHandler_StartListening(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, testValidationConfig())
+	h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 	h.StartListening()
 }
 
@@ -627,6 +661,6 @@ func TestHandler_StopListening(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, testValidationConfig())
+	h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 	h.StopListening()
 }

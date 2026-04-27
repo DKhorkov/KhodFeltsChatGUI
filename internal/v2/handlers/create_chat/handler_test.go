@@ -1,4 +1,4 @@
-package create_chat
+package create_chat_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
+	createchat "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
 	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				Type:      domains.ChatTypePrivate,
 				MemberIDs: []uint64{2},
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					CreateChat(gomock.Any(), domains.Chat{
 						Type:    domains.ChatTypePrivate,
@@ -50,7 +51,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				MemberIDs: []uint64{2, 3},
 				Title:     &title,
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					CreateChat(gomock.Any(), domains.Chat{
 						Type:    domains.ChatTypeGroup,
@@ -69,7 +70,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				Type:      "unknown",
 				MemberIDs: []uint64{2},
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().Map(gomock.Any()).Return(customerrors.ErrInvalidChat).Times(1)
 			},
 			expectedChat:  nil,
@@ -81,7 +82,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				Type:      domains.ChatTypePrivate,
 				MemberIDs: []uint64{},
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().Map(gomock.Any()).Return(customerrors.ErrInvalidChat).Times(1)
 			},
 			expectedChat:  nil,
@@ -93,7 +94,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				Type:      domains.ChatTypePrivate,
 				MemberIDs: []uint64{2, 3},
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().Map(gomock.Any()).Return(customerrors.ErrInvalidChat).Times(1)
 			},
 			expectedChat:  nil,
@@ -105,7 +106,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				Type:      domains.ChatTypePrivate,
 				MemberIDs: []uint64{2},
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					CreateChat(gomock.Any(), gomock.Any()).
 					Return(nil, customerrors.ErrChatAlreadyExists).
@@ -120,7 +121,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				Type:      domains.ChatTypePrivate,
 				MemberIDs: []uint64{2},
 			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					CreateChat(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("database unavailable")).
@@ -144,7 +145,7 @@ func TestHandler_CreateChat(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper)
+			h := createchat.New(mockUseCases, mockMapper)
 
 			chat, err := h.CreateChat(tt.in)
 
@@ -167,7 +168,7 @@ func TestHandler_SetContext(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper)
+	h := createchat.New(mockUseCases, mockMapper)
 	h.SetContext(context.Background())
 }
 
@@ -179,7 +180,7 @@ func TestHandler_StartListening(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper)
+	h := createchat.New(mockUseCases, mockMapper)
 	h.StartListening()
 }
 
@@ -191,6 +192,6 @@ func TestHandler_StopListening(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper)
+	h := createchat.New(mockUseCases, mockMapper)
 	h.StopListening()
 }

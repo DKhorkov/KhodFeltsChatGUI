@@ -56,6 +56,6 @@ func (h *Handler) CreateChat(
 	return h.useCases.CreateChat(ctx, *chat)
 }
 
-func (h *Handler) StartListening() {}
+func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
-func (h *Handler) StopListening() {}
+func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

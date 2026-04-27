@@ -1,4 +1,4 @@
-package search_users
+package search_users_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	searchusers "github.com/DKhorkov/kfcGUI/internal/v2/handlers/search_users"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	"github.com/DKhorkov/libs/pointers"
 	"github.com/stretchr/testify/assert"
@@ -61,15 +62,21 @@ func TestHandler_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:       "successful search with pagination",
-			filters:    &domains.UsersFilters{Username: &username},
-			pagination: &domains.Pagination{Limit: pointers.New[uint64](5), Offset: pointers.New[uint64](0)},
+			name:    "successful search with pagination",
+			filters: &domains.UsersFilters{Username: &username},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](5),
+				Offset: pointers.New[uint64](0),
+			},
 			setupMocks: func(uc *mockusecases.MockUseCases) {
 				uc.EXPECT().
 					SearchUsers(
 						gomock.Any(),
 						&domains.UsersFilters{Username: &username},
-						&domains.Pagination{Limit: pointers.New[uint64](5), Offset: pointers.New[uint64](0)},
+						&domains.Pagination{
+							Limit:  pointers.New[uint64](5),
+							Offset: pointers.New[uint64](0),
+						},
 					).
 					Return([]domains.User{{ID: 1, Username: "john"}}, nil).
 					Times(1)
@@ -117,9 +124,12 @@ func TestHandler_SearchUsers(t *testing.T) {
 			expectedError: errors.New("database error"),
 		},
 		{
-			name:       "multiple users found",
-			filters:    nil,
-			pagination: &domains.Pagination{Limit: pointers.New[uint64](10), Offset: pointers.New[uint64](0)},
+			name:    "multiple users found",
+			filters: nil,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](0),
+			},
 			setupMocks: func(uc *mockusecases.MockUseCases) {
 				uc.EXPECT().
 					SearchUsers(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -151,7 +161,7 @@ func TestHandler_SearchUsers(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases)
+			h := searchusers.New(mockUseCases)
 
 			users, err := h.SearchUsers(tt.filters, tt.pagination)
 
@@ -173,7 +183,7 @@ func TestHandler_SetContext(t *testing.T) {
 
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-	h := New(mockUseCases)
+	h := searchusers.New(mockUseCases)
 	h.SetContext(context.Background())
 }
 
@@ -184,7 +194,7 @@ func TestHandler_StartListening(t *testing.T) {
 
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-	h := New(mockUseCases)
+	h := searchusers.New(mockUseCases)
 	h.StartListening()
 }
 
@@ -195,6 +205,6 @@ func TestHandler_StopListening(t *testing.T) {
 
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 
-	h := New(mockUseCases)
+	h := searchusers.New(mockUseCases)
 	h.StopListening()
 }

@@ -1,10 +1,11 @@
-package application
+package application_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
+	"github.com/DKhorkov/kfcGUI/internal/v2/application"
 	mockhandler "github.com/DKhorkov/kfcGUI/mocks/handler"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	loggingmocks "github.com/DKhorkov/libs/logging/mocks"
@@ -23,7 +24,7 @@ func TestApp_Startup(t *testing.T) {
 		{
 			name:         "startup with no handlers",
 			handlerCount: 0,
-			setupMocks: func(logger *loggingmocks.MockLogger, handlers []*mockhandler.MockHandler) {
+			setupMocks: func(logger *loggingmocks.MockLogger, _ []*mockhandler.MockHandler) {
 				logger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
 			},
 		},
@@ -42,6 +43,7 @@ func TestApp_Startup(t *testing.T) {
 				for _, h := range handlers {
 					h.EXPECT().SetContext(gomock.Any()).Times(1)
 				}
+
 				logger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
 			},
 		},
@@ -68,7 +70,7 @@ func TestApp_Startup(t *testing.T) {
 				handlers[i] = h
 			}
 
-			app := New(mockUseCases, mockLogger, nil, handlers)
+			app := application.New(mockUseCases, mockLogger, nil, handlers)
 			app.Startup(context.Background())
 		})
 	}
@@ -85,7 +87,7 @@ func TestApp_Shutdown(t *testing.T) {
 		{
 			name:         "shutdown with no handlers",
 			handlerCount: 0,
-			setupMocks: func(logger *loggingmocks.MockLogger, handlers []*mockhandler.MockHandler) {
+			setupMocks: func(logger *loggingmocks.MockLogger, _ []*mockhandler.MockHandler) {
 				logger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
 			},
 		},
@@ -104,6 +106,7 @@ func TestApp_Shutdown(t *testing.T) {
 				for _, h := range handlers {
 					h.EXPECT().StopListening().Times(1)
 				}
+
 				logger.EXPECT().Info(gomock.Any(), gomock.Any()).Times(1)
 			},
 		},
@@ -130,7 +133,7 @@ func TestApp_Shutdown(t *testing.T) {
 				handlers[i] = h
 			}
 
-			app := New(mockUseCases, mockLogger, nil, handlers)
+			app := application.New(mockUseCases, mockLogger, nil, handlers)
 			app.Shutdown(context.Background())
 		})
 	}
@@ -179,11 +182,12 @@ func TestApp_BindHandlers(t *testing.T) {
 				handlers[i] = h
 			}
 
-			app := New(mockUseCases, nil, nil, handlers)
+			app := application.New(mockUseCases, nil, nil, handlers)
 
 			result := app.BindHandlers()
 
 			assert.Len(t, result, tt.expectedLength)
+
 			for i, h := range result {
 				assert.Equal(t, handlers[i], h)
 			}

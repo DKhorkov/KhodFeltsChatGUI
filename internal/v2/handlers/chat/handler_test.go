@@ -1,4 +1,4 @@
-package chat
+package chat_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
+	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chat"
 	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	loggingmocks "github.com/DKhorkov/libs/logging/mocks"
@@ -62,7 +63,7 @@ func TestHandler_GetCurrentUser(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 
 			user, err := h.GetCurrentUser()
 
@@ -100,8 +101,11 @@ func TestHandler_GetUserChats(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:       "successful get chats with pagination",
-			pagination: &domains.Pagination{Limit: pointers.New[uint64](10), Offset: pointers.New[uint64](0)},
+			name: "successful get chats with pagination",
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](0),
+			},
 			setupMocks: func(uc *mockusecases.MockUseCases) {
 				uc.EXPECT().
 					GetUserChats(gomock.Any(), &domains.Pagination{Limit: pointers.New[uint64](10), Offset: pointers.New[uint64](0)}).
@@ -150,7 +154,7 @@ func TestHandler_GetUserChats(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 
 			chats, err := h.GetUserChats(tt.pagination)
 
@@ -177,9 +181,12 @@ func TestHandler_GetChatMessages(t *testing.T) {
 		expectedError    error
 	}{
 		{
-			name:       "successful get messages",
-			chatID:     42,
-			pagination: &domains.Pagination{Limit: pointers.New[uint64](10), Offset: pointers.New[uint64](0)},
+			name:   "successful get messages",
+			chatID: 42,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](0),
+			},
 			setupMocks: func(uc *mockusecases.MockUseCases) {
 				uc.EXPECT().
 					GetChatMessages(gomock.Any(), uint64(42), &domains.Pagination{Limit: pointers.New[uint64](10), Offset: pointers.New[uint64](0)}).
@@ -243,7 +250,7 @@ func TestHandler_GetChatMessages(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 
 			messages, err := h.GetChatMessages(tt.chatID, tt.pagination)
 
@@ -327,7 +334,7 @@ func TestHandler_SendMessage(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 
 			err := h.SendMessage(tt.chatID, tt.text)
 
@@ -409,7 +416,7 @@ func TestHandler_ToggleTheme(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 
 			theme, err := h.ToggleTheme()
 
@@ -432,7 +439,7 @@ func TestHandler_SetContext(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+	h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 	h.SetContext(context.Background())
 }
 
@@ -463,7 +470,7 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 		},
 		{
 			name:       "stop without start does not panic",
-			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {},
+			setupMocks: func(_ *mockusecases.MockUseCases, _ *loggingmocks.MockLogger) {},
 		},
 	}
 
@@ -479,7 +486,7 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 
 			tt.setupMocks(mockUseCases, mockLogger)
 
-			h := New(mockUseCases, mockMapper, mockLogger, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, mockLogger, config.ValidationConfig{})
 
 			if tt.name != "stop without start does not panic" {
 				h.StartListening()

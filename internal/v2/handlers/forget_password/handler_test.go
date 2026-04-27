@@ -1,15 +1,16 @@
-package forget_password
+package forget_password_test
 
 import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
+	forgetpassword "github.com/DKhorkov/kfcGUI/internal/v2/handlers/forget_password"
 	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +47,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			name:  "successful password reset",
 			token: validForgetPasswordToken,
 			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					ForgetPassword(gomock.Any(), validForgetPasswordToken, "NewPassword1!").
 					Return(nil).
@@ -58,7 +59,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			name:  "invalid token - not base64",
 			token: "!!!not-base64!!!",
 			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
 					Map(customerrors.ErrInvalidForgetPasswordToken).
 					Return(customerrors.ErrInvalidForgetPasswordToken).
@@ -71,7 +72,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			// base64 raw url encoding of "abc" - decodes fine but not parseable as uint64
 			token: base64.RawURLEncoding.EncodeToString([]byte("abc")),
 			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
 					Map(customerrors.ErrInvalidForgetPasswordToken).
 					Return(customerrors.ErrInvalidForgetPasswordToken).
@@ -83,7 +84,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			name:  "invalid password - too weak",
 			token: validForgetPasswordToken,
 			in:    domains.ForgetPasswordDTO{NewPassword: "weak"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
 					Map(customerrors.ErrInvalidPassword).
 					Return(customerrors.ErrInvalidPassword).
@@ -107,7 +108,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			name:  "token expired - use case error",
 			token: validForgetPasswordToken,
 			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					ForgetPassword(gomock.Any(), validForgetPasswordToken, "NewPassword1!").
 					Return(errors.New("token has expired")).
@@ -119,7 +120,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			name:  "user not found - use case error",
 			token: validForgetPasswordToken,
 			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					ForgetPassword(gomock.Any(), validForgetPasswordToken, "NewPassword1!").
 					Return(customerrors.ErrUserNotFound).
@@ -142,8 +143,10 @@ func TestHandler_ForgetPassword(t *testing.T) {
 		{
 			name: "valid token for large user ID",
 			// base64 raw url encoding of "9999999999"
-			token: base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf("%d", uint64(9999999999)))),
-			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
+			token: base64.RawURLEncoding.EncodeToString(
+				[]byte(strconv.FormatUint(uint64(9999999999), 10)),
+			),
+			in: domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				largeIDToken := base64.RawURLEncoding.EncodeToString([]byte("9999999999"))
 				uc.EXPECT().
@@ -168,7 +171,7 @@ func TestHandler_ForgetPassword(t *testing.T) {
 				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := New(mockUseCases, mockMapper, testValidationConfig())
+			h := forgetpassword.New(mockUseCases, mockMapper, testValidationConfig())
 
 			err := h.ForgetPassword(tt.token, tt.in)
 
@@ -189,7 +192,7 @@ func TestHandler_SetContext(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, testValidationConfig())
+	h := forgetpassword.New(mockUseCases, mockMapper, testValidationConfig())
 	h.SetContext(context.Background())
 }
 
@@ -201,7 +204,7 @@ func TestHandler_StartListening(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, testValidationConfig())
+	h := forgetpassword.New(mockUseCases, mockMapper, testValidationConfig())
 	h.StartListening()
 }
 
@@ -213,6 +216,6 @@ func TestHandler_StopListening(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := New(mockUseCases, mockMapper, testValidationConfig())
+	h := forgetpassword.New(mockUseCases, mockMapper, testValidationConfig())
 	h.StopListening()
 }
