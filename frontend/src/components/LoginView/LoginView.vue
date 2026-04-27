@@ -39,7 +39,7 @@
           <button @click="sendVerifyEmail" class="secondary">
             Отправить повторно письмо для подтверждения почты
           </button>
-          <button @click="$emit('show-forget-password')" class="danger">
+          <button @click="sendForgetPassword" class="danger">
             Сбросить пароль
           </button>
         </div>

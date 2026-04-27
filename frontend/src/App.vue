@@ -3,7 +3,7 @@
     <LoginView
       v-if="currentView === 'login'"
       @login-success="handleLoginSuccess"
-      @show-forget-password="showForgetPasswordModal = true"
+      @show-forget-password="handleShowForgetPassword"
     />
     <ChatView
       ref="chatViewComponent"
@@ -27,6 +27,7 @@
 
     <ForgetPasswordModal
       v-if="showForgetPasswordModal"
+      :forgetPasswordMessage="forgetPasswordMessage"
       @close="showForgetPasswordModal = false"
     />
 

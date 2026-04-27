@@ -3,28 +3,9 @@
     <div class="modal-content" @click.stop>
       <h2>Сброс пароля</h2>
 
-      <div v-if="!tokenSent" class="step">
-        <div class="form-group">
-          <label>Email</label>
-          <input
-            v-model="email"
-            type="email"
-            placeholder="Введите ваш email"
-            @keydown.enter="sendResetCode"
-          />
-        </div>
-
-        <div class="modal-buttons">
-          <button @click="$emit('close')">Отмена</button>
-          <button @click="sendResetCode" :disabled="loading">
-            {{ loading ? 'Отправка...' : 'Отправить код' }}
-          </button>
-        </div>
-      </div>
-
-      <div v-else class="step">
+      <div class="step">
         <div class="info-message">
-          {{ message }}
+          {{ forgetPasswordMessage }}
         </div>
 
         <div class="form-group">
@@ -55,10 +36,8 @@
         </div>
 
         <div class="modal-buttons">
-          <button @click="tokenSent = false">Назад</button>
-          <button @click="resetPassword" :disabled="loading">
-            {{ loading ? 'Сброс...' : 'Сбросить пароль' }}
-          </button>
+          <button @click="handleBack">Назад</button>
+          <button @click="resetPassword">Сбросить пароль</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import {ref} from 'vue'
-import {Login, Register, SendVerifyEmail} from '../../../wailsjs/go/auth/Handler'
+import {Login, Register, SendForgetPassword, SendVerifyEmail} from '../../../wailsjs/go/auth/Handler'
 
 export default {
     name: 'LoginView', emits: ['login-success', 'show-forget-password'],
@@ -78,8 +78,32 @@ export default {
             }
         }
 
+        const sendForgetPassword = async () => {
+            if (!loginForm.value.email) {
+                alert('Введите email')
+                return
+            }
+
+            try {
+                await SendForgetPassword(loginForm.value.email)
+
+                const forgetPasswordMessage = `Письмо с кодом для сброса пароля было отправлено по адресу ${loginForm.value.email}`
+
+                emit('show-forget-password', forgetPasswordMessage)
+            } catch (err) {
+                alert(err)
+            }
+        }
+
         return {
-            activeTab, loading, loginForm, registerForm, handleLogin, handleRegister, sendVerifyEmail
+            activeTab,
+            loading,
+            loginForm,
+            registerForm,
+            handleLogin,
+            handleRegister,
+            sendVerifyEmail,
+            sendForgetPassword
         }
     }
 }

@@ -21,6 +21,7 @@ export default {
         const showSearchUsersModal = ref(false)
         const showForgetPasswordModal = ref(false)
         const notification = ref(null)
+        const forgetPasswordMessage = ref('')
 
         const checkSession = async () => {
             try {
@@ -67,6 +68,11 @@ export default {
             }, 3000)
         }
 
+        const handleShowForgetPassword = (msg) => {
+            forgetPasswordMessage.value = msg || 'Инструкции отправлены на почту'
+            showForgetPasswordModal.value = true
+        }
+
         return {
             currentView,
             chatViewComponent,
@@ -76,7 +82,9 @@ export default {
             notification,
             handleLoginSuccess,
             handleLogout,
-            handleChatCreated
+            handleChatCreated,
+            forgetPasswordMessage,
+            handleShowForgetPassword
         }
     }
 }
