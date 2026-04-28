@@ -28,9 +28,14 @@
       </div>
 
       <div class="chats-panel__footer">
-        <button class="chats-panel__theme-btn" @click="toggleTheme">
-          <span class="btn-text">Сменить тему</span>
-        </button>
+        <label class="chats-panel__theme-toggle">
+          <span class="chats-panel__theme-label">{{ isDarkTheme ? '🌙' : '☀️' }}</span>
+          <div class="theme-toggle" @click="toggleTheme">
+            <div class="theme-toggle__track" :class="{ 'theme-toggle__track--active': isDarkTheme }">
+              <div class="theme-toggle__thumb" :class="{ 'theme-toggle__thumb--active': isDarkTheme }"></div>
+            </div>
+          </div>
+        </label>
         <button @click="handleLogout" class="chats-panel__logout-btn">
           <span class="chats-panel__logout-icon">🚪</span>
           <span>Выйти из аккаунта</span>

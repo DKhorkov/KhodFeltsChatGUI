@@ -39,6 +39,7 @@ export default {
             document.documentElement.setAttribute('data-bs-theme', themeName)
         }
 
+        // Используется один раз в жизненном цикле, когда компонент впервые отрисовывается
         onMounted(async () => {
             await checkSession()
 

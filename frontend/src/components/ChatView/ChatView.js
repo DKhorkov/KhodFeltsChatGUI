@@ -7,7 +7,7 @@ import {
     StartListening,
     StopListening
 } from '../../../wailsjs/go/chat/Handler'
-import {ToggleTheme} from '../../../wailsjs/go/settings/Handler'
+import {GetTheme, ToggleTheme} from '../../../wailsjs/go/settings/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 export default {
@@ -20,6 +20,7 @@ export default {
         const currentUser = ref(null)
         const newMessage = ref('')
         const messagesList = ref(null)
+        const isDarkTheme = ref(false)
 
         let loadMoreLock = false
         let hasMoreMessages = true
@@ -159,7 +160,8 @@ export default {
         const toggleTheme = async () => {
             try {
                 const newTheme = await ToggleTheme()
-                const themeName = newTheme === THEME.DARK ? 'dark' : 'light'
+                isDarkTheme.value = newTheme === THEME.DARK
+                const themeName = isDarkTheme.value ? 'dark' : 'light'
                 document.documentElement.setAttribute('data-bs-theme', themeName)
             } catch (err) {
                 alert(err)
@@ -173,6 +175,8 @@ export default {
 
             try {
                 currentUser.value = await GetCurrentUser()
+                const theme = await GetTheme()
+                isDarkTheme.value = theme === THEME.DARK
                 await loadChats()
                 await StartListening()
             } catch (err) {
@@ -220,6 +224,7 @@ export default {
             handleLogout,
             loadChats,
             toggleTheme,
+            isDarkTheme,
         }
     }
 }
