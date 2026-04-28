@@ -35,6 +35,7 @@
     <NotificationToast
       v-if="notification"
       :message="notification"
+      @click="handleNotificationClick"
       @close="notification = null"
     />
   </div>

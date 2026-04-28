@@ -8,7 +8,7 @@ export default {
         duration: {
             type: Number, default: 3000,
         },
-    }, emits: ['close'],
+    }, emits: ['close', 'click'],
 
     setup(props, {emit}) {
         const timer = setTimeout(() => emit('close'), props.duration)

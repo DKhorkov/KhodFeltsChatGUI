@@ -78,6 +78,13 @@ export default {
             chat.isRead = true
         }
 
+        const openChatById = (chatId) => {
+            const chat = chats.value.find(c => c.id === chatId)
+            if (chat) {
+                selectChat(chat)
+            }
+        }
+
         const sendMessage = async () => {
             if (!newMessage.value.trim() || !currentChat.value) return
 
@@ -115,7 +122,10 @@ export default {
 
             loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
 
-            emit('new-message-notification', `${message.sender.username}: ${message.text}`)
+            emit('new-message-notification', {
+                text: `${message.sender.username}: ${message.text}`,
+                chatId: message.chatId,
+            })
         }
 
         const handleChatsUpdated = (updatedChats) => {
@@ -219,6 +229,7 @@ export default {
             formatTime,
             handleLogout,
             loadChats,
+            openChatById,
             toggleTheme,
             isDarkTheme,
         }

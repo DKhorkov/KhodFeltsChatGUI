@@ -22,6 +22,7 @@ export default {
         const showSearchUsersModal = ref(false)
         const showForgetPasswordModal = ref(false)
         const notification = ref(null)
+        const notificationChatId = ref(null)
         const forgetPasswordMessage = ref('')
 
         const checkSession = async () => {
@@ -78,12 +79,22 @@ export default {
             }, NOTIFICATION_DURATION_MS)
         }
 
-        const handleNewMessageNotification = (text) => {
+        const handleNewMessageNotification = ({ text, chatId }) => {
             notification.value = text
+            notificationChatId.value = chatId
 
             setTimeout(() => {
                 notification.value = null
+                notificationChatId.value = null
             }, NOTIFICATION_DURATION_MS)
+        }
+
+        const handleNotificationClick = () => {
+            if (notificationChatId.value && chatViewComponent.value) {
+                chatViewComponent.value.openChatById(notificationChatId.value)
+            }
+            notification.value = null
+            notificationChatId.value = null
         }
 
         const handleShowForgetPassword = (msg) => {
@@ -105,6 +116,7 @@ export default {
             forgetPasswordMessage,
             handleShowForgetPassword,
             handleNewMessageNotification,
+            handleNotificationClick,
         }
     }
 }
