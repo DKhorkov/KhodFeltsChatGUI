@@ -22,7 +22,7 @@ jobs:
         run: go get ./...
       - name: Prepare dummy frontend dist
         run: |
-          mkdir -p frontend/dist
-          touch frontend/dist/placeholder.txt
+          mkdir -p cmd/v2/frontend/dist
+          touch cmd/v2/frontend/dist/placeholder.txt
       - name: Run tests
         run: task -d scripts tests integration=false -v

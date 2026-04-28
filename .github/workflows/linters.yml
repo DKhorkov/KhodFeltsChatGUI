@@ -20,7 +20,7 @@ jobs:
          sudo apt-get install -y libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config
       - name: Prepare dummy frontend dist
         run: |
-            mkdir -p frontend/dist
-            touch frontend/dist/placeholder.txt
+          mkdir -p cmd/v2/frontend/dist
+          touch cmd/v2/frontend/dist/placeholder.txt
       - name: Run Linters
         run: golangci-lint run -v --fix
