@@ -51,17 +51,21 @@
       </div>
 
       <div class="messages-panel__list" ref="messagesList">
-        <div
-          v-for="message in messages"
-          :key="message.id"
-          :class="['message', { 'message--own': message.sender.id === currentUser?.id }]"
-        >
-          <div class="message__header">
-            <span class="message__sender">{{ getSenderName(message) }}</span>
-            <span class="message__time">{{ formatTime(message.createdAt) }}</span>
+        <template v-for="(message, index) in messages" :key="message.id">
+          <div
+            v-if="isUnreadDivider(message, index)"
+            class="messages-panel__unread-divider"
+          >
+            <span>Новые сообщения</span>
           </div>
-          <div class="message__text">{{ message.text }}</div>
-        </div>
+          <div :class="['message', { 'message--own': message.sender.id === currentUser?.id }]">
+            <div class="message__header">
+              <span class="message__sender">{{ getSenderName(message) }}</span>
+              <span class="message__time">{{ formatTime(message.createdAt) }}</span>
+            </div>
+            <div class="message__text">{{ message.text }}</div>
+          </div>
+        </template>
       </div>
 
       <div class="messages-panel__input">

@@ -94,6 +94,8 @@ export default {
             try {
                 await SendMessage(currentChat.value.id, text)
 
+                messages.value.forEach(m => m.isRead = true)
+
                 messages.value.push({
                     id: Date.now(),
                     text,
@@ -157,6 +159,15 @@ export default {
 
         const formatTime = (dateStr) => {
             return new Date(dateStr).toLocaleString('ru-RU')
+        }
+
+        const isUnreadDivider = (message, index) => {
+            if (message.isRead || message.sender.id === currentUser.value?.id) return false
+            for (let i = 0; i < index; i++) {
+                const prev = messages.value[i]
+                if (!prev.isRead && prev.sender.id !== currentUser.value?.id) return false
+            }
+            return true
         }
 
         const handleLogout = () => {
@@ -227,6 +238,7 @@ export default {
             getChatTitle,
             getSenderName,
             formatTime,
+            isUnreadDivider,
             handleLogout,
             loadChats,
             openChatById,

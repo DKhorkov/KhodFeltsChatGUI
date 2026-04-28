@@ -210,6 +210,24 @@
     gap: 15px;
 }
 
+.messages-panel__unread-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.messages-panel__unread-divider::before,
+.messages-panel__unread-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--danger);
+    opacity: 0.5;
+}
+
 .messages-panel__close-btn {
     background: none;
     border: none;
