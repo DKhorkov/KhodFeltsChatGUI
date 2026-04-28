@@ -1,4 +1,4 @@
-import {ref} from 'vue'
+import {inject, ref} from 'vue'
 import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
 import {SEARCH_DEBOUNCE_MS} from '../../constants'
 
@@ -6,6 +6,7 @@ export default {
     name: 'SearchUsersModal', emits: ['close'],
 
     setup() {
+        const showError = inject('showError')
         const searchQuery = ref('')
         const searchResults = ref([])
         const searched = ref(false)
@@ -28,7 +29,7 @@ export default {
                 searchResults.value = await SearchUsers({username: searchQuery.value}, null)
             } catch (err) {
                 searched.value = false
-                alert(err)
+                showError(err)
             }
         }
 

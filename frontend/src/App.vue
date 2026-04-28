@@ -32,6 +32,13 @@
       @close="showForgetPasswordModal = false"
     />
 
+    <AlertModal
+      v-if="alertModal"
+      :message="alertModal.message"
+      :type="alertModal.type"
+      @close="closeAlert"
+    />
+
     <div class="notifications-stack">
       <NotificationToast
         v-for="n in notifications"

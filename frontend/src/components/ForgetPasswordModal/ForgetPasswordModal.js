@@ -1,31 +1,33 @@
-import {ref} from 'vue'
+import {inject, ref} from 'vue'
 import {ForgetPassword} from '../../../wailsjs/go/forget_password/Handler'
 
 export default {
     name: 'ForgetPasswordModal', emits: ['close'], props: ['forgetPasswordMessage'],
 
     setup(props, {emit}) {
+        const showError = inject('showError')
+        const showInfo = inject('showInfo')
         const token = ref('')
         const newPassword = ref('')
         const confirmPassword = ref('')
 
         const resetPassword = async () => {
             if (!token.value || !newPassword.value || !confirmPassword.value) {
-                alert('Заполните все поля')
+                showInfo('Заполните все поля')
                 return
             }
 
             if (newPassword.value !== confirmPassword.value) {
-                alert('Пароли не совпадают')
+                showError('Пароли не совпадают')
                 return
             }
 
             try {
                 await ForgetPassword(token.value, {newPassword: newPassword.value})
-                alert('Пароль был успешно сброшен. Теперь вы можете авторизоваться.')
+                showInfo('Пароль был успешно сброшен. Теперь вы можете авторизоваться.')
                 emit('close')
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 

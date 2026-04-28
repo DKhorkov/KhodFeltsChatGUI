@@ -1,0 +1,69 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+}
+
+.alert-modal {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 30px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.alert-modal__icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+
+.alert-modal__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.alert-modal__message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 24px;
+    word-break: break-word;
+}
+
+.alert-modal__btn {
+    padding: 10px 32px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.alert-modal__btn--error {
+    background: var(--danger);
+    color: #ffffff;
+}
+
+.alert-modal__btn--error:hover {
+    opacity: 0.9;
+}
+
+.alert-modal__btn--info {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.alert-modal__btn--info:hover {
+    background: var(--accent-hover);
+}

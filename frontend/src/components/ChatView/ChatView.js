@@ -1,4 +1,4 @@
-import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
+import {inject, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {
     GetChatMessages,
     GetCurrentUser,
@@ -14,6 +14,7 @@ export default {
     name: 'ChatView', emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
 
     setup(props, {emit}) {
+        const showError = inject('showError')
         const chats = ref([])
         const currentChat = ref(null)
         const messages = ref([])
@@ -110,7 +111,7 @@ export default {
                 await nextTick()
                 scrollToBottom()
             } catch (err) {
-                alert(err)
+                showError(err)
                 newMessage.value = text
             }
         }
@@ -181,7 +182,7 @@ export default {
                 const themeName = isDarkTheme.value ? 'dark' : 'light'
                 document.documentElement.setAttribute('data-bs-theme', themeName)
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 

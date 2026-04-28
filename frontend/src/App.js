@@ -1,10 +1,11 @@
-import {onMounted, ref} from 'vue'
+import {onMounted, provide, ref} from 'vue'
 import LoginView from './components/LoginView/LoginView.vue'
 import ChatView from './components/ChatView/ChatView.vue'
 import CreateChatModal from './components/CreateChatModal/CreateChatModal.vue'
 import SearchUsersModal from './components/SearchUsersModal/SearchUsersModal.vue'
 import ForgetPasswordModal from './components/ForgetPasswordModal/ForgetPasswordModal.vue'
 import NotificationToast from './components/NotificationToast/NotificationToast.vue'
+import AlertModal from './components/AlertModal/AlertModal.vue'
 
 import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
 import {GetTheme} from '../wailsjs/go/settings/Handler'
@@ -12,7 +13,7 @@ import {NOTIFICATION_DURATION_MS, THEME, VIEW} from './constants'
 
 export default {
     name: 'App', components: {
-        LoginView, ChatView, CreateChatModal, SearchUsersModal, ForgetPasswordModal, NotificationToast
+        LoginView, ChatView, CreateChatModal, SearchUsersModal, ForgetPasswordModal, NotificationToast, AlertModal
     },
 
     setup() {
@@ -24,6 +25,25 @@ export default {
         const notifications = ref([])
         let notificationId = 0
         const forgetPasswordMessage = ref('')
+        const alertModal = ref(null)
+
+        const showError = (message) => {
+            alertModal.value = { message: String(message), type: 'error' }
+        }
+
+        const showInfo = (message) => {
+            alertModal.value = { message: String(message), type: 'info' }
+        }
+
+        const closeAlert = () => {
+            alertModal.value = null
+        }
+
+        // Механизм — через provide/inject:
+        // - App.js предоставляет showError() и showInfo()
+        // - Любой дочерний компонент получает их через inject() — не нужно пробрасывать emit через всю цепочку
+        provide('showError', showError)
+        provide('showInfo', showInfo)
 
         const checkSession = async () => {
             try {
@@ -121,6 +141,8 @@ export default {
             handleShowForgetPassword,
             handleNewMessageNotification,
             handleNotificationClick,
+            alertModal,
+            closeAlert,
         }
     }
 }

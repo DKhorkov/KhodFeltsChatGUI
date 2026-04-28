@@ -1,4 +1,4 @@
-import {ref} from 'vue'
+import {inject, ref} from 'vue'
 import {Login, Register, SendForgetPassword, SendVerifyEmail} from '../../../wailsjs/go/auth/Handler'
 import {TAB} from '../../constants'
 
@@ -6,6 +6,8 @@ export default {
     name: 'LoginView', emits: ['login-success', 'show-forget-password'],
 
     setup(props, {emit}) {
+        const showError = inject('showError')
+        const showInfo = inject('showInfo')
         const activeTab = ref(TAB.LOGIN)
 
         const loginForm = ref({
@@ -18,12 +20,12 @@ export default {
 
         const handleLogin = async () => {
             if (!loginForm.value.email) {
-                alert('Пожалуйста, введите адрес электронной почты')
+                showInfo('Пожалуйста, введите адрес электронной почты')
                 return
             }
 
             if (!loginForm.value.password) {
-                alert('Пожалуйста, введите пароль')
+                showInfo('Пожалуйста, введите пароль')
                 return
             }
 
@@ -31,28 +33,28 @@ export default {
                 await Login(loginForm.value.email, loginForm.value.password)
                 emit('login-success')
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 
         const handleRegister = async () => {
             if (!registerForm.value.email) {
-                alert('Пожалуйста, введите адрес электронной почты')
+                showInfo('Пожалуйста, введите адрес электронной почты')
                 return
             }
 
             if (!registerForm.value.username) {
-                alert('Пожалуйста, введите логин')
+                showInfo('Пожалуйста, введите логин')
                 return
             }
 
             if (!registerForm.value.password) {
-                alert('Пожалуйста, введите пароль')
+                showInfo('Пожалуйста, введите пароль')
                 return
             }
 
             if (registerForm.value.password !== registerForm.value.confirmPassword) {
-                alert('Пароли не совпадают')
+                showError('Пароли не совпадают')
                 return
             }
 
@@ -69,29 +71,29 @@ export default {
 
                 registerForm.value = {email: '', username: '', password: '', confirmPassword: ''}
 
-                alert('Регистрация прошла успешно. Теперь войдите')
+                showInfo('Регистрация прошла успешно. Теперь войдите')
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 
         const sendVerifyEmail = async () => {
             if (!loginForm.value.email) {
-                alert('Введите email')
+                showInfo('Введите email')
                 return
             }
 
             try {
                 await SendVerifyEmail(loginForm.value.email)
-                alert(`Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.email}`)
+                showInfo(`Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.email}`)
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 
         const sendForgetPassword = async () => {
             if (!loginForm.value.email) {
-                alert('Введите email')
+                showInfo('Введите email')
                 return
             }
 
@@ -99,7 +101,7 @@ export default {
                 await SendForgetPassword(loginForm.value.email)
                 emit('show-forget-password', `Письмо с кодом для сброса пароля было отправлено по адресу ${loginForm.value.email}`)
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 

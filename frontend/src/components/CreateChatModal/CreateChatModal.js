@@ -1,4 +1,4 @@
-import {ref} from 'vue'
+import {inject, ref} from 'vue'
 import {CreateChat} from '../../../wailsjs/go/create_chat/Handler'
 import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
 import {CHAT_TYPE, SEARCH_DEBOUNCE_MS} from '../../constants'
@@ -7,6 +7,8 @@ export default {
     name: 'CreateChatModal', emits: ['close', 'chat-created'],
 
     setup(props, {emit}) {
+        const showError = inject('showError')
+        const showInfo = inject('showInfo')
         const chatType = ref(CHAT_TYPE.PRIVATE)
         const chatTitle = ref('')
         const chatDescription = ref('')
@@ -29,13 +31,13 @@ export default {
             try {
                 searchResults.value = await SearchUsers({username: searchQuery.value}, null)
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 
         const createChat = async () => {
             if (chatType.value === CHAT_TYPE.PRIVATE && selectedUsers.value.length === 0) {
-                alert('Укажите хотя бы одного участника')
+                showInfo('Укажите хотя бы одного участника')
                 return
             }
 
@@ -49,7 +51,7 @@ export default {
 
                 emit('chat-created')
             } catch (err) {
-                alert(err)
+                showError(err)
             }
         }
 
