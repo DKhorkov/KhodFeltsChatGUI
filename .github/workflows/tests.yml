@@ -1,6 +1,6 @@
 name: tests-workflow
 run-name: ${{ github.actor }} is testing changes
-on: [push, pull_request]
+on: [ push, pull_request ]
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -20,5 +20,9 @@ jobs:
           sudo apt-get install -y libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev libasound2-dev pkg-config
       - name: Install dependencies
         run: go get ./...
+      - name: Prepare dummy frontend dist
+        run: |
+          mkdir -p frontend/dist
+          touch frontend/dist/placeholder.txt
       - name: Run tests
         run: task -d scripts tests integration=false -v
