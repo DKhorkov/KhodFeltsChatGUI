@@ -78,6 +78,14 @@ export default {
             }, NOTIFICATION_DURATION_MS)
         }
 
+        const handleNewMessageNotification = (text) => {
+            notification.value = text
+
+            setTimeout(() => {
+                notification.value = null
+            }, NOTIFICATION_DURATION_MS)
+        }
+
         const handleShowForgetPassword = (msg) => {
             forgetPasswordMessage.value = msg || 'Инструкции отправлены на почту'
             showForgetPasswordModal.value = true
@@ -96,6 +104,7 @@ export default {
             handleChatCreated,
             forgetPasswordMessage,
             handleShowForgetPassword,
+            handleNewMessageNotification,
         }
     }
 }

@@ -11,7 +11,7 @@ import {GetTheme, ToggleTheme} from '../../../wailsjs/go/settings/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 export default {
-    name: 'ChatView', emits: ['logout', 'show-create-chat', 'show-search-users'],
+    name: 'ChatView', emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
 
     setup(props, {emit}) {
         const chats = ref([])
@@ -115,11 +115,7 @@ export default {
 
             loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
 
-            if (Notification.permission === 'granted') {
-                new Notification('Новое сообщение', {
-                    body: `${message.sender.username}: ${message.text}`,
-                })
-            }
+            emit('new-message-notification', `${message.sender.username}: ${message.text}`)
         }
 
         const handleChatsUpdated = (updatedChats) => {

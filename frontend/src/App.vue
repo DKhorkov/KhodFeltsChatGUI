@@ -11,6 +11,7 @@
       @logout="handleLogout"
       @show-create-chat="showCreateChatModal = true"
       @show-search-users="showSearchUsersModal = true"
+      @new-message-notification="handleNewMessageNotification"
     />
 
     <!-- Модальные окна -->
