@@ -21,8 +21,8 @@ export default {
         const showCreateChatModal = ref(false)
         const showSearchUsersModal = ref(false)
         const showForgetPasswordModal = ref(false)
-        const notification = ref(null)
-        const notificationChatId = ref(null)
+        const notifications = ref([])
+        let notificationId = 0
         const forgetPasswordMessage = ref('')
 
         const checkSession = async () => {
@@ -66,35 +66,38 @@ export default {
             currentView.value = VIEW.LOGIN
         }
 
+        const addNotification = (message, chatId = null) => {
+            const id = ++notificationId
+            notifications.value.push({ id, message, chatId })
+
+            setTimeout(() => {
+                removeNotification(id)
+            }, NOTIFICATION_DURATION_MS)
+        }
+
+        const removeNotification = (id) => {
+            notifications.value = notifications.value.filter(n => n.id !== id)
+        }
+
         const handleChatCreated = () => {
             showCreateChatModal.value = false
-            notification.value = 'Чат успешно создан!'
+            addNotification('Чат успешно создан!')
 
             if (chatViewComponent.value) {
                 chatViewComponent.value.loadChats().catch(err => console.error("Ошибка обновления чатов:", err))
             }
-
-            setTimeout(() => {
-                notification.value = null
-            }, NOTIFICATION_DURATION_MS)
         }
 
         const handleNewMessageNotification = ({ text, chatId }) => {
-            notification.value = text
-            notificationChatId.value = chatId
-
-            setTimeout(() => {
-                notification.value = null
-                notificationChatId.value = null
-            }, NOTIFICATION_DURATION_MS)
+            addNotification(text, chatId)
         }
 
-        const handleNotificationClick = () => {
-            if (notificationChatId.value && chatViewComponent.value) {
-                chatViewComponent.value.openChatById(notificationChatId.value)
+        const handleNotificationClick = (id) => {
+            const n = notifications.value.find(n => n.id === id)
+            if (n?.chatId && chatViewComponent.value) {
+                chatViewComponent.value.openChatById(n.chatId)
             }
-            notification.value = null
-            notificationChatId.value = null
+            removeNotification(id)
         }
 
         const handleShowForgetPassword = (msg) => {
@@ -109,7 +112,8 @@ export default {
             showCreateChatModal,
             showSearchUsersModal,
             showForgetPasswordModal,
-            notification,
+            notifications,
+            removeNotification,
             handleLoginSuccess,
             handleLogout,
             handleChatCreated,

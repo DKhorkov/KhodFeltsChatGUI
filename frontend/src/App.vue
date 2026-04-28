@@ -32,12 +32,15 @@
       @close="showForgetPasswordModal = false"
     />
 
-    <NotificationToast
-      v-if="notification"
-      :message="notification"
-      @click="handleNotificationClick"
-      @close="notification = null"
-    />
+    <div class="notifications-stack">
+      <NotificationToast
+        v-for="n in notifications"
+        :key="n.id"
+        :message="n.message"
+        @click="handleNotificationClick(n.id)"
+        @close="removeNotification(n.id)"
+      />
+    </div>
   </div>
 </template>
 
