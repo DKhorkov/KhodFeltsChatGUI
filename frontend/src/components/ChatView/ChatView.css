@@ -412,6 +412,7 @@
 
 .message-bubble__text {
     font-size: var(--font-md);
+    white-space: pre-wrap;
     word-wrap: break-word;
     line-height: 1.5;
 }

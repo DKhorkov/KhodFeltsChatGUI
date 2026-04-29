@@ -73,7 +73,7 @@
           <textarea
             ref="textareaRef"
             v-model="newMessage"
-            @keydown.enter.prevent="sendMessage"
+            @keydown.enter.exact.prevent="sendMessage"
             placeholder="Введите сообщение..."
             rows="3"
           ></textarea>
