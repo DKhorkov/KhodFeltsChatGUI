@@ -27,6 +27,7 @@
               v-for="chat in chats"
               :key="chat.id"
               :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
+              @click="selectChat(chat)"
           >
             <div
                 class="chat-item__avatar"
@@ -35,7 +36,7 @@
             >
               {{ getChatTitle(chat).charAt(0).toUpperCase() }}
             </div>
-            <div class="chat-item__info" @click="selectChat(chat)">
+            <div class="chat-item__info">
               <div class="chat-item__title" :class="{ 'chat-item__title--bold': !chat.isRead }">
                 {{ getChatTitle(chat) }}
               </div>

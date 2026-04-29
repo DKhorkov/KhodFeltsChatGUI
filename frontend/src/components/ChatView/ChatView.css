@@ -134,6 +134,7 @@
     padding: var(--space-lg);
     transition: background var(--transition-base);
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
 }
 
 .chat-item:hover {
@@ -172,7 +173,6 @@
 .chat-item__info {
     flex: 1;
     min-width: 0;
-    cursor: pointer;
 }
 
 .chat-item__title {
