@@ -6,46 +6,45 @@
       @show-forget-password="handleShowForgetPassword"
     />
     <ChatView
-      ref="chatViewComponent"
+      ref="chatViewRef"
       v-else-if="currentView === VIEW.CHAT"
       @logout="handleLogout"
-      @show-create-chat="showCreateChatModal = true"
-      @show-search-users="showSearchUsersModal = true"
+      @show-create-chat="isCreateChatVisible = true"
+      @show-search-users="isSearchUsersVisible = true"
       @new-message-notification="handleNewMessageNotification"
     />
 
-    <!-- Модальные окна -->
     <CreateChatModal
-      v-if="showCreateChatModal"
-      @close="showCreateChatModal = false"
+      v-if="isCreateChatVisible"
+      @close="isCreateChatVisible = false"
       @chat-created="handleChatCreated"
     />
 
     <SearchUsersModal
-      v-if="showSearchUsersModal"
-      @close="showSearchUsersModal = false"
+      v-if="isSearchUsersVisible"
+      @close="isSearchUsersVisible = false"
     />
 
     <ForgetPasswordModal
-      v-if="showForgetPasswordModal"
-      :forgetPasswordMessage="forgetPasswordMessage"
-      @close="showForgetPasswordModal = false"
+      v-if="isForgetPasswordVisible"
+      :message="forgetPasswordMessage"
+      @close="isForgetPasswordVisible = false"
     />
 
     <AlertModal
-      v-if="alertModal"
-      :message="alertModal.message"
-      :type="alertModal.type"
-      @close="closeAlert"
+      v-if="alert"
+      :message="alert.message"
+      :type="alert.type"
+      @close="alert = null"
     />
 
     <div class="notifications-stack">
       <NotificationToast
-        v-for="n in notifications"
-        :key="n.id"
-        :message="n.message"
-        @click="handleNotificationClick(n.id)"
-        @close="removeNotification(n.id)"
+        v-for="notification in notifications"
+        :key="notification.id"
+        :message="notification.message"
+        @click="handleNotificationClick(notification.id)"
+        @close="removeNotification(notification.id)"
       />
     </div>
   </div>

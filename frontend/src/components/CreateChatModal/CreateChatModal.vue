@@ -16,31 +16,40 @@
         <input v-model="chatTitle" placeholder="Название чата" />
       </div>
 
+      <div v-if="chatType === CHAT_TYPE.GROUP" class="modal-content__form-group">
+        <label>Описание чата</label>
+        <input v-model="chatDescription" placeholder="Описание чата" />
+      </div>
+
       <div class="modal-content__form-group">
         <label>Поиск пользователей</label>
         <input
           v-model="searchQuery"
-          @input="debouncedSearch"
+          @input="handleSearchInput"
           placeholder="Введите имя пользователя..."
         />
       </div>
 
       <div v-if="searchResults.length > 0" class="modal-content__users-list">
-        <div
+        <label
           v-for="user in searchResults"
           :key="user.id"
-          class="user-item"
+          class="user-item user-item--selectable"
         >
           <input
             type="checkbox"
+            class="user-item__checkbox"
             :value="user.id"
-            v-model="selectedUsers"
+            v-model="selectedUserIds"
           />
+          <div class="user-item__avatar">
+            {{ user.username.charAt(0).toUpperCase() }}
+          </div>
           <div class="user-item__info">
             <div class="user-item__name">{{ user.username }}</div>
             <div class="user-item__email">{{ user.email }}</div>
           </div>
-        </div>
+        </label>
       </div>
 
       <div class="modal-content__actions">

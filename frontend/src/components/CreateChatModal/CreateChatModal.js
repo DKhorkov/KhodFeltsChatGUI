@@ -2,9 +2,11 @@ import {inject, ref} from 'vue'
 import {CreateChat} from '../../../wailsjs/go/create_chat/Handler'
 import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
 import {CHAT_TYPE, SEARCH_DEBOUNCE_MS} from '../../constants'
+import {debounce} from '../../utils/debounce'
 
 export default {
-    name: 'CreateChatModal', emits: ['close', 'chat-created'],
+    name: 'CreateChatModal',
+    emits: ['close', 'chat-created'],
 
     setup(props, {emit}) {
         const showError = inject('showError')
@@ -14,20 +16,11 @@ export default {
         const chatDescription = ref('')
         const searchQuery = ref('')
         const searchResults = ref([])
-        const selectedUsers = ref([])
-
-        let debounceTimer = null
-
-        const debouncedSearch = () => {
-            clearTimeout(debounceTimer)
-            debounceTimer = setTimeout(async () => {
-                if (searchQuery.value) {
-                    await searchUsers()
-                }
-            }, SEARCH_DEBOUNCE_MS)
-        }
+        const selectedUserIds = ref([])
 
         const searchUsers = async () => {
+            if (!searchQuery.value) return
+
             try {
                 searchResults.value = await SearchUsers({username: searchQuery.value}, null)
             } catch (err) {
@@ -35,8 +28,10 @@ export default {
             }
         }
 
+        const handleSearchInput = debounce(searchUsers, SEARCH_DEBOUNCE_MS)
+
         const createChat = async () => {
-            if (chatType.value === CHAT_TYPE.PRIVATE && selectedUsers.value.length === 0) {
+            if (selectedUserIds.value.length === 0) {
                 showInfo('Укажите хотя бы одного участника')
                 return
             }
@@ -44,7 +39,7 @@ export default {
             try {
                 await CreateChat({
                     type: chatType.value,
-                    memberIDs: selectedUsers.value,
+                    memberIDs: selectedUserIds.value,
                     title: chatType.value === CHAT_TYPE.GROUP ? chatTitle.value : null,
                     description: chatType.value === CHAT_TYPE.GROUP ? chatDescription.value : null,
                 })
@@ -59,10 +54,11 @@ export default {
             CHAT_TYPE,
             chatType,
             chatTitle,
+            chatDescription,
             searchQuery,
             searchResults,
-            selectedUsers,
-            debouncedSearch,
+            selectedUserIds,
+            handleSearchInput,
             createChat,
         }
     }

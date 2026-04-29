@@ -35,11 +35,11 @@
           <button type="submit" class="login-form__submit">Войти</button>
         </form>
 
-        <div class="login-form__actions">
-          <button @click="sendVerifyEmail" class="login-form__btn--secondary">
+        <div class="login-form__links">
+          <button @click="sendVerifyEmail" class="login-form__link" type="button">
             Отправить повторно письмо для подтверждения почты
           </button>
-          <button @click="sendForgetPassword" class="login-form__btn--danger">
+          <button @click="sendForgetPassword" class="login-form__link login-form__link--danger" type="button">
             Сбросить пароль
           </button>
         </div>

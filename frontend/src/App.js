@@ -12,36 +12,32 @@ import {GetTheme} from '../wailsjs/go/settings/Handler'
 import {NOTIFICATION_DURATION_MS, THEME, VIEW} from './constants'
 
 export default {
-    name: 'App', components: {
-        LoginView, ChatView, CreateChatModal, SearchUsersModal, ForgetPasswordModal, NotificationToast, AlertModal
+    name: 'App',
+    components: {
+        LoginView, ChatView, CreateChatModal, SearchUsersModal,
+        ForgetPasswordModal, NotificationToast, AlertModal,
     },
 
     setup() {
         const currentView = ref(VIEW.LOADING)
-        const chatViewComponent = ref(null)
-        const showCreateChatModal = ref(false)
-        const showSearchUsersModal = ref(false)
-        const showForgetPasswordModal = ref(false)
+        const chatViewRef = ref(null)
+        const isCreateChatVisible = ref(false)
+        const isSearchUsersVisible = ref(false)
+        const isForgetPasswordVisible = ref(false)
         const notifications = ref([])
-        let notificationId = 0
         const forgetPasswordMessage = ref('')
-        const alertModal = ref(null)
+        const alert = ref(null)
+
+        let nextNotificationId = 0
 
         const showError = (message) => {
-            alertModal.value = { message: String(message), type: 'error' }
+            alert.value = {message: String(message), type: 'error'}
         }
 
         const showInfo = (message) => {
-            alertModal.value = { message: String(message), type: 'info' }
+            alert.value = {message: String(message), type: 'info'}
         }
 
-        const closeAlert = () => {
-            alertModal.value = null
-        }
-
-        // Механизм — через provide/inject:
-        // - App.js предоставляет showError() и showInfo()
-        // - Любой дочерний компонент получает их через inject() — не нужно пробрасывать emit через всю цепочку
         provide('showError', showError)
         provide('showInfo', showInfo)
 
@@ -87,12 +83,10 @@ export default {
         }
 
         const addNotification = (message, chatId = null) => {
-            const id = ++notificationId
-            notifications.value.push({ id, message, chatId })
+            const id = ++nextNotificationId
+            notifications.value.push({id, message, chatId})
 
-            setTimeout(() => {
-                removeNotification(id)
-            }, NOTIFICATION_DURATION_MS)
+            setTimeout(() => removeNotification(id), NOTIFICATION_DURATION_MS)
         }
 
         const removeNotification = (id) => {
@@ -100,38 +94,38 @@ export default {
         }
 
         const handleChatCreated = () => {
-            showCreateChatModal.value = false
+            isCreateChatVisible.value = false
             addNotification('Чат успешно создан!')
 
-            if (chatViewComponent.value) {
-                chatViewComponent.value.loadChats().catch(err => console.error("Ошибка обновления чатов:", err))
+            if (chatViewRef.value) {
+                chatViewRef.value.loadChats().catch(err => console.error("Ошибка обновления чатов:", err))
             }
         }
 
-        const handleNewMessageNotification = ({ text, chatId }) => {
+        const handleNewMessageNotification = ({text, chatId}) => {
             addNotification(text, chatId)
         }
 
         const handleNotificationClick = (id) => {
-            const n = notifications.value.find(n => n.id === id)
-            if (n?.chatId && chatViewComponent.value) {
-                chatViewComponent.value.openChatById(n.chatId)
+            const notification = notifications.value.find(n => n.id === id)
+            if (notification?.chatId && chatViewRef.value) {
+                chatViewRef.value.openChatById(notification.chatId)
             }
             removeNotification(id)
         }
 
         const handleShowForgetPassword = (msg) => {
             forgetPasswordMessage.value = msg || 'Инструкции отправлены на почту'
-            showForgetPasswordModal.value = true
+            isForgetPasswordVisible.value = true
         }
 
         return {
             VIEW,
             currentView,
-            chatViewComponent,
-            showCreateChatModal,
-            showSearchUsersModal,
-            showForgetPasswordModal,
+            chatViewRef,
+            isCreateChatVisible,
+            isSearchUsersVisible,
+            isForgetPasswordVisible,
             notifications,
             removeNotification,
             handleLoginSuccess,
@@ -141,8 +135,7 @@ export default {
             handleShowForgetPassword,
             handleNewMessageNotification,
             handleNotificationClick,
-            alertModal,
-            closeAlert,
+            alert,
         }
     }
 }

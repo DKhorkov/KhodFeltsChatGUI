@@ -2,7 +2,14 @@ import {inject, ref} from 'vue'
 import {ForgetPassword} from '../../../wailsjs/go/forget_password/Handler'
 
 export default {
-    name: 'ForgetPasswordModal', emits: ['close'], props: ['forgetPasswordMessage'],
+    name: 'ForgetPasswordModal',
+    emits: ['close'],
+    props: {
+        message: {
+            type: String,
+            required: true,
+        },
+    },
 
     setup(props, {emit}) {
         const showError = inject('showError')

@@ -11,19 +11,20 @@ import {GetTheme, ToggleTheme} from '../../../wailsjs/go/settings/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 export default {
-    name: 'ChatView', emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
+    name: 'ChatView',
+    emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
 
     setup(props, {emit}) {
         const showError = inject('showError')
         const chats = ref([])
-        const currentChat = ref(null)
+        const selectedChat = ref(null)
         const messages = ref([])
         const currentUser = ref(null)
         const newMessage = ref('')
-        const messagesList = ref(null)
+        const messagesListRef = ref(null)
         const isDarkTheme = ref(false)
 
-        let loadMoreLock = false
+        let isLoadingMore = false
         let hasMoreMessages = true
 
         const loadChats = async () => {
@@ -36,12 +37,12 @@ export default {
 
         const loadMessages = async (chatId) => {
             try {
-                const msgs = await GetChatMessages(chatId, {
+                const fetched = await GetChatMessages(chatId, {
                     limit: MESSAGES_PAGE_SIZE,
                     offset: 0,
                 })
-                messages.value = msgs.reverse()
-                hasMoreMessages = msgs.length >= MESSAGES_PAGE_SIZE
+                messages.value = fetched.reverse()
+                hasMoreMessages = fetched.length >= MESSAGES_PAGE_SIZE
 
                 await nextTick()
                 scrollToBottom()
@@ -51,30 +52,30 @@ export default {
         }
 
         const loadMoreMessages = async () => {
-            if (loadMoreLock || !hasMoreMessages || !currentChat.value) return
-            loadMoreLock = true
+            if (isLoadingMore || !hasMoreMessages || !selectedChat.value) return
+            isLoadingMore = true
 
             try {
-                const olderMessages = await GetChatMessages(currentChat.value.id, {
+                const older = await GetChatMessages(selectedChat.value.id, {
                     limit: MESSAGES_PAGE_SIZE,
                     offset: messages.value.length,
                 })
 
-                if (olderMessages && olderMessages.length > 0) {
-                    messages.value = [...olderMessages.reverse(), ...messages.value]
-                    hasMoreMessages = olderMessages.length >= MESSAGES_PAGE_SIZE
+                if (older && older.length > 0) {
+                    messages.value = [...older.reverse(), ...messages.value]
+                    hasMoreMessages = older.length >= MESSAGES_PAGE_SIZE
                 } else {
                     hasMoreMessages = false
                 }
             } catch (err) {
                 console.error("Ошибка загрузки старых сообщений:", err)
             } finally {
-                loadMoreLock = false
+                isLoadingMore = false
             }
         }
 
         const selectChat = async (chat) => {
-            currentChat.value = chat
+            selectedChat.value = chat
             await loadMessages(chat.id)
             chat.isRead = true
         }
@@ -87,20 +88,20 @@ export default {
         }
 
         const sendMessage = async () => {
-            if (!newMessage.value.trim() || !currentChat.value) return
+            if (!newMessage.value.trim() || !selectedChat.value) return
 
             const text = newMessage.value
             newMessage.value = ''
 
             try {
-                await SendMessage(currentChat.value.id, text)
+                await SendMessage(selectedChat.value.id, text)
 
                 messages.value.forEach(m => m.isRead = true)
 
                 messages.value.push({
                     id: Date.now(),
                     text,
-                    chatId: currentChat.value.id,
+                    chatId: selectedChat.value.id,
                     createdAt: new Date().toISOString(),
                     sender: {
                         id: currentUser.value?.id,
@@ -117,7 +118,7 @@ export default {
         }
 
         const handleNewMessage = (message) => {
-            if (currentChat.value?.id === message.chatId) {
+            if (selectedChat.value?.id === message.chatId) {
                 messages.value.push(message)
                 nextTick(() => scrollToBottom())
                 return
@@ -136,15 +137,13 @@ export default {
         }
 
         const scrollToBottom = () => {
-            if (messagesList.value) {
-                messagesList.value.scrollTop = messagesList.value.scrollHeight
+            if (messagesListRef.value) {
+                messagesListRef.value.scrollTop = messagesListRef.value.scrollHeight
             }
         }
 
         const getChatTitle = (chat) => {
-            if (chat.title) {
-                return chat.title
-            }
+            if (chat.title) return chat.title
 
             if (chat.type === CHAT_TYPE.PRIVATE) {
                 const otherMember = chat.members.find(m => m.id !== currentUser.value?.id)
@@ -155,20 +154,19 @@ export default {
         }
 
         const getSenderName = (message) => {
-            return `${message.sender.id === currentUser.value?.id ? 'Вы' : message.sender.username} `
+            return message.sender.id === currentUser.value?.id ? 'Вы' : message.sender.username
         }
 
         const formatTime = (dateStr) => {
             return new Date(dateStr).toLocaleString('ru-RU')
         }
 
-        const isUnreadDivider = (message, index) => {
+        const isFirstUnread = (message, index) => {
             if (message.isRead || message.sender.id === currentUser.value?.id) return false
-            for (let i = 0; i < index; i++) {
-                const prev = messages.value[i]
-                if (!prev.isRead && prev.sender.id !== currentUser.value?.id) return false
-            }
-            return true
+            if (index === 0) return true
+
+            const prev = messages.value[index - 1]
+            return prev.isRead || prev.sender.id === currentUser.value?.id
         }
 
         const handleLogout = () => {
@@ -185,6 +183,8 @@ export default {
                 showError(err)
             }
         }
+
+        let scrollHandler = null
 
         onMounted(async () => {
             if (Notification.permission !== 'granted') {
@@ -211,11 +211,11 @@ export default {
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
         })
 
-        watch(messagesList, (el) => {
+        watch(messagesListRef, (el, _, onCleanup) => {
             if (!el) return
 
-            const handleScroll = async () => {
-                if (el.scrollTop <= 10 && !loadMoreLock && hasMoreMessages && currentChat.value) {
+            scrollHandler = async () => {
+                if (el.scrollTop <= 10 && !isLoadingMore && hasMoreMessages && selectedChat.value) {
                     const prevHeight = el.scrollHeight
                     await loadMoreMessages()
                     await nextTick()
@@ -223,23 +223,23 @@ export default {
                 }
             }
 
-            el.addEventListener('scroll', handleScroll)
-            return () => el.removeEventListener('scroll', handleScroll)
+            el.addEventListener('scroll', scrollHandler)
+            onCleanup(() => el.removeEventListener('scroll', scrollHandler))
         })
 
         return {
             chats,
-            currentChat,
+            selectedChat,
             messages,
             currentUser,
             newMessage,
-            messagesList,
+            messagesListRef,
             selectChat,
             sendMessage,
             getChatTitle,
             getSenderName,
             formatTime,
-            isUnreadDivider,
+            isFirstUnread,
             handleLogout,
             loadChats,
             openChatById,

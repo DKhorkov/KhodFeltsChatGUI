@@ -6,7 +6,7 @@
       <div class="modal-content__form-group">
         <input
           v-model="searchQuery"
-          @input="debouncedSearch"
+          @input="handleSearchInput"
           placeholder="Введите имя пользователя..."
         />
       </div>
@@ -14,7 +14,7 @@
       <div v-if="searchResults.length > 0" class="modal-content__users-list">
         <div
           v-for="user in searchResults"
-          :key="user.ID"
+          :key="user.id"
           class="user-item"
         >
           <div class="user-item__avatar">
@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <div v-else-if="searched && searchResults.length === 0" class="modal-content__no-results">
+      <div v-else-if="hasSearched && searchResults.length === 0" class="modal-content__no-results">
         Пользователи не найдены
       </div>
 

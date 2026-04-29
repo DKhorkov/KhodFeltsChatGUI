@@ -1,18 +1,18 @@
 <template>
-  <div class="chat-container">
-    <!-- Левая панель - список чатов -->
-    <div class="chats-panel">
-      <div class="chats-panel__header">
+  <div class="chat-layout">
+    <!-- Левая панель — список чатов -->
+    <aside class="sidebar">
+      <div class="sidebar__header">
         <h3>Чаты</h3>
-        <button @click="$emit('show-create-chat')" class="chats-panel__icon-btn" title="Создать чат">+</button>
-        <button @click="$emit('show-search-users')" class="chats-panel__icon-btn" title="Поиск пользователей">🔍</button>
+        <button @click="$emit('show-create-chat')" class="sidebar__icon-btn" title="Создать чат">+</button>
+        <button @click="$emit('show-search-users')" class="sidebar__icon-btn" title="Поиск пользователей">&#x1F50D;</button>
       </div>
 
-      <div class="chats-panel__list">
+      <div class="sidebar__list">
         <div
           v-for="chat in chats"
           :key="chat.id"
-          :class="['chat-item', { 'chat-item--active': currentChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
+          :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
           @click="selectChat(chat)"
         >
           <div class="chat-item__avatar">
@@ -23,52 +23,52 @@
               {{ getChatTitle(chat) }}
             </div>
           </div>
-          <div v-if="!chat.isRead" class="chat-item__unread-indicator">●</div>
+          <div v-if="!chat.isRead" class="chat-item__unread-dot"></div>
         </div>
       </div>
 
-      <div class="chats-panel__footer">
-        <label class="chats-panel__theme-toggle">
-          <span class="chats-panel__theme-label">{{ isDarkTheme ? '🌙' : '☀️' }}</span>
-          <div class="theme-toggle" @click="toggleTheme">
-            <div class="theme-toggle__track" :class="{ 'theme-toggle__track--active': isDarkTheme }">
-              <div class="theme-toggle__thumb" :class="{ 'theme-toggle__thumb--active': isDarkTheme }"></div>
+      <div class="sidebar__footer">
+        <label class="theme-switch">
+          <span class="theme-switch__icon">{{ isDarkTheme ? '&#x1F319;' : '&#x2600;&#xFE0F;' }}</span>
+          <div class="theme-switch__toggle" @click="toggleTheme">
+            <div class="theme-switch__track" :class="{ 'theme-switch__track--on': isDarkTheme }">
+              <div class="theme-switch__thumb" :class="{ 'theme-switch__thumb--on': isDarkTheme }"></div>
             </div>
           </div>
         </label>
-        <button @click="handleLogout" class="chats-panel__logout-btn">
-          <span class="chats-panel__logout-icon">🚪</span>
+        <button @click="handleLogout" class="sidebar__logout-btn">
+          <span class="sidebar__logout-icon">&#x1F6AA;</span>
           <span>Выйти из аккаунта</span>
         </button>
       </div>
-    </div>
+    </aside>
 
-    <!-- Правая панель - сообщения -->
-    <div class="messages-panel" v-if="currentChat">
-      <div class="messages-panel__header">
-        <h3>{{ getChatTitle(currentChat) }}</h3>
-        <button @click="currentChat = null" class="messages-panel__close-btn" title="Закрыть чат">×</button>
+    <!-- Правая панель — сообщения -->
+    <main class="conversation" v-if="selectedChat">
+      <div class="conversation__header">
+        <h3>{{ getChatTitle(selectedChat) }}</h3>
+        <button @click="selectedChat = null" class="conversation__close-btn" title="Закрыть чат">&times;</button>
       </div>
 
-      <div class="messages-panel__list" ref="messagesList">
+      <div class="conversation__messages" ref="messagesListRef">
         <template v-for="(message, index) in messages" :key="message.id">
           <div
-            v-if="isUnreadDivider(message, index)"
-            class="messages-panel__unread-divider"
+            v-if="isFirstUnread(message, index)"
+            class="conversation__unread-divider"
           >
             <span>Новые сообщения</span>
           </div>
-          <div :class="['message', { 'message--own': message.sender.id === currentUser?.id }]">
-            <div class="message__header">
-              <span class="message__sender">{{ getSenderName(message) }}</span>
-              <span class="message__time">{{ formatTime(message.createdAt) }}</span>
+          <div :class="['message-bubble', { 'message-bubble--own': message.sender.id === currentUser?.id }]">
+            <div class="message-bubble__header">
+              <span class="message-bubble__sender">{{ getSenderName(message) }}</span>
+              <span class="message-bubble__time">{{ formatTime(message.createdAt) }}</span>
             </div>
-            <div class="message__text">{{ message.text }}</div>
+            <div class="message-bubble__text">{{ message.text }}</div>
           </div>
         </template>
       </div>
 
-      <div class="messages-panel__input">
+      <div class="conversation__composer">
         <textarea
           v-model="newMessage"
           @keydown.enter.prevent="sendMessage"
@@ -79,9 +79,9 @@
           Отправить
         </button>
       </div>
-    </div>
+    </main>
 
-    <div v-else class="chat-container__empty">
+    <div v-else class="conversation__placeholder">
       <p>Выберите чат для начала общения</p>
     </div>
   </div>

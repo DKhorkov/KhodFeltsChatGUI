@@ -12,6 +12,7 @@ tasks:
       - sudo rm -rf tokens.json
       - sudo rm -rf build/
       - sudo rm -rf cmd/v2/frontend
+      - sudo rm -rf frontend/dist
       - sudo rm -rf frontend/node_modules
       - sudo rm -fr frontend/package.json.md5
       - sudo rm -fr frontend/package-lock.json

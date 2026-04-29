@@ -90,36 +90,29 @@
     cursor: not-allowed;
 }
 
-.login-form__actions {
+.login-form__links {
     margin-top: var(--space-xl);
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    align-items: center;
+    gap: var(--space-sm);
 }
 
-.login-form__btn--secondary,
-.login-form__btn--danger {
-    padding: var(--space-md);
+.login-form__link {
     background: none;
-    border: 1px solid;
-    border-radius: var(--radius-md);
+    border: none;
     cursor: pointer;
-    font-size: var(--font-md);
-    font-weight: 500;
-    transition: opacity var(--transition-base);
-}
-
-.login-form__btn--secondary:hover,
-.login-form__btn--danger:hover {
-    opacity: 0.75;
-}
-
-.login-form__btn--secondary {
+    font-size: var(--font-sm);
     color: var(--accent);
-    border-color: var(--accent);
+    transition: opacity var(--transition-base);
+    padding: var(--space-xs) 0;
 }
 
-.login-form__btn--danger {
+.login-form__link:hover {
+    opacity: 0.75;
+    text-decoration: underline;
+}
+
+.login-form__link--danger {
     color: var(--danger);
-    border-color: var(--danger);
 }
