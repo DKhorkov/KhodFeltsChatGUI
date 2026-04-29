@@ -35,12 +35,12 @@
       </div>
 
       <div class="modal-content__actions">
-        <button @click="$emit('close')">Назад</button>
-        <button @click="resetPassword">Сбросить пароль</button>
+        <button class="btn--secondary" @click="$emit('close')">Назад</button>
+        <button class="btn--primary" @click="resetPassword">Сбросить пароль</button>
       </div>
     </div>
   </div>
 </template>
 
 <script src="./ForgetPasswordModal.js"></script>
-<style scoped src="./ForgetPasswordModal.css"></style>
+<style src="./ForgetPasswordModal.css"></style>

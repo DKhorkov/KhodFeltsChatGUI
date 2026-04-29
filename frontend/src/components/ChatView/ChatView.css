@@ -1,9 +1,15 @@
+/* ═══════════════════════════════════════
+   Контейнер чата
+   ═══════════════════════════════════════ */
 .chat-container {
     display: flex;
     height: 100vh;
     background-color: var(--bg-app);
 }
 
+/* ═══════════════════════════════════════
+   Левая панель — список чатов
+   ═══════════════════════════════════════ */
 .chats-panel {
     width: 300px;
     background: var(--bg-panel);
@@ -14,30 +20,35 @@
 }
 
 .chats-panel__header {
-    padding: 20px;
+    padding: var(--space-xl);
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     display: flex;
-    gap: 10px;
+    gap: var(--space-sm);
     align-items: center;
 }
 
 .chats-panel__header h3 {
     flex: 1;
     margin: 0;
+    font-size: var(--font-lg);
+    font-weight: 600;
     color: var(--text-primary);
 }
 
 .chats-panel__icon-btn {
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
     border: none;
     background: var(--bg-hover);
     color: var(--text-primary);
-    border-radius: 5px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 18px;
-    transition: background 0.2s;
+    font-size: var(--font-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-base);
 }
 
 .chats-panel__icon-btn:hover {
@@ -50,49 +61,55 @@
 }
 
 .chats-panel__footer {
-    padding: 15px;
+    padding: var(--space-lg);
     background: var(--bg-surface);
     border-top: 1px solid var(--border);
 }
 
+/* ═══════════════════════════════════════
+   Кнопка выхода
+   ═══════════════════════════════════════ */
 .chats-panel__logout-btn {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
+    gap: var(--space-sm);
+    padding: var(--space-md);
     border: 1px solid var(--border-danger);
     background: var(--bg-danger);
     color: var(--danger);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--font-md);
     font-weight: 500;
-    transition: all 0.2s;
+    transition: all var(--transition-base);
 }
 
 .chats-panel__logout-btn:hover {
     border-color: var(--border-danger-hover);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
 }
 
 .chats-panel__logout-icon {
-    font-size: 18px;
+    font-size: var(--font-xl);
 }
 
+/* ═══════════════════════════════════════
+   Переключатель темы
+   ═══════════════════════════════════════ */
 .chats-panel__theme-toggle {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 6px 10px;
-    border-radius: 8px;
+    margin-bottom: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
     background: var(--bg-hover);
     cursor: pointer;
 }
 
 .chats-panel__theme-label {
-    font-size: 18px;
+    font-size: var(--font-xl);
     color: var(--text-primary);
     user-select: none;
 }
@@ -108,7 +125,7 @@
     background: var(--border);
     border-radius: 12px;
     position: relative;
-    transition: background 0.3s;
+    transition: background var(--transition-slow);
     cursor: pointer;
 }
 
@@ -119,25 +136,28 @@
 .theme-toggle__thumb {
     width: 20px;
     height: 20px;
-    background: #ffffff;
-    border-radius: 50%;
+    background: var(--text-on-accent);
+    border-radius: var(--radius-full);
     position: absolute;
     top: 2px;
     left: 2px;
-    transition: transform 0.3s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform var(--transition-slow);
+    box-shadow: var(--shadow-sm);
 }
 
 .theme-toggle__thumb--active {
     transform: translateX(20px);
 }
 
+/* ═══════════════════════════════════════
+   Элемент списка чатов
+   ═══════════════════════════════════════ */
 .chat-item {
     display: flex;
     align-items: center;
-    padding: 15px;
+    padding: var(--space-lg);
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background var(--transition-base);
     border-bottom: 1px solid var(--border);
 }
 
@@ -150,37 +170,44 @@
 }
 
 .chat-item__avatar {
-    width: 45px;
-    height: 45px;
+    width: 44px;
+    height: 44px;
     background: var(--accent);
-    color: #ffffff;
-    border-radius: 50%;
+    color: var(--text-on-accent);
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    margin-right: 12px;
+    font-weight: 600;
+    font-size: var(--font-lg);
+    margin-right: var(--space-md);
     flex-shrink: 0;
 }
 
 .chat-item__info {
     flex: 1;
+    min-width: 0;
 }
 
 .chat-item__title {
-    font-size: 14px;
+    font-size: var(--font-md);
     color: var(--text-primary);
 }
 
 .chat-item__title--bold {
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .chat-item__unread-indicator {
-    color: var(--danger);
-    font-size: 20px;
+    color: var(--accent);
+    font-size: var(--font-xs);
+    flex-shrink: 0;
+    margin-left: var(--space-sm);
 }
 
+/* ═══════════════════════════════════════
+   Правая панель — сообщения
+   ═══════════════════════════════════════ */
 .messages-panel {
     flex: 1;
     display: flex;
@@ -189,7 +216,7 @@
 }
 
 .messages-panel__header {
-    padding: 20px;
+    padding: var(--space-xl);
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -198,25 +225,31 @@
 }
 
 .messages-panel__header h3 {
+    font-size: var(--font-lg);
+    font-weight: 600;
     color: var(--text-primary);
 }
 
 .messages-panel__list {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: var(--space-xl);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: var(--space-md);
 }
 
+/* ═══════════════════════════════════════
+   Разделитель непрочитанных
+   ═══════════════════════════════════════ */
 .messages-panel__unread-divider {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-sm);
     color: var(--danger);
-    font-size: 12px;
+    font-size: var(--font-xs);
     font-weight: 500;
+    padding: var(--space-xs) 0;
 }
 
 .messages-panel__unread-divider::before,
@@ -225,62 +258,77 @@
     flex: 1;
     height: 1px;
     background: var(--danger);
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
+/* ═══════════════════════════════════════
+   Кнопка закрытия чата
+   ═══════════════════════════════════════ */
 .messages-panel__close-btn {
     background: none;
     border: none;
-    font-weight: bold;
-    width: 40px;
-    height: 40px;
-    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text-placeholder);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
+    border-radius: var(--radius-md);
     padding: 0;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base);
 }
 
 .messages-panel__close-btn:hover {
     color: var(--danger);
-    transform: scale(1.2);
+    background: var(--bg-hover);
 }
 
+/* ═══════════════════════════════════════
+   Ввод сообщения
+   ═══════════════════════════════════════ */
 .messages-panel__input {
-    padding: 20px;
+    padding: var(--space-lg);
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 10px;
+    gap: var(--space-sm);
     background: var(--bg-surface);
 }
 
 .messages-panel__input textarea {
     flex: 1;
-    padding: 10px;
+    padding: var(--space-md);
     border: 1px solid var(--border-input);
-    border-radius: 5px;
+    border-radius: var(--radius-md);
     resize: none;
     font-family: inherit;
+    font-size: var(--font-md);
     background: var(--bg-input);
     color: var(--text-primary);
+    transition: border-color var(--transition-base);
 }
 
 .messages-panel__input textarea::placeholder {
     color: var(--text-placeholder);
 }
 
+.messages-panel__input textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 .messages-panel__input button {
-    padding: 10px 20px;
+    padding: var(--space-md) var(--space-xl);
     background: var(--accent);
-    color: #ffffff;
+    color: var(--text-on-accent);
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-md);
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background var(--transition-base);
 }
 
 .messages-panel__input button:hover:not(:disabled) {
@@ -288,14 +336,17 @@
 }
 
 .messages-panel__input button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
+/* ═══════════════════════════════════════
+   Сообщения
+   ═══════════════════════════════════════ */
 .message {
     max-width: 70%;
-    padding: 10px 15px;
-    border-radius: 10px;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
     align-self: flex-start;
     background: var(--bg-message-other);
     color: var(--text-primary);
@@ -304,26 +355,31 @@
 .message--own {
     align-self: flex-end;
     background: var(--accent);
-    color: #ffffff;
+    color: var(--text-on-accent);
 }
 
 .message__header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 12px;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-xs);
     color: var(--text-muted);
 }
 
 .message--own .message__header {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.75);
 }
 
 .message__text {
-    font-size: 14px;
+    font-size: var(--font-md);
     word-wrap: break-word;
+    line-height: 1.5;
 }
 
+/* ═══════════════════════════════════════
+   Пустое состояние
+   ═══════════════════════════════════════ */
 .chat-container__empty {
     flex: 1;
     display: flex;
@@ -331,6 +387,5 @@
     justify-content: center;
     color: var(--text-placeholder);
     background-color: var(--bg-surface);
-    transform: translateZ(0);
-    will-change: transform;
+    font-size: var(--font-lg);
 }

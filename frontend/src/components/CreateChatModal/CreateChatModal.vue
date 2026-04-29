@@ -44,12 +44,12 @@
       </div>
 
       <div class="modal-content__actions">
-        <button @click="$emit('close')">Отмена</button>
-        <button @click="createChat">Создать</button>
+        <button class="btn--secondary" @click="$emit('close')">Отмена</button>
+        <button class="btn--primary" @click="createChat">Создать</button>
       </div>
     </div>
   </div>
 </template>
 
 <script src="./CreateChatModal.js"></script>
-<style scoped src="./CreateChatModal.css"></style>
+<style src="./CreateChatModal.css"></style>

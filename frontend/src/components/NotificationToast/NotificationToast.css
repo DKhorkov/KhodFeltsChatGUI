@@ -1,20 +1,20 @@
 .notification {
-    animation: slideIn 0.3s ease;
+    animation: slideIn var(--transition-slow);
 }
 
 .notification__content {
-    background: #2a2a3e;
-    color: #e2e2f0;
-    border-radius: 8px;
-    padding: 12px 16px;
+    background: var(--bg-toast);
+    color: var(--text-toast);
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-lg);
     min-width: 250px;
     max-width: 400px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    gap: var(--space-md);
+    box-shadow: var(--shadow-md);
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform var(--transition-base);
 }
 
 .notification__content:hover {
@@ -22,12 +22,13 @@
 }
 
 .notification__icon {
-    font-size: 20px;
+    font-size: var(--font-xl);
+    flex-shrink: 0;
 }
 
 .notification__message {
     flex: 1;
-    font-size: 14px;
+    font-size: var(--font-md);
     line-height: 1.4;
     word-break: break-word;
 }
@@ -35,8 +36,8 @@
 .notification__close {
     background: none;
     border: none;
-    color: #e2e2f0;
-    font-size: 20px;
+    color: var(--text-toast);
+    font-size: var(--font-xl);
     cursor: pointer;
     padding: 0;
     width: 24px;
@@ -44,8 +45,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: background 0.2s;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    transition: background var(--transition-base);
 }
 
 .notification__close:hover {

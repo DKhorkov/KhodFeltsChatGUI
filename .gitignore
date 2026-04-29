@@ -38,6 +38,7 @@ bench.txt
 tokens.json
 kfc
 settings.json
+frontend/dist
 frontend/node_modules
 frontend/package-lock.json
 frontend/package.json.md5

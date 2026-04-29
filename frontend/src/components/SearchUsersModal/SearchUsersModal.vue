@@ -32,11 +32,11 @@
       </div>
 
       <div class="modal-content__actions">
-        <button @click="$emit('close')">Закрыть</button>
+        <button class="btn--secondary" @click="$emit('close')">Закрыть</button>
       </div>
     </div>
   </div>
 </template>
 
 <script src="./SearchUsersModal.js"></script>
-<style scoped src="./SearchUsersModal.css"></style>
+<style src="./SearchUsersModal.css"></style>

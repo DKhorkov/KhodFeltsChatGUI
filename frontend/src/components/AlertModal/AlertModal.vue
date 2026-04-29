@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay modal-overlay--alert" @click="$emit('close')">
     <div class="alert-modal" :class="`alert-modal--${type}`" @click.stop>
       <div class="alert-modal__icon">{{ type === 'error' ? '❌' : 'ℹ️' }}</div>
       <div class="alert-modal__title">{{ type === 'error' ? 'Ошибка' : 'Информация' }}</div>
@@ -10,4 +10,4 @@
 </template>
 
 <script src="./AlertModal.js"></script>
-<style scoped src="./AlertModal.css"></style>
+<style src="./AlertModal.css"></style>
