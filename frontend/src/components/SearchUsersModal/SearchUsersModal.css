@@ -1,1 +1,7 @@
-/* Все стили вынесены в global.css */
+.user-item--clickable {
+    cursor: pointer;
+}
+
+.user-item--clickable:hover {
+    background: var(--bg-active);
+}

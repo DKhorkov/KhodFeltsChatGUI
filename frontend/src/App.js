@@ -6,6 +6,7 @@ import SearchUsersModal from './components/SearchUsersModal/SearchUsersModal.vue
 import ForgetPasswordModal from './components/ForgetPasswordModal/ForgetPasswordModal.vue'
 import NotificationToast from './components/NotificationToast/NotificationToast.vue'
 import AlertModal from './components/AlertModal/AlertModal.vue'
+import ProfileModal from './components/ProfileModal/ProfileModal.vue'
 
 import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
 import {GetTheme} from '../wailsjs/go/settings/Handler'
@@ -15,7 +16,7 @@ export default {
     name: 'App',
     components: {
         LoginView, ChatView, CreateChatModal, SearchUsersModal,
-        ForgetPasswordModal, NotificationToast, AlertModal,
+        ForgetPasswordModal, NotificationToast, AlertModal, ProfileModal,
     },
 
     setup() {
@@ -24,6 +25,7 @@ export default {
         const isCreateChatVisible = ref(false)
         const isSearchUsersVisible = ref(false)
         const isForgetPasswordVisible = ref(false)
+        const isProfileVisible = ref(false)
         const notifications = ref([])
         const forgetPasswordMessage = ref('')
         const alert = ref(null)
@@ -126,6 +128,7 @@ export default {
             isCreateChatVisible,
             isSearchUsersVisible,
             isForgetPasswordVisible,
+            isProfileVisible,
             notifications,
             removeNotification,
             handleLoginSuccess,

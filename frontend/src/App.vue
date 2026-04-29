@@ -11,6 +11,7 @@
       @logout="handleLogout"
       @show-create-chat="isCreateChatVisible = true"
       @show-search-users="isSearchUsersVisible = true"
+      @show-profile="isProfileVisible = true"
       @new-message-notification="handleNewMessageNotification"
     />
 
@@ -29,6 +30,15 @@
       v-if="isForgetPasswordVisible"
       :message="forgetPasswordMessage"
       @close="isForgetPasswordVisible = false"
+    />
+
+    <ProfileModal
+      v-if="isProfileVisible && chatViewRef"
+      :user="chatViewRef.currentUser"
+      :isDarkTheme="chatViewRef.isDarkTheme"
+      @toggle-theme="chatViewRef.toggleTheme()"
+      @logout="isProfileVisible = false; handleLogout()"
+      @close="isProfileVisible = false"
     />
 
     <AlertModal

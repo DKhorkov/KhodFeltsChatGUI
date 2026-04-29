@@ -3,8 +3,73 @@
    ═══════════════════════════════════════ */
 .chat-layout {
     display: flex;
+    flex-direction: column;
     height: 100vh;
     background-color: var(--bg-app);
+}
+
+.chat-layout__body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+/* ═══════════════════════════════════════
+   Верхний тулбар
+   ═══════════════════════════════════════ */
+.toolbar {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-xl);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.toolbar__spacer {
+    flex: 1;
+}
+
+.toolbar__profile-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-xs);
+    border: 1px solid var(--border);
+    background: var(--bg-hover);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+}
+
+.toolbar__profile-btn:hover {
+    background: var(--bg-active);
+    box-shadow: var(--shadow-sm);
+}
+
+.toolbar__profile-avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-xs);
+    flex-shrink: 0;
+}
+
+.toolbar__profile-name {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ═══════════════════════════════════════
@@ -17,7 +82,6 @@
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    height: 100vh;
 }
 
 .sidebar__header {
@@ -61,95 +125,6 @@
     overflow-y: auto;
 }
 
-.sidebar__footer {
-    padding: var(--space-lg);
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border);
-}
-
-/* ═══════════════════════════════════════
-   Кнопка выхода
-   ═══════════════════════════════════════ */
-.sidebar__logout-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-md);
-    border: 1px solid var(--border-danger);
-    background: var(--bg-danger);
-    color: var(--danger);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: var(--font-md);
-    font-weight: 500;
-    transition: all var(--transition-base);
-}
-
-.sidebar__logout-btn:hover {
-    border-color: var(--border-danger-hover);
-    box-shadow: var(--shadow-sm);
-}
-
-.sidebar__logout-icon {
-    font-size: var(--font-xl);
-}
-
-/* ═══════════════════════════════════════
-   Переключатель темы
-   ═══════════════════════════════════════ */
-.theme-switch {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-md);
-    background: var(--bg-hover);
-    cursor: pointer;
-}
-
-.theme-switch__icon {
-    font-size: var(--font-xl);
-    color: var(--text-primary);
-    user-select: none;
-}
-
-.theme-switch__toggle {
-    display: flex;
-    align-items: center;
-}
-
-.theme-switch__track {
-    width: 44px;
-    height: 24px;
-    background: var(--border);
-    border-radius: 12px;
-    position: relative;
-    transition: background var(--transition-slow);
-    cursor: pointer;
-}
-
-.theme-switch__track--on {
-    background: var(--accent);
-}
-
-.theme-switch__thumb {
-    width: 20px;
-    height: 20px;
-    background: var(--text-on-accent);
-    border-radius: var(--radius-full);
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    transition: transform var(--transition-slow);
-    box-shadow: var(--shadow-sm);
-}
-
-.theme-switch__thumb--on {
-    transform: translateX(20px);
-}
-
 /* ═══════════════════════════════════════
    Элемент списка чатов
    ═══════════════════════════════════════ */
@@ -157,9 +132,9 @@
     display: flex;
     align-items: center;
     padding: var(--space-lg);
-    cursor: pointer;
     transition: background var(--transition-base);
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
 }
 
 .chat-item:hover {
@@ -183,6 +158,16 @@
     font-size: var(--font-lg);
     margin-right: var(--space-md);
     flex-shrink: 0;
+    transition: opacity var(--transition-base), box-shadow var(--transition-base);
+}
+
+.chat-item__avatar--clickable {
+    cursor: pointer;
+}
+
+.chat-item__avatar--clickable:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 0 2px var(--accent-hover);
 }
 
 .chat-item__info {
@@ -219,6 +204,7 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-surface);
+    outline: none;
 }
 
 .conversation__header {
@@ -273,8 +259,8 @@
 .conversation__close-btn {
     background: none;
     border: none;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     font-size: 24px;
     font-weight: 600;
     color: var(--text-placeholder);
@@ -288,7 +274,7 @@
 }
 
 .conversation__close-btn:hover {
-    color: var(--danger);
+    color: var(--text-primary);
     background: var(--bg-hover);
 }
 

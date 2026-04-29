@@ -1,5 +1,10 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay"
+       @click="$emit('close')"
+       @keydown.escape="$emit('close')"
+       tabindex="-1"
+       v-focus
+  >
     <div class="modal-content" @click.stop>
       <h2 class="modal-content__title">Сброс пароля</h2>
 
@@ -11,26 +16,26 @@
         <div class="modal-content__form-group">
           <label>Код для сброса пароля</label>
           <input
-            v-model="token"
-            placeholder="Введите код из письма"
+              v-model="token"
+              placeholder="Введите код из письма"
           />
         </div>
 
         <div class="modal-content__form-group">
           <label>Новый пароль</label>
           <input
-            v-model="newPassword"
-            type="password"
-            placeholder="Новый пароль"
+              v-model="newPassword"
+              type="password"
+              placeholder="Новый пароль"
           />
         </div>
 
         <div class="modal-content__form-group">
           <label>Подтверждение пароля</label>
           <input
-            v-model="confirmPassword"
-            type="password"
-            placeholder="Подтвердите пароль"
+              v-model="confirmPassword"
+              type="password"
+              placeholder="Подтвердите пароль"
           />
         </div>
 

@@ -14,7 +14,7 @@ import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
 export default {
     name: 'ChatView',
     components: {EmojiPicker},
-    emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
+    emits: ['logout', 'show-create-chat', 'show-search-users', 'show-profile', 'new-message-notification'],
 
     setup(props, {emit}) {
         const showError = inject('showError')
@@ -27,6 +27,7 @@ export default {
         const textareaRef = ref(null)
         const isDarkTheme = ref(false)
         const isEmojiPickerVisible = ref(false)
+        const selectedMember = ref(null)
 
         let isLoadingMore = false
         let hasMoreMessages = true
@@ -155,15 +156,25 @@ export default {
             }
         }
 
+        const getOtherMember = (chat) => {
+            if (chat.type !== CHAT_TYPE.PRIVATE) return null
+            return chat.members.find(m => m.id !== currentUser.value?.id) ?? null
+        }
+
         const getChatTitle = (chat) => {
             if (chat.title) return chat.title
 
-            if (chat.type === CHAT_TYPE.PRIVATE) {
-                const otherMember = chat.members.find(m => m.id !== currentUser.value?.id)
-                if (otherMember) return otherMember.username
-            }
+            const otherMember = getOtherMember(chat)
+            if (otherMember) return otherMember.username
 
             return `Чат #${chat.id}`
+        }
+
+        const openMemberProfile = (chat) => {
+            const member = getOtherMember(chat)
+            if (member) {
+                selectedMember.value = member
+            }
         }
 
         const getSenderName = (message) => {
@@ -172,6 +183,14 @@ export default {
 
         const formatTime = (dateStr) => {
             return new Date(dateStr).toLocaleString('ru-RU')
+        }
+
+        const formatDate = (dateStr) => {
+            return new Date(dateStr).toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            })
         }
 
         const isFirstUnread = (message, index) => {
@@ -199,10 +218,6 @@ export default {
             textarea.selectionStart = cursorPos
             textarea.selectionEnd = cursorPos
             textarea.focus()
-        }
-
-        const handleLogout = () => {
-            emit('logout')
         }
 
         const toggleTheme = async () => {
@@ -268,14 +283,17 @@ export default {
             messagesListRef,
             textareaRef,
             isEmojiPickerVisible,
+            selectedMember,
             insertEmoji,
             selectChat,
             sendMessage,
             getChatTitle,
+            getOtherMember,
+            openMemberProfile,
             getSenderName,
             formatTime,
+            formatDate,
             isFirstUnread,
-            handleLogout,
             loadChats,
             openChatById,
             toggleTheme,
