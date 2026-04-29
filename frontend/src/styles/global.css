@@ -335,6 +335,130 @@ body {
 }
 
 /* ═══════════════════════════════════════
+   Общие стили профиля
+   ═══════════════════════════════════════ */
+.profile-modal {
+    width: 420px;
+    position: relative;
+}
+
+.profile-modal__close {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-placeholder);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    padding: 0;
+    transition: all var(--transition-base);
+}
+
+.profile-modal__close:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.profile-modal__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-2xl);
+}
+
+.profile-modal__avatar {
+    width: 56px;
+    height: 56px;
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-xl);
+    flex-shrink: 0;
+}
+
+.profile-modal__title h2 {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.profile-modal__email {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+}
+
+.profile-modal__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-lg);
+    background: var(--bg-panel);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+}
+
+.profile-modal__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-modal__label {
+    font-size: var(--font-md);
+    color: var(--text-secondary);
+}
+
+.profile-modal__value {
+    font-size: var(--font-md);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.profile-modal__value--success {
+    color: #38a169;
+}
+
+.profile-modal__value--warning {
+    color: var(--danger);
+}
+
+.profile-modal__section {
+    padding: var(--space-lg);
+    background: var(--bg-panel);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2xl);
+}
+
+.profile-modal__theme-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.btn--danger {
+    background: var(--danger);
+    color: var(--text-on-accent);
+}
+
+.btn--danger:hover {
+    opacity: 0.9;
+}
+
+/* ═══════════════════════════════════════
    Переключатель темы
    ═══════════════════════════════════════ */
 .theme-switch__toggle {
