@@ -1,7 +1,7 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content profile-modal" @click.stop>
-      <button class="profile-modal__close" @click="$emit('close')" title="Закрыть">&times;</button>
+      <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <div class="profile-modal__header">
         <div class="profile-modal__avatar">
           {{ user.username.charAt(0).toUpperCase() }}

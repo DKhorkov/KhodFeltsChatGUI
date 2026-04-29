@@ -1,6 +1,7 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop v-if="!selectedUser">
+      <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <h2 class="modal-content__title">Поиск пользователей</h2>
 
       <div class="modal-content__form-group">
@@ -32,14 +33,11 @@
         Пользователи не найдены
       </div>
 
-      <div class="modal-content__actions">
-        <button class="btn--secondary" @click="$emit('close')">Закрыть</button>
-      </div>
     </div>
 
     <!-- Профиль выбранного пользователя -->
     <div class="modal-content profile-modal" @click.stop v-else>
-      <button class="profile-modal__close" @click="selectedUser = null" title="Назад">&times;</button>
+      <button class="modal-content__close" @click="selectedUser = null" title="Назад">&times;</button>
       <div class="profile-modal__header">
         <div class="profile-modal__avatar">
           {{ selectedUser.username.charAt(0).toUpperCase() }}
@@ -63,9 +61,6 @@
         </div>
       </div>
 
-      <div class="modal-content__actions">
-        <button class="btn--secondary" @click="selectedUser = null">Назад к поиску</button>
-      </div>
     </div>
   </div>
 </template>

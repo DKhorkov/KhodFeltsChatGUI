@@ -1,6 +1,7 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
     <div class="modal-content" @click.stop>
+      <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <h2 class="modal-content__title">Создать чат</h2>
 
       <div class="modal-content__form-group">
@@ -53,7 +54,6 @@
       </div>
 
       <div class="modal-content__actions">
-        <button class="btn--secondary" @click="$emit('close')">Отмена</button>
         <button class="btn--primary" @click="createChat">Создать</button>
       </div>
     </div>

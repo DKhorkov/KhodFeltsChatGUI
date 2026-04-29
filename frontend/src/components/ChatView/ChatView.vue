@@ -108,7 +108,7 @@
     <!-- Профиль участника чата -->
     <div v-if="selectedMember" class="modal-overlay" @click="selectedMember = null">
       <div class="modal-content profile-modal" @click.stop>
-        <button class="profile-modal__close" @click="selectedMember = null" title="Закрыть">&times;</button>
+        <button class="modal-content__close" @click="selectedMember = null" title="Закрыть">&times;</button>
         <div class="profile-modal__header">
           <div class="profile-modal__avatar">
             {{ selectedMember.username.charAt(0).toUpperCase() }}
@@ -132,9 +132,6 @@
           </div>
         </div>
 
-        <div class="modal-content__actions">
-          <button class="btn--secondary" @click="selectedMember = null">Закрыть</button>
-        </div>
       </div>
     </div>
   </div>
