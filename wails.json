@@ -1,0 +1,14 @@
+{
+  "name": "KhodFeltsChatGUI",
+  "build:dir": "build/v2",
+  "outputfilename": "kfc",
+  "server:port": "34115",
+  "frontend:dev:serverUrl": "http://localhost:5173",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "author": {
+    "name": "DKhorkov",
+    "email": "your.email@example.com"
+  }
+}

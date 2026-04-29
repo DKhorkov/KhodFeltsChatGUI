@@ -757,10 +757,14 @@ func TestUseCases_GetUserChats(t *testing.T) {
 
 	now := time.Now()
 
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](10),
+		Offset: pointers.New[uint64](10),
+	}
+
 	tests := []struct {
 		name       string
-		limit      int
-		offset     int
+		pagination *domains.Pagination
 		setupMocks func(
 			*mockrepositories.MockTokensRepository,
 			*mockrepositories.MockChatsRepository,
@@ -771,9 +775,8 @@ func TestUseCases_GetUserChats(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name:   "successful get user chats",
-			limit:  10,
-			offset: 0,
+			name:       "successful get user chats",
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
@@ -788,7 +791,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 					}, nil)
 
 				mockChats.EXPECT().
-					GetUserChats(gomock.Any(), "access_token", 10, 0).
+					GetUserChats(gomock.Any(), "access_token", pagination).
 					Return([]domains.Chat{
 						{ID: 1, Title: pointers.New("Chat 1"), CreatedAt: now, UpdatedAt: now},
 						{ID: 2, Title: pointers.New("Chat 2"), CreatedAt: now, UpdatedAt: now},
@@ -801,9 +804,8 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:   "failed to load tokens",
-			limit:  10,
-			offset: 0,
+			name:       "failed to load tokens",
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockChatsRepository,
@@ -824,9 +826,8 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			expectedError: errors.New("tokens not found"),
 		},
 		{
-			name:   "failed to get user chats",
-			limit:  10,
-			offset: 0,
+			name:       "failed to get user chats",
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
@@ -841,7 +842,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 					}, nil)
 
 				mockChats.EXPECT().
-					GetUserChats(gomock.Any(), "access_token", 10, 0).
+					GetUserChats(gomock.Any(), "access_token", pagination).
 					Return(nil, errors.New("chats not found"))
 
 				mockLogger.EXPECT().
@@ -885,7 +886,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 				mockErrorsMapper,
 			)
 
-			chats, err := uc.GetUserChats(context.Background(), tt.limit, tt.offset)
+			chats, err := uc.GetUserChats(context.Background(), tt.pagination)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -903,11 +904,19 @@ func TestUseCases_SearchUsers(t *testing.T) {
 
 	now := time.Now()
 
+	filters := &domains.UsersFilters{
+		Username: pointers.New("john"),
+	}
+
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](10),
+		Offset: pointers.New[uint64](10),
+	}
+
 	tests := []struct {
 		name       string
-		username   string
-		limit      int
-		offset     int
+		filters    *domains.UsersFilters
+		pagination *domains.Pagination
 		setupMocks func(
 			*mockrepositories.MockTokensRepository,
 			*mockrepositories.MockUsersRepository,
@@ -918,10 +927,9 @@ func TestUseCases_SearchUsers(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name:     "successful search - filter out current user",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			name:       "successful search - filter out current user",
+			filters:    filters,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -946,7 +954,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 					}, nil)
 
 				mockUsers.EXPECT().
-					SearchUsers(gomock.Any(), "john", 10, 0).
+					SearchUsers(gomock.Any(), filters, pagination).
 					Return([]domains.User{
 						{
 							ID:        1,
@@ -990,10 +998,9 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "search returns only other users",
-			username: "other",
-			limit:    10,
-			offset:   0,
+			name:       "search returns only other users",
+			filters:    filters,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -1018,7 +1025,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 					}, nil)
 
 				mockUsers.EXPECT().
-					SearchUsers(gomock.Any(), "other", 10, 0).
+					SearchUsers(gomock.Any(), filters, pagination).
 					Return([]domains.User{
 						{
 							ID:        2,
@@ -1041,10 +1048,9 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "empty search results",
-			username: "nonexistent",
-			limit:    10,
-			offset:   0,
+			name:       "empty search results",
+			filters:    filters,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -1069,17 +1075,16 @@ func TestUseCases_SearchUsers(t *testing.T) {
 					}, nil)
 
 				mockUsers.EXPECT().
-					SearchUsers(gomock.Any(), "nonexistent", 10, 0).
+					SearchUsers(gomock.Any(), filters, pagination).
 					Return([]domains.User{}, nil)
 			},
 			expectedUsers: []domains.User{},
 			expectedError: nil,
 		},
 		{
-			name:     "failed to load tokens",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			name:       "failed to load tokens",
+			filters:    filters,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockUsersRepository,
@@ -1100,10 +1105,9 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			expectedError: errors.New("tokens not found"),
 		},
 		{
-			name:     "failed to get current user",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			name:       "failed to get current user",
+			filters:    filters,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -1131,10 +1135,9 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			expectedError: errors.New("user not found"),
 		},
 		{
-			name:     "failed to search users",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			name:       "failed to search users",
+			filters:    filters,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -1159,7 +1162,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 					}, nil)
 
 				mockUsers.EXPECT().
-					SearchUsers(gomock.Any(), "john", 10, 0).
+					SearchUsers(gomock.Any(), filters, pagination).
 					Return(nil, errors.New("search failed"))
 
 				mockLogger.EXPECT().
@@ -1203,7 +1206,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 				mockErrorsMapper,
 			)
 
-			users, err := uc.SearchUsers(context.Background(), tt.username, tt.limit, tt.offset)
+			users, err := uc.SearchUsers(context.Background(), tt.filters, tt.pagination)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -1219,11 +1222,15 @@ func TestUseCases_SearchUsers(t *testing.T) {
 func TestUseCases_GetChatMessages(t *testing.T) {
 	t.Parallel()
 
+	pagination := &domains.Pagination{
+		Limit:  pointers.New[uint64](10),
+		Offset: pointers.New[uint64](10),
+	}
+
 	tests := []struct {
 		name       string
 		chatID     uint64
-		limit      int
-		offset     int
+		pagination *domains.Pagination
 		setupMocks func(
 			*mockrepositories.MockTokensRepository,
 			*mockrepositories.MockChatsRepository,
@@ -1234,10 +1241,9 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 		expectedError    error
 	}{
 		{
-			name:   "successful get chat messages with timezone conversion",
-			chatID: 1,
-			limit:  20,
-			offset: 0,
+			name:       "successful get chat messages with timezone conversion",
+			chatID:     1,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
@@ -1253,7 +1259,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 
 				utcTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 				mockChats.EXPECT().
-					GetChatMessages(gomock.Any(), "access_token", uint64(1), 20, 0).
+					GetChatMessages(gomock.Any(), "access_token", uint64(1), pagination).
 					Return([]domains.Message{
 						{
 							ID:        1,
@@ -1276,10 +1282,9 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:   "failed to load tokens",
-			chatID: 1,
-			limit:  10,
-			offset: 0,
+			name:       "failed to load tokens",
+			chatID:     1,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockChatsRepository,
@@ -1300,10 +1305,9 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			expectedError:    errors.New("tokens not found"),
 		},
 		{
-			name:   "failed to get chat messages",
-			chatID: 1,
-			limit:  10,
-			offset: 0,
+			name:       "failed to get chat messages",
+			chatID:     1,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
@@ -1318,7 +1322,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 					}, nil)
 
 				mockChats.EXPECT().
-					GetChatMessages(gomock.Any(), "access_token", uint64(1), 10, 0).
+					GetChatMessages(gomock.Any(), "access_token", uint64(1), pagination).
 					Return(nil, errors.New("messages not found"))
 
 				mockLogger.EXPECT().
@@ -1331,10 +1335,9 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			expectedError:    errors.New("messages not found"),
 		},
 		{
-			name:   "empty messages list",
-			chatID: 1,
-			limit:  10,
-			offset: 0,
+			name:       "empty messages list",
+			chatID:     1,
+			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockChats *mockrepositories.MockChatsRepository,
@@ -1349,7 +1352,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 					}, nil)
 
 				mockChats.EXPECT().
-					GetChatMessages(gomock.Any(), "access_token", uint64(1), 10, 0).
+					GetChatMessages(gomock.Any(), "access_token", uint64(1), pagination).
 					Return([]domains.Message{}, nil)
 			},
 			expectedMessages: []domains.Message{},
@@ -1390,8 +1393,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			messages, err := uc.GetChatMessages(
 				context.Background(),
 				tt.chatID,
-				tt.limit,
-				tt.offset,
+				tt.pagination,
 			)
 
 			if tt.expectedError != nil {

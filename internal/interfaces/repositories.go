@@ -27,18 +27,26 @@ type TokensRepository interface {
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/users_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,ChatsRepository,WebSocketsRepository,SettingsRepository
 type UsersRepository interface {
 	GetCurrentUser(ctx context.Context, accessToken string) (*domains.User, error)
-	SearchUsers(ctx context.Context, username string, limit, offset int) ([]domains.User, error)
+	SearchUsers(
+		ctx context.Context,
+		filters *domains.UsersFilters,
+		pagination *domains.Pagination,
+	) ([]domains.User, error)
 }
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/chats_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,WebSocketsRepository,SettingsRepository
 type ChatsRepository interface {
-	GetUserChats(ctx context.Context, accessToken string, limit, offset int) ([]domains.Chat, error)
+	GetUserChats(
+		ctx context.Context,
+		accessToken string,
+		pagination *domains.Pagination,
+	) ([]domains.Chat, error)
 	CreateChat(ctx context.Context, accessToken string, chat domains.Chat) (*domains.Chat, error)
 	GetChatMessages(
 		ctx context.Context,
 		accessToken string,
 		chatID uint64,
-		limit, offset int,
+		pagination *domains.Pagination,
 	) ([]domains.Message, error)
 }
 

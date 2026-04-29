@@ -241,6 +241,8 @@ linters:
           - gocyclo
           - cyclop
           - nestif
+          - gochecknoglobals
+          - revive
 
       - path: internal/repositories/*
         linters:
@@ -281,11 +283,15 @@ linters:
         linters:
           - iface
 
-      - path: cmd/main.go
+      - path: cmd/v1/main.go
         linters:
           - exhaustruct
           - staticcheck
           - gochecknoglobals
+
+      - path: cmd/v2/main.go
+        linters:
+          - containedctx
 
       - path: internal/domains/chat.go
         linters:
@@ -301,41 +307,47 @@ linters:
           - gochecknoglobals
           - gochecknoinits
 
-      - path: internal/windows/*
+      - path: internal/v1/windows/*
         linters:
           - testpackage
           - tparallel
           - paralleltest
 
-      - path: internal/windows/texts.go
+      - path: internal/v1/windows/texts.go
         linters:
           - mnd
 
-      - path: internal/windows/chat/window.go
+      - path: internal/v1/windows/chat/window.go
         linters:
           - containedctx
           - forcetypeassert
           - staticcheck
 
-      - path: internal/windows/auth/window.go
+      - path: internal/v1/windows/auth/window.go
         linters:
           - maintidx
 
-      - path: internal/windows/create_chat/window.go
+      - path: internal/v1/windows/create_chat/window.go
         linters:
           - forcetypeassert
+          - dupl
 
-      - path: internal/windows/search_users/window.go
+      - path: internal/v1/windows/search_users/window.go
         linters:
           - forcetypeassert
+          - dupl
 
-      - path: internal/windows/notification/window_test.go
+      - path: internal/v1/windows/notification/window_test.go
         linters:
           - gocritic
 
-      - path: internal/windows/forget_password/window_test.go
+      - path: internal/v1/windows/forget_password/window_test.go
         linters:
           - gocritic
+
+      - path: internal/v2/handlers/*
+        linters:
+          - containedctx
 
       - path: internal/errors/mapper.go
         linters:

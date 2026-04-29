@@ -57,31 +57,31 @@ func (mr *MockChatsRepositoryMockRecorder) CreateChat(ctx, accessToken, chat any
 }
 
 // GetChatMessages mocks base method.
-func (m *MockChatsRepository) GetChatMessages(ctx context.Context, accessToken string, chatID uint64, limit, offset int) ([]domains.Message, error) {
+func (m *MockChatsRepository) GetChatMessages(ctx context.Context, accessToken string, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChatMessages", ctx, accessToken, chatID, limit, offset)
+	ret := m.ctrl.Call(m, "GetChatMessages", ctx, accessToken, chatID, pagination)
 	ret0, _ := ret[0].([]domains.Message)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChatMessages indicates an expected call of GetChatMessages.
-func (mr *MockChatsRepositoryMockRecorder) GetChatMessages(ctx, accessToken, chatID, limit, offset any) *gomock.Call {
+func (mr *MockChatsRepositoryMockRecorder) GetChatMessages(ctx, accessToken, chatID, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockChatsRepository)(nil).GetChatMessages), ctx, accessToken, chatID, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockChatsRepository)(nil).GetChatMessages), ctx, accessToken, chatID, pagination)
 }
 
 // GetUserChats mocks base method.
-func (m *MockChatsRepository) GetUserChats(ctx context.Context, accessToken string, limit, offset int) ([]domains.Chat, error) {
+func (m *MockChatsRepository) GetUserChats(ctx context.Context, accessToken string, pagination *domains.Pagination) ([]domains.Chat, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserChats", ctx, accessToken, limit, offset)
+	ret := m.ctrl.Call(m, "GetUserChats", ctx, accessToken, pagination)
 	ret0, _ := ret[0].([]domains.Chat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserChats indicates an expected call of GetUserChats.
-func (mr *MockChatsRepositoryMockRecorder) GetUserChats(ctx, accessToken, limit, offset any) *gomock.Call {
+func (mr *MockChatsRepositoryMockRecorder) GetUserChats(ctx, accessToken, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserChats", reflect.TypeOf((*MockChatsRepository)(nil).GetUserChats), ctx, accessToken, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserChats", reflect.TypeOf((*MockChatsRepository)(nil).GetUserChats), ctx, accessToken, pagination)
 }

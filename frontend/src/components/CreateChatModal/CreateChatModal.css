@@ -1,0 +1,16 @@
+.user-item--selectable {
+    cursor: pointer;
+}
+
+.user-item--selectable:hover {
+    background: var(--bg-active);
+}
+
+.user-item__checkbox {
+    margin-right: var(--space-md);
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}

@@ -86,18 +86,18 @@ func (mr *MockUseCasesMockRecorder) ForgetPassword(ctx, forgetPasswordToken, new
 }
 
 // GetChatMessages mocks base method.
-func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID uint64, limit, offset int) ([]domains.Message, error) {
+func (m *MockUseCases) GetChatMessages(ctx context.Context, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChatMessages", ctx, chatID, limit, offset)
+	ret := m.ctrl.Call(m, "GetChatMessages", ctx, chatID, pagination)
 	ret0, _ := ret[0].([]domains.Message)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChatMessages indicates an expected call of GetChatMessages.
-func (mr *MockUseCasesMockRecorder) GetChatMessages(ctx, chatID, limit, offset any) *gomock.Call {
+func (mr *MockUseCasesMockRecorder) GetChatMessages(ctx, chatID, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockUseCases)(nil).GetChatMessages), ctx, chatID, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockUseCases)(nil).GetChatMessages), ctx, chatID, pagination)
 }
 
 // GetCurrentUser mocks base method.
@@ -130,18 +130,18 @@ func (mr *MockUseCasesMockRecorder) GetTheme(ctx any) *gomock.Call {
 }
 
 // GetUserChats mocks base method.
-func (m *MockUseCases) GetUserChats(ctx context.Context, limit, offset int) ([]domains.Chat, error) {
+func (m *MockUseCases) GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserChats", ctx, limit, offset)
+	ret := m.ctrl.Call(m, "GetUserChats", ctx, pagination)
 	ret0, _ := ret[0].([]domains.Chat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserChats indicates an expected call of GetUserChats.
-func (mr *MockUseCasesMockRecorder) GetUserChats(ctx, limit, offset any) *gomock.Call {
+func (mr *MockUseCasesMockRecorder) GetUserChats(ctx, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserChats", reflect.TypeOf((*MockUseCases)(nil).GetUserChats), ctx, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserChats", reflect.TypeOf((*MockUseCases)(nil).GetUserChats), ctx, pagination)
 }
 
 // Login mocks base method.
@@ -219,18 +219,18 @@ func (mr *MockUseCasesMockRecorder) Register(ctx, registerData any) *gomock.Call
 }
 
 // SearchUsers mocks base method.
-func (m *MockUseCases) SearchUsers(ctx context.Context, username string, limit, offset int) ([]domains.User, error) {
+func (m *MockUseCases) SearchUsers(ctx context.Context, filters *domains.UsersFilters, pagination *domains.Pagination) ([]domains.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchUsers", ctx, username, limit, offset)
+	ret := m.ctrl.Call(m, "SearchUsers", ctx, filters, pagination)
 	ret0, _ := ret[0].([]domains.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SearchUsers indicates an expected call of SearchUsers.
-func (mr *MockUseCasesMockRecorder) SearchUsers(ctx, username, limit, offset any) *gomock.Call {
+func (mr *MockUseCasesMockRecorder) SearchUsers(ctx, filters, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUseCases)(nil).SearchUsers), ctx, username, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUseCases)(nil).SearchUsers), ctx, filters, pagination)
 }
 
 // SendForgetPasswordMessage mocks base method.

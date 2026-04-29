@@ -263,7 +263,10 @@ func (u *UseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.
 	return createdChat, nil
 }
 
-func (u *UseCases) GetUserChats(ctx context.Context, limit, offset int) ([]domains.Chat, error) {
+func (u *UseCases) GetUserChats(
+	ctx context.Context,
+	pagination *domains.Pagination,
+) ([]domains.Chat, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
@@ -271,7 +274,7 @@ func (u *UseCases) GetUserChats(ctx context.Context, limit, offset int) ([]domai
 		return nil, u.errorsMapper.Map(err)
 	}
 
-	chats, err := u.chats.GetUserChats(ctx, tokens.AccessToken, limit, offset)
+	chats, err := u.chats.GetUserChats(ctx, tokens.AccessToken, pagination)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get user chats", err)
 
@@ -283,8 +286,8 @@ func (u *UseCases) GetUserChats(ctx context.Context, limit, offset int) ([]domai
 
 func (u *UseCases) SearchUsers(
 	ctx context.Context,
-	username string,
-	limit, offset int,
+	filters *domains.UsersFilters,
+	pagination *domains.Pagination,
 ) ([]domains.User, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
@@ -300,7 +303,7 @@ func (u *UseCases) SearchUsers(
 		return nil, u.errorsMapper.Map(err)
 	}
 
-	users, err := u.users.SearchUsers(ctx, username, limit, offset)
+	users, err := u.users.SearchUsers(ctx, filters, pagination)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to search users", err)
 
@@ -326,7 +329,7 @@ func (u *UseCases) SearchUsers(
 func (u *UseCases) GetChatMessages(
 	ctx context.Context,
 	chatID uint64,
-	limit, offset int,
+	pagination *domains.Pagination,
 ) ([]domains.Message, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
@@ -335,7 +338,7 @@ func (u *UseCases) GetChatMessages(
 		return nil, u.errorsMapper.Map(err)
 	}
 
-	messages, err := u.chats.GetChatMessages(ctx, tokens.AccessToken, chatID, limit, offset)
+	messages, err := u.chats.GetChatMessages(ctx, tokens.AccessToken, chatID, pagination)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get chat messages", err)
 

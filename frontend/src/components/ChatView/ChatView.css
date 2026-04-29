@@ -1,0 +1,399 @@
+/* ═══════════════════════════════════════
+   Основной layout
+   ═══════════════════════════════════════ */
+.chat-layout {
+    display: flex;
+    height: 100vh;
+    background-color: var(--bg-app);
+}
+
+/* ═══════════════════════════════════════
+   Боковая панель — список чатов
+   ═══════════════════════════════════════ */
+.sidebar {
+    width: 300px;
+    min-width: 240px;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.sidebar__header {
+    padding: var(--space-xl);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+.sidebar__header h3 {
+    flex: 1;
+    margin: 0;
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sidebar__icon-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-base);
+}
+
+.sidebar__icon-btn:hover {
+    background: var(--bg-active);
+}
+
+.sidebar__list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.sidebar__footer {
+    padding: var(--space-lg);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════
+   Кнопка выхода
+   ═══════════════════════════════════════ */
+.sidebar__logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border: 1px solid var(--border-danger);
+    background: var(--bg-danger);
+    color: var(--danger);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-md);
+    font-weight: 500;
+    transition: all var(--transition-base);
+}
+
+.sidebar__logout-btn:hover {
+    border-color: var(--border-danger-hover);
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar__logout-icon {
+    font-size: var(--font-xl);
+}
+
+/* ═══════════════════════════════════════
+   Переключатель темы
+   ═══════════════════════════════════════ */
+.theme-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--bg-hover);
+    cursor: pointer;
+}
+
+.theme-switch__icon {
+    font-size: var(--font-xl);
+    color: var(--text-primary);
+    user-select: none;
+}
+
+.theme-switch__toggle {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch__track {
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    position: relative;
+    transition: background var(--transition-slow);
+    cursor: pointer;
+}
+
+.theme-switch__track--on {
+    background: var(--accent);
+}
+
+.theme-switch__thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--text-on-accent);
+    border-radius: var(--radius-full);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform var(--transition-slow);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-switch__thumb--on {
+    transform: translateX(20px);
+}
+
+/* ═══════════════════════════════════════
+   Элемент списка чатов
+   ═══════════════════════════════════════ */
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: background var(--transition-base);
+    border-bottom: 1px solid var(--border);
+}
+
+.chat-item:hover {
+    background: var(--bg-hover);
+}
+
+.chat-item--active {
+    background: var(--bg-active);
+}
+
+.chat-item__avatar {
+    width: 44px;
+    height: 44px;
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-lg);
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+}
+
+.chat-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-item__title {
+    font-size: var(--font-md);
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chat-item__title--bold {
+    font-weight: 600;
+}
+
+.chat-item__unread-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    margin-left: var(--space-sm);
+}
+
+/* ═══════════════════════════════════════
+   Правая панель — переписка
+   ═══════════════════════════════════════ */
+.conversation {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface);
+}
+
+.conversation__header {
+    padding: var(--space-xl);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.conversation__header h3 {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.conversation__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* ═══════════════════════════════════════
+   Разделитель непрочитанных
+   ═══════════════════════════════════════ */
+.conversation__unread-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--danger);
+    font-size: var(--font-xs);
+    font-weight: 500;
+    padding: var(--space-xs) 0;
+}
+
+.conversation__unread-divider::before,
+.conversation__unread-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--danger);
+    opacity: 0.4;
+}
+
+/* ═══════════════════════════════════════
+   Кнопка закрытия чата
+   ═══════════════════════════════════════ */
+.conversation__close-btn {
+    background: none;
+    border: none;
+    width: 36px;
+    height: 36px;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-placeholder);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    padding: 0;
+    transition: all var(--transition-base);
+}
+
+.conversation__close-btn:hover {
+    color: var(--danger);
+    background: var(--bg-hover);
+}
+
+/* ═══════════════════════════════════════
+   Ввод сообщения
+   ═══════════════════════════════════════ */
+.conversation__composer {
+    padding: var(--space-lg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: var(--space-sm);
+    align-items: flex-end;
+    background: var(--bg-surface);
+}
+
+.conversation__composer textarea {
+    flex: 1;
+    padding: var(--space-md);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-md);
+    resize: none;
+    font-family: inherit;
+    font-size: var(--font-md);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    transition: border-color var(--transition-base);
+}
+
+.conversation__composer textarea::placeholder {
+    color: var(--text-placeholder);
+}
+
+.conversation__composer textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.conversation__composer button {
+    padding: var(--space-md) var(--space-xl);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition-base);
+    align-self: stretch;
+}
+
+.conversation__composer button:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.conversation__composer button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════
+   Пузырьки сообщений
+   ═══════════════════════════════════════ */
+.message-bubble {
+    max-width: 70%;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    align-self: flex-start;
+    background: var(--bg-message-other);
+    color: var(--text-primary);
+}
+
+.message-bubble--own {
+    align-self: flex-end;
+    background: var(--accent);
+    color: var(--text-on-accent);
+}
+
+.message-bubble__header {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+}
+
+.message-bubble--own .message-bubble__header {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.message-bubble__text {
+    font-size: var(--font-md);
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════
+   Пустое состояние
+   ═══════════════════════════════════════ */
+.conversation__placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-placeholder);
+    background-color: var(--bg-surface);
+    font-size: var(--font-lg);
+}

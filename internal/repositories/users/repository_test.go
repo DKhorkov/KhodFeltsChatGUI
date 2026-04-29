@@ -12,6 +12,7 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	mockhttp "github.com/DKhorkov/kfcGUI/mocks/http"
+	"github.com/DKhorkov/libs/pointers"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -193,18 +194,21 @@ func TestRepository_SearchUsers(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		username      string
-		limit         int
-		offset        int
+		filters       *domains.UsersFilters
+		pagination    *domains.Pagination
 		setupMocks    func(*mockhttp.MockHTTPClient)
 		expectedUsers []domains.User
 		expectedError error
 	}{
 		{
-			name:     "successful search users",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			name: "successful search users",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("john"),
+			},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				users := []domains.User{
 					{ID: 1, Username: "john_doe", Email: "john@example.com"},
@@ -228,7 +232,7 @@ func TestRepository_SearchUsers(t *testing.T) {
 							return nil, fmt.Errorf("expected limit=10, got %s", query.Get("limit"))
 						}
 
-						if query.Get("offset") != "0" {
+						if query.Get("offset") != "10" {
 							return nil, fmt.Errorf("expected offset=0, got %s", query.Get("offset"))
 						}
 
@@ -246,10 +250,14 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "search with special characters in username",
-			username: "john@domain",
-			limit:    5,
-			offset:   10,
+			name: "search with special characters in username",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("john@domain"),
+			},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				users := []domains.User{}
 				usersData, _ := json.Marshal(users)
@@ -277,10 +285,14 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "empty search results",
-			username: "nonexistent",
-			limit:    10,
-			offset:   0,
+			name: "empty search results",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("nonexistent"),
+			},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				usersData, _ := json.Marshal([]domains.User{})
 
@@ -296,21 +308,16 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "search with zero limit",
-			username: "test",
-			limit:    0,
-			offset:   0,
+			name: "search with zero limit",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("test"),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				usersData, _ := json.Marshal([]domains.User{})
 
 				mockClient.EXPECT().
 					Do(gomock.Any()).
-					DoAndReturn(func(req *http.Request) (*http.Response, error) {
-						query := req.URL.Query()
-						if query.Get("limit") != "0" {
-							return nil, fmt.Errorf("expected limit=0, got %s", query.Get("limit"))
-						}
-
+					DoAndReturn(func(_ *http.Request) (*http.Response, error) {
 						return &http.Response{
 							StatusCode: http.StatusOK,
 							Body:       io.NopCloser(bytes.NewReader(usersData)),
@@ -322,10 +329,14 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "http client error",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			name: "http client error",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("john"),
+			},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -336,10 +347,14 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: errors.New("connection refused"),
 		},
 		{
-			name:     "user not found status",
-			username: "unknown",
-			limit:    10,
-			offset:   0,
+			name: "user not found status",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("unknown"),
+			},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -355,29 +370,14 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: errors.New(`users not found`),
 		},
 		{
-			name:     "bad request",
-			username: "john",
-			limit:    -1,
-			offset:   0,
-			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
-				mockClient.EXPECT().
-					Do(gomock.Any()).
-					Return(&http.Response{
-						StatusCode: http.StatusBadRequest,
-						Body: io.NopCloser(
-							bytes.NewReader([]byte(`invalid parameters`)),
-						),
-					}, nil).
-					Times(1)
+			name: "invalid json response",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("john"),
 			},
-			expectedUsers: nil,
-			expectedError: errors.New(`invalid parameters`),
-		},
-		{
-			name:     "invalid json response",
-			username: "john",
-			limit:    10,
-			offset:   0,
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](10),
+				Offset: pointers.New[uint64](10),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -391,10 +391,14 @@ func TestRepository_SearchUsers(t *testing.T) {
 			expectedError: &json.SyntaxError{},
 		},
 		{
-			name:     "large limit and offset",
-			username: "test",
-			limit:    1000,
-			offset:   5000,
+			name: "large limit and offset",
+			filters: &domains.UsersFilters{
+				Username: pointers.New("test"),
+			},
+			pagination: &domains.Pagination{
+				Limit:  pointers.New[uint64](100000),
+				Offset: pointers.New[uint64](5000000),
+			},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				usersData, _ := json.Marshal([]domains.User{})
 				mockClient.EXPECT().
@@ -423,7 +427,7 @@ func TestRepository_SearchUsers(t *testing.T) {
 
 			repo := New(mockClient, "http://api.example.com")
 
-			users, err := repo.SearchUsers(context.Background(), tt.username, tt.limit, tt.offset)
+			users, err := repo.SearchUsers(context.Background(), tt.filters, tt.pagination)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
