@@ -132,7 +132,6 @@
     display: flex;
     align-items: center;
     padding: var(--space-lg);
-    cursor: pointer;
     transition: background var(--transition-base);
     border-bottom: 1px solid var(--border);
 }
@@ -158,11 +157,22 @@
     font-size: var(--font-lg);
     margin-right: var(--space-md);
     flex-shrink: 0;
+    transition: opacity var(--transition-base), box-shadow var(--transition-base);
+}
+
+.chat-item__avatar--clickable {
+    cursor: pointer;
+}
+
+.chat-item__avatar--clickable:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 0 2px var(--accent-hover);
 }
 
 .chat-item__info {
     flex: 1;
     min-width: 0;
+    cursor: pointer;
 }
 
 .chat-item__title {

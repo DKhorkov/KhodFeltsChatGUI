@@ -26,12 +26,15 @@
             v-for="chat in chats"
             :key="chat.id"
             :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
-            @click="selectChat(chat)"
           >
-            <div class="chat-item__avatar">
+            <div
+              class="chat-item__avatar"
+              :class="{ 'chat-item__avatar--clickable': getOtherMember(chat) }"
+              @click.stop="openMemberProfile(chat)"
+            >
               {{ getChatTitle(chat).charAt(0).toUpperCase() }}
             </div>
-            <div class="chat-item__info">
+            <div class="chat-item__info" @click="selectChat(chat)">
               <div class="chat-item__title" :class="{ 'chat-item__title--bold': !chat.isRead }">
                 {{ getChatTitle(chat) }}
               </div>
@@ -99,6 +102,39 @@
 
       <div v-else class="conversation__placeholder">
         <p>Выберите чат для начала общения</p>
+      </div>
+    </div>
+
+    <!-- Профиль участника чата -->
+    <div v-if="selectedMember" class="modal-overlay" @click="selectedMember = null">
+      <div class="modal-content profile-modal" @click.stop>
+        <button class="profile-modal__close" @click="selectedMember = null" title="Закрыть">&times;</button>
+        <div class="profile-modal__header">
+          <div class="profile-modal__avatar">
+            {{ selectedMember.username.charAt(0).toUpperCase() }}
+          </div>
+          <div class="profile-modal__title">
+            <h2>{{ selectedMember.username }}</h2>
+            <span class="profile-modal__email">{{ selectedMember.email }}</span>
+          </div>
+        </div>
+
+        <div class="profile-modal__details">
+          <div class="profile-modal__row">
+            <span class="profile-modal__label">Email подтверждён</span>
+            <span class="profile-modal__value" :class="selectedMember.emailConfirmed ? 'profile-modal__value--success' : 'profile-modal__value--warning'">
+              {{ selectedMember.emailConfirmed ? 'Да' : 'Нет' }}
+            </span>
+          </div>
+          <div class="profile-modal__row">
+            <span class="profile-modal__label">Дата регистрации</span>
+            <span class="profile-modal__value">{{ formatDate(selectedMember.createdAt) }}</span>
+          </div>
+        </div>
+
+        <div class="modal-content__actions">
+          <button class="btn--secondary" @click="selectedMember = null">Закрыть</button>
+        </div>
       </div>
     </div>
   </div>
