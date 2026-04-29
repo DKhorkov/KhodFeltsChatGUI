@@ -9,9 +9,11 @@ import {
 } from '../../../wailsjs/go/chat/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/settings/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
+import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
 
 export default {
     name: 'ChatView',
+    components: {EmojiPicker},
     emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
 
     setup(props, {emit}) {
@@ -22,7 +24,9 @@ export default {
         const currentUser = ref(null)
         const newMessage = ref('')
         const messagesListRef = ref(null)
+        const textareaRef = ref(null)
         const isDarkTheme = ref(false)
+        const isEmojiPickerVisible = ref(false)
 
         let isLoadingMore = false
         let hasMoreMessages = true
@@ -80,10 +84,14 @@ export default {
             chat.isRead = true
         }
 
-        const openChatById = (chatId) => {
+        const openChatById = async (chatId) => {
             const chat = chats.value.find(c => c.id === chatId)
-            if (chat) {
-                selectChat(chat)
+            if (!chat) return
+
+            try {
+                await selectChat(chat)
+            } catch (err) {
+                showError(err)
             }
         }
 
@@ -117,19 +125,24 @@ export default {
             }
         }
 
-        const handleNewMessage = (message) => {
-            if (selectedChat.value?.id === message.chatId) {
-                messages.value.push(message)
-                nextTick(() => scrollToBottom())
-                return
+        const handleNewMessage = async (message) => {
+            try {
+                if (selectedChat.value?.id === message.chatId) {
+                    messages.value.push({...message, isRead: false})
+                    await nextTick()
+                    scrollToBottom()
+                    return
+                }
+
+                loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
+
+                emit('new-message-notification', {
+                    text: `${message.sender.username}: ${message.text}`,
+                    chatId: message.chatId,
+                })
+            } catch (err) {
+                console.error("Ошибка обработки нового сообщения:", err)
             }
-
-            loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
-
-            emit('new-message-notification', {
-                text: `${message.sender.username}: ${message.text}`,
-                chatId: message.chatId,
-            })
         }
 
         const handleChatsUpdated = (updatedChats) => {
@@ -169,6 +182,25 @@ export default {
             return prev.isRead || prev.sender.id === currentUser.value?.id
         }
 
+        const insertEmoji = async (emoji) => {
+            const textarea = textareaRef.value
+            if (!textarea) {
+                newMessage.value += emoji
+                return
+            }
+
+            const start = textarea.selectionStart
+            const end = textarea.selectionEnd
+            const text = newMessage.value
+            newMessage.value = text.slice(0, start) + emoji + text.slice(end)
+
+            await nextTick()
+            const cursorPos = start + emoji.length
+            textarea.selectionStart = cursorPos
+            textarea.selectionEnd = cursorPos
+            textarea.focus()
+        }
+
         const handleLogout = () => {
             emit('logout')
         }
@@ -206,7 +238,7 @@ export default {
         })
 
         onUnmounted(() => {
-            StopListening()
+            StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
         })
@@ -234,6 +266,9 @@ export default {
             currentUser,
             newMessage,
             messagesListRef,
+            textareaRef,
+            isEmojiPickerVisible,
+            insertEmoji,
             selectChat,
             sendMessage,
             getChatTitle,
