@@ -68,86 +68,47 @@
 }
 
 /* ═══════════════════════════════════════
-   Кнопка выхода
+   Кнопка профиля
    ═══════════════════════════════════════ */
-.sidebar__logout-btn {
+.sidebar__profile-btn {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: var(--space-md);
     padding: var(--space-md);
-    border: 1px solid var(--border-danger);
-    background: var(--bg-danger);
-    color: var(--danger);
+    border: 1px solid var(--border);
+    background: var(--bg-hover);
     border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: var(--font-md);
-    font-weight: 500;
     transition: all var(--transition-base);
 }
 
-.sidebar__logout-btn:hover {
-    border-color: var(--border-danger-hover);
+.sidebar__profile-btn:hover {
+    background: var(--bg-active);
     box-shadow: var(--shadow-sm);
 }
 
-.sidebar__logout-icon {
-    font-size: var(--font-xl);
-}
-
-/* ═══════════════════════════════════════
-   Переключатель темы
-   ═══════════════════════════════════════ */
-.theme-switch {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-md);
-    background: var(--bg-hover);
-    cursor: pointer;
-}
-
-.theme-switch__icon {
-    font-size: var(--font-xl);
-    color: var(--text-primary);
-    user-select: none;
-}
-
-.theme-switch__toggle {
-    display: flex;
-    align-items: center;
-}
-
-.theme-switch__track {
-    width: 44px;
-    height: 24px;
-    background: var(--border);
-    border-radius: 12px;
-    position: relative;
-    transition: background var(--transition-slow);
-    cursor: pointer;
-}
-
-.theme-switch__track--on {
+.sidebar__profile-avatar {
+    width: 32px;
+    height: 32px;
     background: var(--accent);
-}
-
-.theme-switch__thumb {
-    width: 20px;
-    height: 20px;
-    background: var(--text-on-accent);
+    color: var(--text-on-accent);
     border-radius: var(--radius-full);
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    transition: transform var(--transition-slow);
-    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-sm);
+    flex-shrink: 0;
 }
 
-.theme-switch__thumb--on {
-    transform: translateX(20px);
+.sidebar__profile-name {
+    font-size: var(--font-md);
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ═══════════════════════════════════════

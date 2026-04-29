@@ -14,7 +14,7 @@ import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
 export default {
     name: 'ChatView',
     components: {EmojiPicker},
-    emits: ['logout', 'show-create-chat', 'show-search-users', 'new-message-notification'],
+    emits: ['logout', 'show-create-chat', 'show-search-users', 'show-profile', 'new-message-notification'],
 
     setup(props, {emit}) {
         const showError = inject('showError')
@@ -201,10 +201,6 @@ export default {
             textarea.focus()
         }
 
-        const handleLogout = () => {
-            emit('logout')
-        }
-
         const toggleTheme = async () => {
             try {
                 const newTheme = await ToggleTheme()
@@ -275,7 +271,6 @@ export default {
             getSenderName,
             formatTime,
             isFirstUnread,
-            handleLogout,
             loadChats,
             openChatById,
             toggleTheme,

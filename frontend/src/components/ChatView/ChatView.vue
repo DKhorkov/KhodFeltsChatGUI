@@ -28,17 +28,11 @@
       </div>
 
       <div class="sidebar__footer">
-        <label class="theme-switch">
-          <span class="theme-switch__icon">{{ isDarkTheme ? '&#x1F319;' : '&#x2600;&#xFE0F;' }}</span>
-          <div class="theme-switch__toggle" @click="toggleTheme">
-            <div class="theme-switch__track" :class="{ 'theme-switch__track--on': isDarkTheme }">
-              <div class="theme-switch__thumb" :class="{ 'theme-switch__thumb--on': isDarkTheme }"></div>
-            </div>
+        <button @click="$emit('show-profile')" class="sidebar__profile-btn" v-if="currentUser">
+          <div class="sidebar__profile-avatar">
+            {{ currentUser.username.charAt(0).toUpperCase() }}
           </div>
-        </label>
-        <button @click="handleLogout" class="sidebar__logout-btn">
-          <span class="sidebar__logout-icon">&#x1F6AA;</span>
-          <span>Выйти из аккаунта</span>
+          <span class="sidebar__profile-name">{{ currentUser.username }}</span>
         </button>
       </div>
     </aside>
