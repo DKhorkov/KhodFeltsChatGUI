@@ -69,12 +69,30 @@
       </div>
 
       <div class="conversation__composer">
-        <textarea
-          v-model="newMessage"
-          @keydown.enter.prevent="sendMessage"
-          placeholder="Введите сообщение..."
-          rows="3"
-        ></textarea>
+        <div class="conversation__composer-input">
+          <textarea
+            ref="textareaRef"
+            v-model="newMessage"
+            @keydown.enter.exact.prevent="sendMessage"
+            placeholder="Введите сообщение..."
+            rows="3"
+          ></textarea>
+          <div class="conversation__emoji-wrapper">
+            <button
+              type="button"
+              class="conversation__emoji-toggle"
+              :class="{ 'conversation__emoji-toggle--active': isEmojiPickerVisible }"
+              @click="isEmojiPickerVisible = !isEmojiPickerVisible"
+              title="Смайлы"
+            >
+              &#x1F642;
+            </button>
+            <EmojiPicker
+              v-if="isEmojiPickerVisible"
+              @select="insertEmoji"
+            />
+          </div>
+        </div>
         <button @click="sendMessage" :disabled="!newMessage.trim()">
           Отправить
         </button>

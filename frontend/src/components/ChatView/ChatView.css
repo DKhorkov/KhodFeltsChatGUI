@@ -304,9 +304,17 @@
     background: var(--bg-surface);
 }
 
-.conversation__composer textarea {
+.conversation__composer-input {
     flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.conversation__composer-input textarea {
+    width: 100%;
     padding: var(--space-md);
+    padding-right: 40px;
     border: 1px solid var(--border-input);
     border-radius: var(--radius-md);
     resize: none;
@@ -317,13 +325,36 @@
     transition: border-color var(--transition-base);
 }
 
-.conversation__composer textarea::placeholder {
+.conversation__composer-input textarea::placeholder {
     color: var(--text-placeholder);
 }
 
-.conversation__composer textarea:focus {
+.conversation__composer-input textarea:focus {
     outline: none;
     border-color: var(--accent);
+}
+
+.conversation__emoji-wrapper {
+    position: absolute;
+    right: var(--space-sm);
+    bottom: var(--space-sm);
+}
+
+.conversation__emoji-toggle {
+    background: none;
+    border: none;
+    font-size: var(--font-xl);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    opacity: 0.5;
+    transition: opacity var(--transition-base);
+}
+
+.conversation__emoji-toggle:hover,
+.conversation__emoji-toggle--active {
+    opacity: 1;
 }
 
 .conversation__composer button {
@@ -381,6 +412,7 @@
 
 .message-bubble__text {
     font-size: var(--font-md);
+    white-space: pre-wrap;
     word-wrap: break-word;
     line-height: 1.5;
 }
