@@ -46,7 +46,7 @@
       </aside>
 
       <!-- Правая панель — сообщения -->
-      <main class="conversation" v-if="selectedChat">
+      <main class="conversation" v-if="selectedChat" @keydown.escape="selectedChat = null" tabindex="-1" v-focus>
         <div class="conversation__header">
           <h3>{{ getChatTitle(selectedChat) }}</h3>
           <button @click="selectedChat = null" class="conversation__close-btn" title="Закрыть чат">&times;</button>
