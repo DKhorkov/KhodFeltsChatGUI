@@ -18,19 +18,20 @@
         <div class="sidebar__header">
           <h3>Чаты</h3>
           <button @click="$emit('show-create-chat')" class="sidebar__icon-btn" title="Создать чат">+</button>
-          <button @click="$emit('show-search-users')" class="sidebar__icon-btn" title="Поиск пользователей">&#x1F50D;</button>
+          <button @click="$emit('show-search-users')" class="sidebar__icon-btn" title="Поиск пользователей">&#x1F50D;
+          </button>
         </div>
 
         <div class="sidebar__list">
           <div
-            v-for="chat in chats"
-            :key="chat.id"
-            :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
+              v-for="chat in chats"
+              :key="chat.id"
+              :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
           >
             <div
-              class="chat-item__avatar"
-              :class="{ 'chat-item__avatar--clickable': getOtherMember(chat) }"
-              @click.stop="openMemberProfile(chat)"
+                class="chat-item__avatar"
+                :class="{ 'chat-item__avatar--clickable': getOtherMember(chat) }"
+                @click.stop="openMemberProfile(chat)"
             >
               {{ getChatTitle(chat).charAt(0).toUpperCase() }}
             </div>
@@ -54,8 +55,8 @@
         <div class="conversation__messages" ref="messagesListRef">
           <template v-for="(message, index) in messages" :key="message.id">
             <div
-              v-if="isFirstUnread(message, index)"
-              class="conversation__unread-divider"
+                v-if="isFirstUnread(message, index)"
+                class="conversation__unread-divider"
             >
               <span>Новые сообщения</span>
             </div>
@@ -72,25 +73,25 @@
         <div class="conversation__composer">
           <div class="conversation__composer-input">
             <textarea
-              ref="textareaRef"
-              v-model="newMessage"
-              @keydown.enter.exact.prevent="sendMessage"
-              placeholder="Введите сообщение..."
-              rows="3"
+                ref="textareaRef"
+                v-model="newMessage"
+                @keydown.enter.exact.prevent="sendMessage"
+                placeholder="Введите сообщение..."
+                rows="3"
             ></textarea>
             <div class="conversation__emoji-wrapper">
               <button
-                type="button"
-                class="conversation__emoji-toggle"
-                :class="{ 'conversation__emoji-toggle--active': isEmojiPickerVisible }"
-                @click="isEmojiPickerVisible = !isEmojiPickerVisible"
-                title="Смайлы"
+                  type="button"
+                  class="conversation__emoji-toggle"
+                  :class="{ 'conversation__emoji-toggle--active': isEmojiPickerVisible }"
+                  @click="isEmojiPickerVisible = !isEmojiPickerVisible"
+                  title="Смайлы"
               >
                 &#x1F642;
               </button>
               <EmojiPicker
-                v-if="isEmojiPickerVisible"
-                @select="insertEmoji"
+                  v-if="isEmojiPickerVisible"
+                  @select="insertEmoji"
               />
             </div>
           </div>
@@ -106,7 +107,13 @@
     </div>
 
     <!-- Профиль участника чата -->
-    <div v-if="selectedMember" class="modal-overlay" @click="selectedMember = null">
+    <div v-if="selectedMember"
+         class="modal-overlay"
+         @click="selectedMember = null"
+         @keydown.escape="selectedMember = null"
+         tabindex="-1"
+         v-focus
+    >
       <div class="modal-content profile-modal" @click.stop>
         <button class="modal-content__close" @click="selectedMember = null" title="Закрыть">&times;</button>
         <div class="profile-modal__header">
@@ -122,7 +129,8 @@
         <div class="profile-modal__details">
           <div class="profile-modal__row">
             <span class="profile-modal__label">Email подтверждён</span>
-            <span class="profile-modal__value" :class="selectedMember.emailConfirmed ? 'profile-modal__value--success' : 'profile-modal__value--warning'">
+            <span class="profile-modal__value"
+                  :class="selectedMember.emailConfirmed ? 'profile-modal__value--success' : 'profile-modal__value--warning'">
               {{ selectedMember.emailConfirmed ? 'Да' : 'Нет' }}
             </span>
           </div>

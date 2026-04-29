@@ -1,5 +1,10 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay"
+       @click="$emit('close')"
+       @keydown.escape="$emit('close')"
+       tabindex="-1"
+       v-focus
+  >
     <div class="modal-content" @click.stop>
       <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <h2 class="modal-content__title">Создать чат</h2>
@@ -14,34 +19,34 @@
 
       <div v-if="chatType === CHAT_TYPE.GROUP" class="modal-content__form-group">
         <label>Название чата</label>
-        <input v-model="chatTitle" placeholder="Название чата" />
+        <input v-model="chatTitle" placeholder="Название чата"/>
       </div>
 
       <div v-if="chatType === CHAT_TYPE.GROUP" class="modal-content__form-group">
         <label>Описание чата</label>
-        <input v-model="chatDescription" placeholder="Описание чата" />
+        <input v-model="chatDescription" placeholder="Описание чата"/>
       </div>
 
       <div class="modal-content__form-group">
         <label>Поиск пользователей</label>
         <input
-          v-model="searchQuery"
-          @input="handleSearchInput"
-          placeholder="Введите имя пользователя..."
+            v-model="searchQuery"
+            @input="handleSearchInput"
+            placeholder="Введите имя пользователя..."
         />
       </div>
 
       <div v-if="searchResults.length > 0" class="modal-content__users-list">
         <label
-          v-for="user in searchResults"
-          :key="user.id"
-          class="user-item user-item--selectable"
+            v-for="user in searchResults"
+            :key="user.id"
+            class="user-item user-item--selectable"
         >
           <input
-            type="checkbox"
-            class="user-item__checkbox"
-            :value="user.id"
-            v-model="selectedUserIds"
+              type="checkbox"
+              class="user-item__checkbox"
+              :value="user.id"
+              v-model="selectedUserIds"
           />
           <div class="user-item__avatar">
             {{ user.username.charAt(0).toUpperCase() }}

@@ -1,5 +1,10 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
+  <div class="modal-overlay"
+       @click="$emit('close')"
+       @keydown.escape="$emit('close')"
+       tabindex="-1"
+       v-focus
+  >
     <div class="modal-content profile-modal" @click.stop>
       <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <div class="profile-modal__header">
@@ -15,7 +20,8 @@
       <div class="profile-modal__details">
         <div class="profile-modal__row">
           <span class="profile-modal__label">Email подтверждён</span>
-          <span class="profile-modal__value" :class="user.emailConfirmed ? 'profile-modal__value--success' : 'profile-modal__value--warning'">
+          <span class="profile-modal__value"
+                :class="user.emailConfirmed ? 'profile-modal__value--success' : 'profile-modal__value--warning'">
             {{ user.emailConfirmed ? 'Да' : 'Нет' }}
           </span>
         </div>
