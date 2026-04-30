@@ -18,6 +18,7 @@ type UseCases interface {
 	SendVerifyEmailMessage(ctx context.Context, email string) error
 	SendForgetPasswordMessage(ctx context.Context, email string) error
 	ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error
+	ChangePassword(ctx context.Context, changePasswordData domains.ChangePasswordDTO) error
 
 	// Messaging
 	SendMessage(ctx context.Context, message domains.Message) error

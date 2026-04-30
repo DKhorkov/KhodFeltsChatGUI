@@ -121,6 +121,26 @@ func (h *Handler) ForgetPassword(token string, in domains.ForgetPasswordDTO) err
 	return h.useCases.ForgetPassword(ctx, token, in.NewPassword)
 }
 
+func (h *Handler) ChangePassword(in domains.ChangePasswordDTO) error {
+	ctx := context.Background()
+
+	// Валидация нового пароля
+	if !validation.ValidateValueByRules(in.NewPassword, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
+	}
+
+	// Валидация старого пароля
+	if !validation.ValidateValueByRules(in.OldPassword, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
+	}
+
+	if err := h.useCases.ChangePassword(ctx, in); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (h *Handler) Authenticate() error {
 	ctx := context.Background()
 

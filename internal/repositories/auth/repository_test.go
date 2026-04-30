@@ -1415,3 +1415,195 @@ func TestRepository_ForgetPassword(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_ChangePassword(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name               string
+		accessToken        string
+		changePasswordData domains.ChangePasswordDTO
+		setupMocks         func(*mockhttp.MockHTTPClient)
+		expectedError      error
+	}{
+		{
+			name:        "successful change password",
+			accessToken: "valid_access_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						assert.Equal(t, http.MethodPost, req.Method)
+						assert.Equal(t, "/users/password/change", req.URL.Path)
+						assert.Equal(
+							t,
+							common.ApplicationJSONContentType,
+							req.Header.Get(common.ContentTypeHeaderName),
+						)
+
+						cookie, err := req.Cookie(accessTokenCookieName)
+						assert.NoError(t, err)
+						assert.Equal(t, "valid_access_token", cookie.Value)
+
+						var input domains.ChangePasswordDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err = json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, "OldPassword123!", input.OldPassword)
+						assert.Equal(t, "NewPassword123!", input.NewPassword)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:        "wrong old password - returns 400",
+			accessToken: "valid_access_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "WrongPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`wrong password`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`wrong password`),
+		},
+		{
+			name:        "user not found - returns 404",
+			accessToken: "valid_access_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`user not found`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`user not found`),
+		},
+		{
+			name:        "unauthorized - returns 401",
+			accessToken: "invalid_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`unauthorized`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`unauthorized`),
+		},
+		{
+			name:        "internal server error - returns 500",
+			accessToken: "valid_access_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`internal server error`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`internal server error`),
+		},
+		{
+			name:        "http client error",
+			accessToken: "valid_access_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedError: errors.New("connection refused"),
+		},
+		{
+			name:        "empty response body with error status",
+			accessToken: "valid_access_token",
+			changePasswordData: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword123!",
+				NewPassword: "NewPassword123!",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(""),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := New(mockClient, "http://api.example.com")
+			ctx := context.Background()
+
+			err := repo.ChangePassword(ctx, tt.accessToken, tt.changePasswordData)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

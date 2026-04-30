@@ -56,6 +56,20 @@ func (mr *MockUseCasesMockRecorder) Authenticate(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockUseCases)(nil).Authenticate), ctx)
 }
 
+// ChangePassword mocks base method.
+func (m *MockUseCases) ChangePassword(ctx context.Context, changePasswordData domains.ChangePasswordDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangePassword", ctx, changePasswordData)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangePassword indicates an expected call of ChangePassword.
+func (mr *MockUseCasesMockRecorder) ChangePassword(ctx, changePasswordData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePassword", reflect.TypeOf((*MockUseCases)(nil).ChangePassword), ctx, changePasswordData)
+}
+
 // CreateChat mocks base method.
 func (m *MockUseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error) {
 	m.ctrl.T.Helper()

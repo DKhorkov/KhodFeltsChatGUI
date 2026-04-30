@@ -185,6 +185,26 @@ func (u *UseCases) SendForgetPasswordMessage(ctx context.Context, email string) 
 	return nil
 }
 
+func (u *UseCases) ChangePassword(
+	ctx context.Context,
+	changePasswordData domains.ChangePasswordDTO,
+) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	if err = u.auth.ChangePassword(ctx, tokens.AccessToken, changePasswordData); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to change password", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) ForgetPassword(
 	ctx context.Context,
 	forgetPasswordToken, newPassword string,

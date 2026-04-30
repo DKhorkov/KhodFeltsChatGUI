@@ -41,6 +41,20 @@ func (m *MockAuthRepository) EXPECT() *MockAuthRepositoryMockRecorder {
 	return m.recorder
 }
 
+// ChangePassword mocks base method.
+func (m *MockAuthRepository) ChangePassword(ctx context.Context, accessToken string, changePasswordData domains.ChangePasswordDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangePassword", ctx, accessToken, changePasswordData)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangePassword indicates an expected call of ChangePassword.
+func (mr *MockAuthRepositoryMockRecorder) ChangePassword(ctx, accessToken, changePasswordData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePassword", reflect.TypeOf((*MockAuthRepository)(nil).ChangePassword), ctx, accessToken, changePasswordData)
+}
+
 // ForgetPassword mocks base method.
 func (m *MockAuthRepository) ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error {
 	m.ctrl.T.Helper()
