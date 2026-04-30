@@ -203,7 +203,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "successful update user",
 			accessToken:    "valid_access_token",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				user := domains.User{
 					ID:       1,
@@ -228,7 +228,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 						body, _ := io.ReadAll(req.Body)
 						err = json.Unmarshal(body, &input)
 						assert.NoError(t, err)
-						assert.Equal(t, "newusername", input.Username)
+						assert.Equal(t, pointers.New("newusername"), input.Username)
 
 						return &http.Response{
 							StatusCode: http.StatusOK,
@@ -247,7 +247,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "validation error - returns 400",
 			accessToken:    "valid_access_token",
-			updateUserData: domains.UpdateUserDTO{Username: "ab"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("ab")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -265,7 +265,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "user not found - returns 404",
 			accessToken:    "valid_access_token",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -283,7 +283,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "unauthorized - returns 401",
 			accessToken:    "invalid_token",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -301,7 +301,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "internal server error - returns 500",
 			accessToken:    "valid_access_token",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -319,7 +319,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "http client error",
 			accessToken:    "valid_access_token",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -332,7 +332,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		{
 			name:           "invalid json response",
 			accessToken:    validToken,
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).

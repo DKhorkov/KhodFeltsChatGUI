@@ -13,7 +13,7 @@ type User struct {
 }
 
 type UpdateUserDTO struct {
-	Username string `json:"username"`
+	Username *string `json:"username,omitempty"`
 }
 
 type UsersFilters struct {

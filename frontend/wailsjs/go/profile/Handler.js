@@ -17,3 +17,7 @@ export function StartListening() {
 export function StopListening() {
   return window['go']['profile']['Handler']['StopListening']();
 }
+
+export function UpdateUser(arg1) {
+  return window['go']['profile']['Handler']['UpdateUser'](arg1);
+}

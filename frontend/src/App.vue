@@ -39,6 +39,7 @@
       @toggle-theme="chatViewRef.toggleTheme()"
       @logout="isProfileVisible = false; handleLogout()"
       @close="isProfileVisible = false"
+      @user-updated="chatViewRef.currentUser = $event"
     />
 
     <AlertModal

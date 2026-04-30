@@ -9,9 +9,8 @@ import (
 var (
 	// Users.
 	errUserNotFound     = errors.New("Такого пользователя не существует")
-	errUserAlreadyExist = errors.New(
-		"Пользователь с такой почтой или логином уже существует",
-	)
+	errUserAlreadyExist = errors.New("Пользователь с такой почтой или логином уже существует")
+	errUpdateUsername   = errors.New("Пользователь с таким логином уже существует")
 
 	// Auth.
 	errEmailAlreadyExist                      = errors.New("Этот почтовый адрес уже занят")
@@ -56,6 +55,7 @@ var rawMapping = map[string]error{
 	// Users
 	ErrUserNotFound.Error():      errUserNotFound,
 	ErrUserAlreadyExists.Error(): errUserAlreadyExist,
+	ErrUpdateUsername.Error():    errUpdateUsername,
 
 	// Auth
 	ErrEmailAlreadyConfirmed.Error():                  errEmailAlreadyConfirmed,

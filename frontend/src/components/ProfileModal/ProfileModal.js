@@ -1,5 +1,5 @@
 import {inject, ref} from 'vue'
-import {ChangePassword} from '../../../wailsjs/go/profile/Handler'
+import {ChangePassword, UpdateUser} from '../../../wailsjs/go/profile/Handler'
 
 export default {
     name: 'ProfileModal',
@@ -13,11 +13,14 @@ export default {
             required: true,
         },
     },
-    emits: ['close', 'toggle-theme', 'logout'],
+    emits: ['close', 'toggle-theme', 'logout', 'user-updated'],
 
-    setup() {
+    setup(props, {emit}) {
         const showError = inject('showError')
         const showInfo = inject('showInfo')
+
+        const isEditProfileOpen = ref(false)
+        const editUsername = ref('')
 
         const isChangePasswordOpen = ref(false)
         const oldPassword = ref('')
@@ -58,8 +61,28 @@ export default {
             }
         }
 
+        const updateUser = async () => {
+            try {
+                const dto = {}
+                if (editUsername.value) {
+                    dto.username = editUsername.value
+                }
+
+                const updatedUser = await UpdateUser(dto)
+                showInfo('Профиль успешно обновлён')
+                emit('user-updated', updatedUser)
+                editUsername.value = ''
+                isEditProfileOpen.value = false
+            } catch (err) {
+                showError(err)
+            }
+        }
+
         return {
             formatDate,
+            isEditProfileOpen,
+            editUsername,
+            updateUser,
             isChangePasswordOpen,
             oldPassword,
             newPassword,

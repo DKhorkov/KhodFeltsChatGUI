@@ -34,10 +34,40 @@
       <div class="profile-modal__section">
         <div
             class="profile-modal__change-password-toggle"
+            @click="isEditProfileOpen = !isEditProfileOpen"
+        >
+          <span class="profile-modal__label">Редактировать профиль</span>
+          <span class="profile-modal__chevron"
+                :class="{ 'profile-modal__chevron--open': isEditProfileOpen }">&#9654;</span>
+        </div>
+
+        <form
+            v-if="isEditProfileOpen"
+            class="profile-modal__change-password-form"
+            @submit.prevent="updateUser"
+        >
+          <div class="modal-content__form-group">
+            <label>Логин</label>
+            <input
+                v-model="editUsername"
+                type="text"
+                placeholder="Введите новый логин"
+            />
+          </div>
+          <div class="modal-content__actions">
+            <button type="submit" class="btn--primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="profile-modal__section">
+        <div
+            class="profile-modal__change-password-toggle"
             @click="isChangePasswordOpen = !isChangePasswordOpen"
         >
           <span class="profile-modal__label">Сменить пароль</span>
-          <span class="profile-modal__chevron" :class="{ 'profile-modal__chevron--open': isChangePasswordOpen }">&#9654;</span>
+          <span class="profile-modal__chevron"
+                :class="{ 'profile-modal__chevron--open': isChangePasswordOpen }">&#9654;</span>
         </div>
 
         <form

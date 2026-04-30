@@ -916,7 +916,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 	}{
 		{
 			name:           "successful update user",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -931,7 +931,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 					}, nil)
 
 				mockUsers.EXPECT().
-					UpdateUser(gomock.Any(), "access_token", domains.UpdateUserDTO{Username: "newusername"}).
+					UpdateUser(gomock.Any(), "access_token", domains.UpdateUserDTO{Username: pointers.New("newusername")}).
 					Return(&domains.User{ID: 1, Username: "newusername", Email: "john@example.com"}, nil)
 			},
 			expectedUser:  &domains.User{ID: 1, Username: "newusername", Email: "john@example.com"},
@@ -939,7 +939,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 		},
 		{
 			name:           "failed to load tokens",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockUsersRepository,
@@ -961,7 +961,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 		},
 		{
 			name:           "failed to update user",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -999,7 +999,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 		},
 		{
 			name:           "errors mapper transforms error",
-			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,

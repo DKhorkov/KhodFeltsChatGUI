@@ -11,6 +11,7 @@ import (
 	profilehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/profile"
 	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
+	"github.com/DKhorkov/libs/pointers"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -154,10 +155,10 @@ func TestHandler_UpdateUser(t *testing.T) {
 	}{
 		{
 			name: "successful update",
-			in:   domains.UpdateUserDTO{Username: "newusername"},
+			in:   domains.UpdateUserDTO{Username: pointers.New("newusername")},
 			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
-					UpdateUser(gomock.Any(), domains.UpdateUserDTO{Username: "newusername"}).
+					UpdateUser(gomock.Any(), domains.UpdateUserDTO{Username: pointers.New("newusername")}).
 					Return(&domains.User{ID: 1, Username: "newusername", Email: "john@example.com"}, nil).
 					Times(1)
 			},
@@ -166,7 +167,7 @@ func TestHandler_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "invalid username - too short",
-			in:   domains.UpdateUserDTO{Username: "ab"},
+			in:   domains.UpdateUserDTO{Username: pointers.New("ab")},
 			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
 					Map(customerrors.ErrInvalidUsername).
@@ -178,7 +179,7 @@ func TestHandler_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "invalid username - contains underscore",
-			in:   domains.UpdateUserDTO{Username: "john_doe"},
+			in:   domains.UpdateUserDTO{Username: pointers.New("john_doe")},
 			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
 					Map(customerrors.ErrInvalidUsername).
@@ -190,7 +191,7 @@ func TestHandler_UpdateUser(t *testing.T) {
 		},
 		{
 			name: "use case returns error",
-			in:   domains.UpdateUserDTO{Username: "validname"},
+			in:   domains.UpdateUserDTO{Username: pointers.New("validname")},
 			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					UpdateUser(gomock.Any(), gomock.Any()).

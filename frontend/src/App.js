@@ -9,7 +9,7 @@ import AlertModal from './components/AlertModal/AlertModal.vue'
 import ProfileModal from './components/ProfileModal/ProfileModal.vue'
 
 import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
-import {GetTheme} from '../wailsjs/go/settings/Handler'
+import {GetTheme} from '../wailsjs/go/theme/Handler'
 import {NOTIFICATION_DURATION_MS, THEME, VIEW} from './constants'
 
 export default {
