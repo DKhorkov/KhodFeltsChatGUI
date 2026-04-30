@@ -212,16 +212,14 @@ func TestRepository_Login(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		email          string
-		password       string
+		in             domains.LoginDTO
 		setupMocks     func(*mockhttp.MockHTTPClient)
 		expectedTokens *domains.TokensDTO
 		expectedError  error
 	}{
 		{
-			name:     "successful login",
-			email:    "john@example.com",
-			password: "password123",
+			name: "successful login",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -234,7 +232,7 @@ func TestRepository_Login(t *testing.T) {
 
 						body, _ := io.ReadAll(req.Body)
 						_ = json.Unmarshal(body, &loginData)
-						assert.Equal(t, "john@example.com", loginData.Email)
+						assert.Equal(t, "john@example.com", loginData.Login)
 						assert.Equal(t, "password123", loginData.Password)
 
 						return &http.Response{
@@ -257,9 +255,8 @@ func TestRepository_Login(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "invalid credentials",
-			email:    "wrong@example.com",
-			password: "wrongpassword",
+			name: "invalid credentials",
+			in:   domains.LoginDTO{Login: "wrong@example.com", Password: "wrongpassword"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -275,9 +272,8 @@ func TestRepository_Login(t *testing.T) {
 			expectedError:  internalerrors.ErrLogin,
 		},
 		{
-			name:     "user not found",
-			email:    "nonexistent@example.com",
-			password: "password123",
+			name: "user not found",
+			in:   domains.LoginDTO{Login: "nonexistent@example.com", Password: "password123"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -293,9 +289,8 @@ func TestRepository_Login(t *testing.T) {
 			expectedError:  internalerrors.ErrLogin,
 		},
 		{
-			name:     "missing access token cookie",
-			email:    "john@example.com",
-			password: "password123",
+			name: "missing access token cookie",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -314,9 +309,8 @@ func TestRepository_Login(t *testing.T) {
 			expectedError:  internalerrors.ErrLogin,
 		},
 		{
-			name:     "missing refresh token cookie",
-			email:    "john@example.com",
-			password: "password123",
+			name: "missing refresh token cookie",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -335,9 +329,8 @@ func TestRepository_Login(t *testing.T) {
 			expectedError:  internalerrors.ErrLogin,
 		},
 		{
-			name:     "http client error",
-			email:    "john@example.com",
-			password: "password123",
+			name: "http client error",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -348,9 +341,8 @@ func TestRepository_Login(t *testing.T) {
 			expectedError:  errors.New("network timeout"),
 		},
 		{
-			name:     "empty response body with error status",
-			email:    "john@example.com",
-			password: "password123",
+			name: "empty response body with error status",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				mockClient.EXPECT().
 					Do(gomock.Any()).
@@ -378,7 +370,7 @@ func TestRepository_Login(t *testing.T) {
 
 			repo := New(mockClient, "http://api.example.com")
 
-			tokens, err := repo.Login(context.Background(), tt.email, tt.password)
+			tokens, err := repo.Login(context.Background(), tt.in)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

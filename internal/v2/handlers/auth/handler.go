@@ -35,22 +35,21 @@ func (h *Handler) SetContext(ctx context.Context) {
 	h.wailsCtx = ctx
 }
 
-func (h *Handler) Login(email, password string) error {
+func (h *Handler) Login(in domains.LoginDTO) error {
 	ctx := context.Background()
 
-	// Валидация email
-	if !validation.ValidateValueByRule(email, h.validationConfig.EmailRegExp) {
-		return h.errorsMapper.Map(customerrors.ErrInvalidEmail)
+	// Валидация логина
+	if !validation.ValidateValueByRule(in.Login, h.validationConfig.EmailRegExp) &&
+		!validation.ValidateValueByRules(in.Login, h.validationConfig.UsernameRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidLogin)
 	}
 
 	// Валидация пароля
-	if !validation.ValidateValueByRules(password, h.validationConfig.PasswordRegExps) {
+	if !validation.ValidateValueByRules(in.Password, h.validationConfig.PasswordRegExps) {
 		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
 	}
 
-	// Вызов бизнес-логики
-
-	if _, err := h.useCases.Login(ctx, email, password); err != nil {
+	if _, err := h.useCases.Login(ctx, in); err != nil {
 		if errors.Is(err, customerrors.ErrDefault) {
 			return h.errorsMapper.Map(customerrors.ErrLogin)
 		}
@@ -71,7 +70,7 @@ func (h *Handler) Register(in domains.RegisterDTO) error {
 
 	// Валидация username
 	if !validation.ValidateValueByRules(in.Username, h.validationConfig.UsernameRegExps) {
-		return h.errorsMapper.Map(customerrors.ErrInvalidUsername)
+		return h.errorsMapper.Map(customerrors.ErrInvalidLogin)
 	}
 
 	// Валидация пароля

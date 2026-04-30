@@ -21,10 +21,10 @@
       <div v-if="activeTab === TAB.LOGIN" class="login-card__tab-content">
         <form @submit.prevent="handleLogin" class="login-form">
           <input
-            v-model="loginForm.email"
+            v-model="loginForm.login"
             class="login-form__input"
-            type="email"
-            placeholder="Почта"
+            type="text"
+            placeholder="Почта или имя пользователя"
           />
           <input
             v-model="loginForm.password"

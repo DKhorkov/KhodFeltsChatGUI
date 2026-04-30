@@ -11,7 +11,7 @@ export default {
         const activeTab = ref(TAB.LOGIN)
 
         const loginForm = ref({
-            email: '', password: '',
+            login: '', password: '',
         })
 
         const registerForm = ref({
@@ -19,8 +19,8 @@ export default {
         })
 
         const handleLogin = async () => {
-            if (!loginForm.value.email) {
-                showInfo('Пожалуйста, введите адрес электронной почты')
+            if (!loginForm.value.login) {
+                showInfo('Пожалуйста, введите почту или имя пользователя')
                 return
             }
 
@@ -30,7 +30,10 @@ export default {
             }
 
             try {
-                await Login(loginForm.value.email, loginForm.value.password)
+                await Login({
+                    login: loginForm.value.login,
+                    password: loginForm.value.password,
+                })
                 emit('login-success')
             } catch (err) {
                 showError(err)
@@ -66,7 +69,7 @@ export default {
                 })
 
                 activeTab.value = TAB.LOGIN
-                loginForm.value.email = registerForm.value.email
+                loginForm.value.login = registerForm.value.email
                 loginForm.value.password = registerForm.value.password
 
                 registerForm.value = {email: '', username: '', password: '', confirmPassword: ''}
@@ -78,28 +81,28 @@ export default {
         }
 
         const sendVerifyEmail = async () => {
-            if (!loginForm.value.email) {
-                showInfo('Введите email')
+            if (!loginForm.value.login) {
+                showInfo('Введите email в поле авторизации')
                 return
             }
 
             try {
-                await SendVerifyEmail(loginForm.value.email)
-                showInfo(`Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.email}`)
+                await SendVerifyEmail(loginForm.value.login)
+                showInfo(`Письмо для подтверждения почты было отправлено по адресу ${loginForm.value.login}`)
             } catch (err) {
                 showError(err)
             }
         }
 
         const sendForgetPassword = async () => {
-            if (!loginForm.value.email) {
-                showInfo('Введите email')
+            if (!loginForm.value.login) {
+                showInfo('Введите email в поле авторизации')
                 return
             }
 
             try {
-                await SendForgetPassword(loginForm.value.email)
-                emit('show-forget-password', `Письмо с кодом для сброса пароля было отправлено по адресу ${loginForm.value.email}`)
+                await SendForgetPassword(loginForm.value.login)
+                emit('show-forget-password', `Письмо с кодом для сброса пароля было отправлено по адресу ${loginForm.value.login}`)
             } catch (err) {
                 showError(err)
             }

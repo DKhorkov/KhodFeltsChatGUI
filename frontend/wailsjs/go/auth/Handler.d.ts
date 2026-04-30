@@ -7,7 +7,7 @@ export function Authenticate():Promise<void>;
 
 export function ForgetPassword(arg1:string,arg2:domains.ForgetPasswordDTO):Promise<void>;
 
-export function Login(arg1:string,arg2:string):Promise<void>;
+export function Login(arg1:domains.LoginDTO):Promise<void>;
 
 export function Logout():Promise<void>;
 

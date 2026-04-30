@@ -90,17 +90,12 @@ func (r *Repository) Register(
 
 func (r *Repository) Login(
 	ctx context.Context,
-	email, password string,
+	loginData domains.LoginDTO,
 ) (*domains.TokensDTO, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	input := domains.LoginDTO{
-		Email:    email,
-		Password: password,
-	}
-
-	body, err := json.Marshal(input)
+	body, err := json.Marshal(loginData)
 	if err != nil {
 		return nil, err
 	}

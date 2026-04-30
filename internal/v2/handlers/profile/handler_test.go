@@ -170,24 +170,24 @@ func TestHandler_UpdateUser(t *testing.T) {
 			in:   domains.UpdateUserDTO{Username: pointers.New("ab")},
 			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
-					Map(customerrors.ErrInvalidUsername).
-					Return(customerrors.ErrInvalidUsername).
+					Map(customerrors.ErrInvalidLogin).
+					Return(customerrors.ErrInvalidLogin).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: customerrors.ErrInvalidUsername,
+			expectedError: customerrors.ErrInvalidLogin,
 		},
 		{
 			name: "invalid username - contains underscore",
 			in:   domains.UpdateUserDTO{Username: pointers.New("john_doe")},
 			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
-					Map(customerrors.ErrInvalidUsername).
-					Return(customerrors.ErrInvalidUsername).
+					Map(customerrors.ErrInvalidLogin).
+					Return(customerrors.ErrInvalidLogin).
 					Times(1)
 			},
 			expectedUser:  nil,
-			expectedError: customerrors.ErrInvalidUsername,
+			expectedError: customerrors.ErrInvalidLogin,
 		},
 		{
 			name: "use case returns error",

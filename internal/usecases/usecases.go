@@ -98,8 +98,8 @@ func (u *UseCases) RefreshTokens(ctx context.Context) (*domains.TokensDTO, error
 	return tokens, nil
 }
 
-func (u *UseCases) Login(ctx context.Context, email, password string) (*domains.User, error) {
-	tokens, err := u.auth.Login(ctx, email, password)
+func (u *UseCases) Login(ctx context.Context, loginData domains.LoginDTO) (*domains.User, error) {
+	tokens, err := u.auth.Login(ctx, loginData)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to login", err)
 

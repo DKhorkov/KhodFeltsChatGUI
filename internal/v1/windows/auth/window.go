@@ -260,7 +260,7 @@ func (w *Window) buildTabs() *container.AppTabs {
 			registerUsernameEntry.Text,
 			w.validationConfig.UsernameRegExps,
 		) {
-			err := w.errorsMapper.Map(customerrors.ErrInvalidUsername)
+			err := w.errorsMapper.Map(customerrors.ErrInvalidLogin)
 			dialog.ShowError(err, w.window)
 
 			return
@@ -374,8 +374,10 @@ func (w *Window) login() {
 
 		if _, err := w.useCases.Login(
 			ctx,
-			w.loginEmailEntry.Text,
-			w.loginPasswordEntry.Text,
+			domains.LoginDTO{
+				Login:    w.loginEmailEntry.Text,
+				Password: w.loginPasswordEntry.Text,
+			},
 		); err != nil {
 			fyne.Do(func() {
 				w.progressBar.Hidden = true
