@@ -41,8 +41,10 @@ func TestMapper_Map(t *testing.T) {
 			expected: ErrDefault,
 		},
 		{
-			name:     "Specific key matched before generic (new password equal to old)",
-			actual:   errors.New("validation failed: new password can not be equal to old password"),
+			name: "Specific key matched before generic (new password equal to old)",
+			actual: errors.New(
+				"validation failed: new password can not be equal to old password",
+			),
 			expected: errNewPasswordEqualToOldPassword,
 		},
 		{
@@ -51,8 +53,10 @@ func TestMapper_Map(t *testing.T) {
 			expected: errValidationFailed,
 		},
 		{
-			name:     "Substring match prefers longer key",
-			actual:   errors.New("error: validation failed: new password can not be equal to old password"),
+			name: "Substring match prefers longer key",
+			actual: errors.New(
+				"error: validation failed: new password can not be equal to old password",
+			),
 			expected: errNewPasswordEqualToOldPassword,
 		},
 		{

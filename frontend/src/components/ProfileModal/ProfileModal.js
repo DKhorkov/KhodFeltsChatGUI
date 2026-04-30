@@ -1,5 +1,5 @@
 import {inject, ref} from 'vue'
-import {ChangePassword} from '../../../wailsjs/go/auth/Handler'
+import {ChangePassword} from '../../../wailsjs/go/profile/Handler'
 
 export default {
     name: 'ProfileModal',
