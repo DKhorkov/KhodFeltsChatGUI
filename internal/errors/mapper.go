@@ -2,12 +2,9 @@ package errors
 
 import (
 	"errors"
+	"sort"
 	"strings"
 )
-
-type Mapper struct {
-	mapping map[string]error
-}
 
 var (
 	// Users.
@@ -55,7 +52,7 @@ var (
 	ErrDefault = errors.New("Что-то пошло не так...")
 )
 
-var mapping = map[string]error{
+var rawMapping = map[string]error{
 	// Users
 	ErrUserNotFound.Error():      errUserNotFound,
 	ErrUserAlreadyExists.Error(): errUserAlreadyExist,
@@ -92,9 +89,18 @@ var mapping = map[string]error{
 	ErrLimitExceeded.Error(): errLimitExceeded,
 }
 
+type mappingEntry struct {
+	key string
+	val error
+}
+
+type Mapper struct {
+	mapping []mappingEntry
+}
+
 func New() *Mapper {
 	return &Mapper{
-		mapping: mapping,
+		mapping: buildSortedMapping(rawMapping),
 	}
 }
 
@@ -103,11 +109,27 @@ func (m *Mapper) Map(err error) error {
 		return nil
 	}
 
-	for k, v := range m.mapping {
-		if strings.Contains(err.Error(), k) {
-			return v
+	errMsg := err.Error()
+
+	for _, entry := range m.mapping {
+		if strings.Contains(errMsg, entry.key) {
+			return entry.val
 		}
 	}
 
 	return ErrDefault
+}
+
+func buildSortedMapping(m map[string]error) []mappingEntry {
+	entries := make([]mappingEntry, 0, len(m))
+	for k, v := range m {
+		entries = append(entries, mappingEntry{key: k, val: v})
+	}
+
+	// Сортировка по убыванию длины ключа, чтобы более специфичные ключи проверялись первыми.
+	sort.Slice(entries, func(i, j int) bool {
+		return len(entries[i].key) > len(entries[j].key)
+	})
+
+	return entries
 }

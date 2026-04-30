@@ -40,6 +40,31 @@ func TestMapper_Map(t *testing.T) {
 			actual:   errors.New("user missing"),
 			expected: ErrDefault,
 		},
+		{
+			name:     "Specific key matched before generic (new password equal to old)",
+			actual:   errors.New("validation failed: new password can not be equal to old password"),
+			expected: errNewPasswordEqualToOldPassword,
+		},
+		{
+			name:     "Generic validation failed when no specific match",
+			actual:   errors.New("validation failed"),
+			expected: errValidationFailed,
+		},
+		{
+			name:     "Substring match prefers longer key",
+			actual:   errors.New("error: validation failed: new password can not be equal to old password"),
+			expected: errNewPasswordEqualToOldPassword,
+		},
+		{
+			name:     "Wrong password error",
+			actual:   errors.New("wrong password"),
+			expected: errLoginFailed,
+		},
+		{
+			name:     "Error containing known key as substring",
+			actual:   errors.New("something went wrong: login failed"),
+			expected: errLoginFailed,
+		},
 	}
 
 	for _, test := range tests {
