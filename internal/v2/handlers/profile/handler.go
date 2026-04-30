@@ -58,7 +58,8 @@ func (h *Handler) UpdateUser(in domains.UpdateUserDTO) (*domains.User, error) {
 	ctx := context.Background()
 
 	// Валидация username
-	if in.Username != nil && !validation.ValidateValueByRules(*in.Username, h.validationConfig.UsernameRegExps) {
+	if in.Username != nil &&
+		!validation.ValidateValueByRules(*in.Username, h.validationConfig.UsernameRegExps) {
 		return nil, h.errorsMapper.Map(customerrors.ErrInvalidUsername)
 	}
 
