@@ -32,6 +32,50 @@
       </div>
 
       <div class="profile-modal__section">
+        <div
+            class="profile-modal__change-password-toggle"
+            @click="isChangePasswordOpen = !isChangePasswordOpen"
+        >
+          <span class="profile-modal__label">Сменить пароль</span>
+          <span class="profile-modal__chevron" :class="{ 'profile-modal__chevron--open': isChangePasswordOpen }">&#9654;</span>
+        </div>
+
+        <form
+            v-if="isChangePasswordOpen"
+            class="profile-modal__change-password-form"
+            @submit.prevent="changePassword"
+        >
+          <div class="modal-content__form-group">
+            <label>Старый пароль</label>
+            <input
+                v-model="oldPassword"
+                type="password"
+                placeholder="Введите старый пароль"
+            />
+          </div>
+          <div class="modal-content__form-group">
+            <label>Новый пароль</label>
+            <input
+                v-model="newPassword"
+                type="password"
+                placeholder="Введите новый пароль"
+            />
+          </div>
+          <div class="modal-content__form-group">
+            <label>Подтверждение пароля</label>
+            <input
+                v-model="confirmPassword"
+                type="password"
+                placeholder="Подтвердите новый пароль"
+            />
+          </div>
+          <div class="modal-content__actions">
+            <button type="submit" class="btn--primary">Сменить пароль</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="profile-modal__section">
         <label class="profile-modal__theme-row">
           <span class="profile-modal__label">Тёмная тема</span>
           <div class="theme-switch__toggle" @click="$emit('toggle-theme')">

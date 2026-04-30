@@ -1,5 +1,19 @@
 export namespace domains {
 	
+	export class ChangePasswordDTO {
+	    newPassword: string;
+	    oldPassword: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ChangePasswordDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.newPassword = source["newPassword"];
+	        this.oldPassword = source["oldPassword"];
+	    }
+	}
 	export class Message {
 	    id: number;
 	    chatId: number;

@@ -5,6 +5,8 @@ import {context} from '../models';
 
 export function Authenticate():Promise<void>;
 
+export function ChangePassword(arg1:domains.ChangePasswordDTO):Promise<void>;
+
 export function ForgetPassword(arg1:string,arg2:domains.ForgetPasswordDTO):Promise<void>;
 
 export function Login(arg1:string,arg2:string):Promise<void>;

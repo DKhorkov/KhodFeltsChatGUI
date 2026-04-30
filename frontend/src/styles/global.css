@@ -450,6 +450,34 @@ body {
     cursor: pointer;
 }
 
+.profile-modal__change-password-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: var(--space-sm) 0;
+}
+
+.profile-modal__change-password-toggle:hover .profile-modal__chevron {
+    color: var(--accent);
+}
+
+.profile-modal__chevron {
+    font-size: var(--font-xl);
+    color: var(--text-primary);
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.profile-modal__chevron--open {
+    transform: rotate(90deg);
+}
+
+.profile-modal__change-password-form {
+    margin-top: var(--space-lg);
+}
+
 .btn--danger {
     background: var(--danger);
     color: var(--text-on-accent);

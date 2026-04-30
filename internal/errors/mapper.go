@@ -68,6 +68,7 @@ var mapping = map[string]error{
 	ErrWrongPassword.Error():                          errLoginFailed,
 	ErrAccessTokenDoesNotBelongToRefreshToken.Error(): errAccessTokenDoesNotBelongToRefreshToken,
 	ErrInvalidJwtToken.Error():                        errInvalidJwtToken,
+	ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
 	ErrValidationFailed.Error():                       errValidationFailed,
 	ErrInvalidPassword.Error():                        errInvalidPassword,
 	ErrInvalidUsername.Error():                        errInvalidUsername,
@@ -77,7 +78,6 @@ var mapping = map[string]error{
 	ErrWebsocket.Error():                              ErrDefault,
 	ErrWebsocketClosed.Error():                        ErrDefault,
 	ErrInvalidForgetPasswordToken.Error():             errInvalidForgetPasswordToken,
-	ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
 
 	// Chats
 	ErrInvalidChat.Error():         errInvalidChat,
