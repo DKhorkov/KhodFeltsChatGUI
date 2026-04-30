@@ -376,6 +376,7 @@ body {
    ═══════════════════════════════════════ */
 .profile-modal {
     width: 420px;
+    height: 570px;
 }
 
 .profile-modal__header {
