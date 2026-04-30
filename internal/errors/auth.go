@@ -7,6 +7,7 @@ var (
 	ErrLogin                                  = errors.New(`login failed`)
 	ErrLogout                                 = errors.New(`logout failed`)
 	ErrRefreshTokens                          = errors.New(`refresh tokens failed`)
+	ErrInvalidLogin                           = errors.New(`invalid login`)
 	ErrInvalidPassword                        = errors.New(`invalid password`)
 	ErrInvalidUsername                        = errors.New(`invalid username`)
 	ErrInvalidEmail                           = errors.New(`invalid email`)

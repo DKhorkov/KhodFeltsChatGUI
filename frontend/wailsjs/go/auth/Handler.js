@@ -10,8 +10,8 @@ export function ForgetPassword(arg1, arg2) {
   return window['go']['auth']['Handler']['ForgetPassword'](arg1, arg2);
 }
 
-export function Login(arg1, arg2) {
-  return window['go']['auth']['Handler']['Login'](arg1, arg2);
+export function Login(arg1) {
+  return window['go']['auth']['Handler']['Login'](arg1);
 }
 
 export function Logout() {

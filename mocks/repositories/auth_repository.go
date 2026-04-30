@@ -70,18 +70,18 @@ func (mr *MockAuthRepositoryMockRecorder) ForgetPassword(ctx, forgetPasswordToke
 }
 
 // Login mocks base method.
-func (m *MockAuthRepository) Login(ctx context.Context, email, password string) (*domains.TokensDTO, error) {
+func (m *MockAuthRepository) Login(ctx context.Context, in domains.LoginDTO) (*domains.TokensDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", ctx, email, password)
+	ret := m.ctrl.Call(m, "Login", ctx, in)
 	ret0, _ := ret[0].(*domains.TokensDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Login indicates an expected call of Login.
-func (mr *MockAuthRepositoryMockRecorder) Login(ctx, email, password any) *gomock.Call {
+func (mr *MockAuthRepositoryMockRecorder) Login(ctx, in any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthRepository)(nil).Login), ctx, email, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthRepository)(nil).Login), ctx, in)
 }
 
 // Logout mocks base method.

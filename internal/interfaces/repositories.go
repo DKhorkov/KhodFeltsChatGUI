@@ -9,7 +9,7 @@ import (
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/auth_repository.go -package=mockrepositories -exclude_interfaces=TokensRepository,UsersRepository,ChatsRepository,WebSocketsRepository,SettingsRepository
 type AuthRepository interface {
 	Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error)
-	Login(ctx context.Context, email, password string) (*domains.TokensDTO, error)
+	Login(ctx context.Context, in domains.LoginDTO) (*domains.TokensDTO, error)
 	Logout(ctx context.Context, accessToken string) error
 	RefreshTokens(ctx context.Context, refreshToken string) (*domains.TokensDTO, error)
 	SendVerifyEmailMessage(ctx context.Context, email string) error

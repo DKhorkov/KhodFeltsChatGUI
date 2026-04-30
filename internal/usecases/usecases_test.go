@@ -230,8 +230,7 @@ func TestUseCases_Login(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		email      string
-		password   string
+		in         domains.LoginDTO
 		setupMocks func(
 			*mockrepositories.MockTokensRepository,
 			*mockrepositories.MockUsersRepository,
@@ -243,9 +242,8 @@ func TestUseCases_Login(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name:     "successful login",
-			email:    "john@example.com",
-			password: "password123",
+			name: "successful login",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -254,7 +252,7 @@ func TestUseCases_Login(t *testing.T) {
 				_ *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					Login(gomock.Any(), "john@example.com", "password123").
+					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "password123"}).
 					Return(&domains.TokensDTO{
 						AccessToken:  "access_token",
 						RefreshToken: "refresh_token",
@@ -287,9 +285,8 @@ func TestUseCases_Login(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "failed login",
-			email:    "wrong@example.com",
-			password: "wrong",
+			name: "failed login",
+			in:   domains.LoginDTO{Login: "wrong@example.com", Password: "wrong"},
 			setupMocks: func(
 				_ *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockUsersRepository,
@@ -298,7 +295,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					Login(gomock.Any(), "wrong@example.com", "wrong").
+					Login(gomock.Any(), domains.LoginDTO{Login: "wrong@example.com", Password: "wrong"}).
 					Return(nil, errors.New("invalid credentials"))
 
 				mockLogger.EXPECT().
@@ -311,9 +308,8 @@ func TestUseCases_Login(t *testing.T) {
 			expectedError: errors.New("invalid credentials"),
 		},
 		{
-			name:     "failed to save tokens",
-			email:    "john@example.com",
-			password: "password123",
+			name: "failed to save tokens",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				_ *mockrepositories.MockUsersRepository,
@@ -322,7 +318,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					Login(gomock.Any(), "john@example.com", "password123").
+					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "password123"}).
 					Return(&domains.TokensDTO{
 						AccessToken:  "access_token",
 						RefreshToken: "refresh_token",
@@ -345,9 +341,8 @@ func TestUseCases_Login(t *testing.T) {
 			expectedError: errors.New("save failed"),
 		},
 		{
-			name:     "failed to get current user after login",
-			email:    "john@example.com",
-			password: "password123",
+			name: "failed to get current user after login",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password123"},
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockUsers *mockrepositories.MockUsersRepository,
@@ -356,7 +351,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
 				mockAuth.EXPECT().
-					Login(gomock.Any(), "john@example.com", "password123").
+					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "password123"}).
 					Return(&domains.TokensDTO{
 						AccessToken:  "access_token",
 						RefreshToken: "refresh_token",
@@ -414,7 +409,7 @@ func TestUseCases_Login(t *testing.T) {
 				mockErrorsMapper,
 			)
 
-			user, err := uc.Login(context.Background(), tt.email, tt.password)
+			user, err := uc.Login(context.Background(), tt.in)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

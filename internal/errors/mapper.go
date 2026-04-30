@@ -25,6 +25,10 @@ var (
 		"Пароль должен быть на латинице, не менее 8 символов в длину и содержать как минимум одну букву" +
 			" в верхнем и нижнем регистре, цифру и спецсимвол",
 	)
+	errInvalidLogin = errors.New(
+		"Некорректный email или логин. " +
+			"Логин должен быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
+	)
 	errInvalidUsername = errors.New(
 		"Логин должен быть не менее 5 символов в длину и содержать только латинские буквы и цифры",
 	)
@@ -67,6 +71,7 @@ var rawMapping = map[string]error{
 	ErrInvalidJwtToken.Error():                        errInvalidJwtToken,
 	ErrNewPasswordEqualToOldPassword.Error():          errNewPasswordEqualToOldPassword,
 	ErrValidationFailed.Error():                       errValidationFailed,
+	ErrInvalidLogin.Error():                           errInvalidLogin,
 	ErrInvalidPassword.Error():                        errInvalidPassword,
 	ErrInvalidUsername.Error():                        errInvalidUsername,
 	ErrInvalidEmail.Error():                           errInvalidEmail,

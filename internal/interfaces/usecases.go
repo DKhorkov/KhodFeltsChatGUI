@@ -11,7 +11,7 @@ type UseCases interface {
 	// Auth
 	Authenticate(ctx context.Context) (*domains.User, error)
 	GetCurrentUser(ctx context.Context) (*domains.User, error)
-	Login(ctx context.Context, email, password string) (*domains.User, error)
+	Login(ctx context.Context, in domains.LoginDTO) (*domains.User, error)
 	Logout(ctx context.Context) error
 	Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error)
 	RefreshTokens(ctx context.Context) (*domains.TokensDTO, error)

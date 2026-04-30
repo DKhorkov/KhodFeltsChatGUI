@@ -60,7 +60,7 @@ func (h *Handler) UpdateUser(in domains.UpdateUserDTO) (*domains.User, error) {
 	// Валидация username
 	if in.Username != nil &&
 		!validation.ValidateValueByRules(*in.Username, h.validationConfig.UsernameRegExps) {
-		return nil, h.errorsMapper.Map(customerrors.ErrInvalidUsername)
+		return nil, h.errorsMapper.Map(customerrors.ErrInvalidLogin)
 	}
 
 	updatedUser, err := h.useCases.UpdateUser(ctx, in)

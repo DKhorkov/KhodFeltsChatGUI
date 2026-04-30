@@ -159,18 +159,18 @@ func (mr *MockUseCasesMockRecorder) GetUserChats(ctx, pagination any) *gomock.Ca
 }
 
 // Login mocks base method.
-func (m *MockUseCases) Login(ctx context.Context, email, password string) (*domains.User, error) {
+func (m *MockUseCases) Login(ctx context.Context, in domains.LoginDTO) (*domains.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", ctx, email, password)
+	ret := m.ctrl.Call(m, "Login", ctx, in)
 	ret0, _ := ret[0].(*domains.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Login indicates an expected call of Login.
-func (mr *MockUseCasesMockRecorder) Login(ctx, email, password any) *gomock.Call {
+func (mr *MockUseCasesMockRecorder) Login(ctx, in any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUseCases)(nil).Login), ctx, email, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUseCases)(nil).Login), ctx, in)
 }
 
 // Logout mocks base method.

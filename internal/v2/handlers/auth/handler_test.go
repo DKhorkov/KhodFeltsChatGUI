@@ -37,78 +37,71 @@ func TestHandler_Login(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		email         string
-		password      string
+		in            domains.LoginDTO
 		setupMocks    func(*mockusecases.MockUseCases, *mockerrors.MockErrorsMapper)
 		expectedError error
 	}{
 		{
-			name:     "successful login",
-			email:    "john@example.com",
-			password: "Password1!",
+			name: "successful login with email",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "Password1!"},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
-					Login(gomock.Any(), "john@example.com", "Password1!").
+					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "Password1!"}).
 					Return(&domains.User{ID: 1, Username: "john"}, nil).
 					Times(1)
 			},
 			expectedError: nil,
 		},
 		{
-			name:     "invalid email format",
-			email:    "not-an-email",
-			password: "Password1!",
-			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().
-					Map(customerrors.ErrInvalidEmail).
-					Return(customerrors.ErrInvalidEmail).
-					Times(1)
-			},
-			expectedError: customerrors.ErrInvalidEmail,
-		},
-		{
-			name:     "email with uppercase letters",
-			email:    "JOHN@EXAMPLE.COM",
-			password: "Password1!",
-			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().
-					Map(customerrors.ErrInvalidEmail).
-					Return(customerrors.ErrInvalidEmail).
-					Times(1)
-			},
-			expectedError: customerrors.ErrInvalidEmail,
-		},
-		{
-			name:     "invalid password - too weak",
-			email:    "john@example.com",
-			password: "password",
-			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().
-					Map(customerrors.ErrInvalidPassword).
-					Return(customerrors.ErrInvalidPassword).
-					Times(1)
-			},
-			expectedError: customerrors.ErrInvalidPassword,
-		},
-		{
-			name:     "invalid password - too short",
-			email:    "john@example.com",
-			password: "Pass1!",
-			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().
-					Map(customerrors.ErrInvalidPassword).
-					Return(customerrors.ErrInvalidPassword).
-					Times(1)
-			},
-			expectedError: customerrors.ErrInvalidPassword,
-		},
-		{
-			name:     "use case returns ErrDefault - mapped to ErrLogin",
-			email:    "john@example.com",
-			password: "Password1!",
+			name: "successful login with username",
+			in:   domains.LoginDTO{Login: "johnathon", Password: "Password1!"},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
-					Login(gomock.Any(), "john@example.com", "Password1!").
+					Login(gomock.Any(), domains.LoginDTO{Login: "johnathon", Password: "Password1!"}).
+					Return(&domains.User{ID: 1, Username: "johnathon"}, nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name: "invalid login",
+			in:   domains.LoginDTO{Login: "inv", Password: "Password1!"},
+			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidLogin).
+					Return(customerrors.ErrInvalidLogin).
+					Times(1)
+			},
+			expectedError: customerrors.ErrInvalidLogin,
+		},
+		{
+			name: "invalid password - too weak",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "password"},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
+			},
+			expectedError: customerrors.ErrInvalidPassword,
+		},
+		{
+			name: "invalid password - too short",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "Pass1!"},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
+			},
+			expectedError: customerrors.ErrInvalidPassword,
+		},
+		{
+			name: "use case returns ErrDefault - mapped to ErrLogin",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "Password1!"},
+			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				uc.EXPECT().
+					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "Password1!"}).
 					Return(nil, customerrors.ErrDefault).
 					Times(1)
 				em.EXPECT().Map(customerrors.ErrLogin).Return(customerrors.ErrLogin).Times(1)
@@ -116,12 +109,11 @@ func TestHandler_Login(t *testing.T) {
 			expectedError: customerrors.ErrLogin,
 		},
 		{
-			name:     "use case returns network error - returned as-is",
-			email:    "john@example.com",
-			password: "Password1!",
+			name: "use case returns network error - returned as-is",
+			in:   domains.LoginDTO{Login: "john@example.com", Password: "Password1!"},
 			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
-					Login(gomock.Any(), "john@example.com", "Password1!").
+					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "Password1!"}).
 					Return(nil, errors.New("connection refused")).
 					Times(1)
 			},
@@ -144,7 +136,7 @@ func TestHandler_Login(t *testing.T) {
 
 			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 
-			err := h.Login(tt.email, tt.password)
+			err := h.Login(tt.in)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -207,11 +199,11 @@ func TestHandler_Register(t *testing.T) {
 			},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
-					Map(customerrors.ErrInvalidUsername).
-					Return(customerrors.ErrInvalidUsername).
+					Map(customerrors.ErrInvalidLogin).
+					Return(customerrors.ErrInvalidLogin).
 					Times(1)
 			},
-			expectedError: customerrors.ErrInvalidUsername,
+			expectedError: customerrors.ErrInvalidLogin,
 		},
 		{
 			name: "invalid username - contains underscore",
@@ -222,11 +214,11 @@ func TestHandler_Register(t *testing.T) {
 			},
 			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
 				em.EXPECT().
-					Map(customerrors.ErrInvalidUsername).
-					Return(customerrors.ErrInvalidUsername).
+					Map(customerrors.ErrInvalidLogin).
+					Return(customerrors.ErrInvalidLogin).
 					Times(1)
 			},
-			expectedError: customerrors.ErrInvalidUsername,
+			expectedError: customerrors.ErrInvalidLogin,
 		},
 		{
 			name: "invalid password - no special character",
