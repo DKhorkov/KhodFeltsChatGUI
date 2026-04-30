@@ -899,6 +899,189 @@ func TestUseCases_GetUserChats(t *testing.T) {
 	}
 }
 
+func TestUseCases_UpdateUser(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		updateUserData domains.UpdateUserDTO
+		setupMocks     func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedUser  *domains.User
+		expectedError error
+	}{
+		{
+			name:           "successful update user",
+			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					UpdateUser(gomock.Any(), "access_token", domains.UpdateUserDTO{Username: "newusername"}).
+					Return(&domains.User{ID: 1, Username: "newusername", Email: "john@example.com"}, nil)
+			},
+			expectedUser:  &domains.User{ID: 1, Username: "newusername", Email: "john@example.com"},
+			expectedError: nil,
+		},
+		{
+			name:           "failed to load tokens",
+			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New("test"),
+		},
+		{
+			name:           "failed to update user",
+			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("user not found")
+				mappedErr := errors.New("user not found")
+
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					UpdateUser(gomock.Any(), "access_token", gomock.Any()).
+					Return(nil, originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to update user",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New("user not found"),
+		},
+		{
+			name:           "errors mapper transforms error",
+			updateUserData: domains.UpdateUserDTO{Username: "newusername"},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("some internal error")
+				mappedErr := errors.New("user-friendly error message")
+
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					UpdateUser(gomock.Any(), "access_token", gomock.Any()).
+					Return(nil, originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(
+						gomock.Any(),
+						"failed to update user",
+						gomock.Any(),
+					).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New("user-friendly error message"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockUsers, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			user, err := uc.UpdateUser(ctx, tt.updateUserData)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+				assert.Nil(t, user)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedUser, user)
+			}
+		})
+	}
+}
+
 func TestUseCases_SearchUsers(t *testing.T) {
 	t.Parallel()
 

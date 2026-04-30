@@ -32,6 +32,11 @@ type TokensRepository interface {
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/users_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,ChatsRepository,WebSocketsRepository,SettingsRepository
 type UsersRepository interface {
 	GetCurrentUser(ctx context.Context, accessToken string) (*domains.User, error)
+	UpdateUser(
+		ctx context.Context,
+		accessToken string,
+		updateUserData domains.UpdateUserDTO,
+	) (*domains.User, error)
 	SearchUsers(
 		ctx context.Context,
 		filters *domains.UsersFilters,

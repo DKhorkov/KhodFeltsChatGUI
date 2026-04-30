@@ -34,6 +34,7 @@ type UseCases interface {
 	GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error)
 
 	// Users
+	UpdateUser(ctx context.Context, updateUserData domains.UpdateUserDTO) (*domains.User, error)
 	SearchUsers(
 		ctx context.Context,
 		filters *domains.UsersFilters,

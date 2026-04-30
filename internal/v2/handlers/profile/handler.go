@@ -54,6 +54,22 @@ func (h *Handler) ChangePassword(in domains.ChangePasswordDTO) error {
 	return nil
 }
 
+func (h *Handler) UpdateUser(in domains.UpdateUserDTO) (*domains.User, error) {
+	ctx := context.Background()
+
+	// Валидация username
+	if !validation.ValidateValueByRules(in.Username, h.validationConfig.UsernameRegExps) {
+		return nil, h.errorsMapper.Map(customerrors.ErrInvalidUsername)
+	}
+
+	updatedUser, err := h.useCases.UpdateUser(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
+}
+
 func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
 func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

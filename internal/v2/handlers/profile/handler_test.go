@@ -142,6 +142,94 @@ func TestHandler_ChangePassword(t *testing.T) {
 	}
 }
 
+func TestHandler_UpdateUser(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		in            domains.UpdateUserDTO
+		setupMocks    func(*mockusecases.MockUseCases, *mockerrors.MockErrorsMapper)
+		expectedUser  *domains.User
+		expectedError error
+	}{
+		{
+			name: "successful update",
+			in:   domains.UpdateUserDTO{Username: "newusername"},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
+				uc.EXPECT().
+					UpdateUser(gomock.Any(), domains.UpdateUserDTO{Username: "newusername"}).
+					Return(&domains.User{ID: 1, Username: "newusername", Email: "john@example.com"}, nil).
+					Times(1)
+			},
+			expectedUser:  &domains.User{ID: 1, Username: "newusername", Email: "john@example.com"},
+			expectedError: nil,
+		},
+		{
+			name: "invalid username - too short",
+			in:   domains.UpdateUserDTO{Username: "ab"},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidUsername).
+					Return(customerrors.ErrInvalidUsername).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: customerrors.ErrInvalidUsername,
+		},
+		{
+			name: "invalid username - contains underscore",
+			in:   domains.UpdateUserDTO{Username: "john_doe"},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidUsername).
+					Return(customerrors.ErrInvalidUsername).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: customerrors.ErrInvalidUsername,
+		},
+		{
+			name: "use case returns error",
+			in:   domains.UpdateUserDTO{Username: "validname"},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
+				uc.EXPECT().
+					UpdateUser(gomock.Any(), gomock.Any()).
+					Return(nil, errors.New("user not found")).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New("user not found"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases, mockMapper)
+			}
+
+			h := profilehandler.New(mockUseCases, mockMapper, testValidationConfig())
+
+			user, err := h.UpdateUser(tt.in)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, user)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedUser, user)
+			}
+		})
+	}
+}
+
 func TestHandler_SetContext(t *testing.T) {
 	t.Parallel()
 

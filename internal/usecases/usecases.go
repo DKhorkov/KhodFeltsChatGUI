@@ -304,6 +304,27 @@ func (u *UseCases) GetUserChats(
 	return chats, nil
 }
 
+func (u *UseCases) UpdateUser(
+	ctx context.Context,
+	updateUserData domains.UpdateUserDTO,
+) (*domains.User, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	updatedUser, err := u.users.UpdateUser(ctx, tokens.AccessToken, updateUserData)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update user", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	return updatedUser, nil
+}
+
 func (u *UseCases) SearchUsers(
 	ctx context.Context,
 	filters *domains.UsersFilters,

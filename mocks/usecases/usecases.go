@@ -302,3 +302,18 @@ func (mr *MockUseCasesMockRecorder) SetTheme(ctx, theme any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTheme", reflect.TypeOf((*MockUseCases)(nil).SetTheme), ctx, theme)
 }
+
+// UpdateUser mocks base method.
+func (m *MockUseCases) UpdateUser(ctx context.Context, updateUserData domains.UpdateUserDTO) (*domains.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", ctx, updateUserData)
+	ret0, _ := ret[0].(*domains.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockUseCasesMockRecorder) UpdateUser(ctx, updateUserData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUseCases)(nil).UpdateUser), ctx, updateUserData)
+}
