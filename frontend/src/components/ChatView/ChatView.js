@@ -7,7 +7,7 @@ import {
     StartListening,
     StopListening
 } from '../../../wailsjs/go/chat/Handler'
-import {GetTheme, ToggleTheme} from '../../../wailsjs/go/settings/Handler'
+import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
 

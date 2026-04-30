@@ -185,6 +185,26 @@ func (u *UseCases) SendForgetPasswordMessage(ctx context.Context, email string) 
 	return nil
 }
 
+func (u *UseCases) ChangePassword(
+	ctx context.Context,
+	changePasswordData domains.ChangePasswordDTO,
+) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	if err = u.auth.ChangePassword(ctx, tokens.AccessToken, changePasswordData); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to change password", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) ForgetPassword(
 	ctx context.Context,
 	forgetPasswordToken, newPassword string,
@@ -282,6 +302,27 @@ func (u *UseCases) GetUserChats(
 	}
 
 	return chats, nil
+}
+
+func (u *UseCases) UpdateUser(
+	ctx context.Context,
+	updateUserData domains.UpdateUserDTO,
+) (*domains.User, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	updatedUser, err := u.users.UpdateUser(ctx, tokens.AccessToken, updateUserData)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update user", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	return updatedUser, nil
 }
 
 func (u *UseCases) SearchUsers(

@@ -347,6 +347,57 @@ func (r *Repository) SendForgetPasswordMessage(ctx context.Context, email string
 	return nil
 }
 
+func (r *Repository) ChangePassword(
+	ctx context.Context,
+	accessToken string,
+	changePasswordData domains.ChangePasswordDTO,
+) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	body, err := json.Marshal(changePasswordData)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		r.baseURL+"/users/password/change",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer r.CloseBody(ctx, resp.Body)
+
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
+	}
+
+	return nil
+}
+
 func (r *Repository) ForgetPassword(
 	ctx context.Context,
 	forgetPasswordToken, newPassword string,

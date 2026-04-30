@@ -21,5 +21,7 @@ var (
 	)
 	ErrInvalidJwtToken               = errors.New(`invalid jwt token`)
 	ErrValidationFailed              = errors.New(`validation failed`)
-	ErrNewPasswordEqualToOldPassword = errors.New(`new password equal to old password`)
+	ErrNewPasswordEqualToOldPassword = errors.New(
+		`validation failed: new password can not be equal to old password`,
+	)
 )

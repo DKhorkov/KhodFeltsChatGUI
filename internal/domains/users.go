@@ -13,8 +13,7 @@ type User struct {
 }
 
 type UpdateUserDTO struct {
-	ID       uint64 `json:"id"`
-	Username string `json:"username"`
+	Username *string `json:"username,omitempty"`
 }
 
 type UsersFilters struct {

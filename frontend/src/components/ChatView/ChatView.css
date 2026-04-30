@@ -85,6 +85,8 @@
 }
 
 .sidebar__header {
+    height: 80px;
+    min-height: 40px;
     padding: var(--space-xl);
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
@@ -208,6 +210,8 @@
 }
 
 .conversation__header {
+    height: 80px;
+    min-height: 40px;
     padding: var(--space-xl);
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);

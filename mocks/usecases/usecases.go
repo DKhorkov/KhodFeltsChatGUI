@@ -56,6 +56,20 @@ func (mr *MockUseCasesMockRecorder) Authenticate(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockUseCases)(nil).Authenticate), ctx)
 }
 
+// ChangePassword mocks base method.
+func (m *MockUseCases) ChangePassword(ctx context.Context, changePasswordData domains.ChangePasswordDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangePassword", ctx, changePasswordData)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangePassword indicates an expected call of ChangePassword.
+func (mr *MockUseCasesMockRecorder) ChangePassword(ctx, changePasswordData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePassword", reflect.TypeOf((*MockUseCases)(nil).ChangePassword), ctx, changePasswordData)
+}
+
 // CreateChat mocks base method.
 func (m *MockUseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error) {
 	m.ctrl.T.Helper()
@@ -287,4 +301,19 @@ func (m *MockUseCases) SetTheme(ctx context.Context, theme domains.ThemeType) er
 func (mr *MockUseCasesMockRecorder) SetTheme(ctx, theme any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTheme", reflect.TypeOf((*MockUseCases)(nil).SetTheme), ctx, theme)
+}
+
+// UpdateUser mocks base method.
+func (m *MockUseCases) UpdateUser(ctx context.Context, updateUserData domains.UpdateUserDTO) (*domains.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", ctx, updateUserData)
+	ret0, _ := ret[0].(*domains.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockUseCasesMockRecorder) UpdateUser(ctx, updateUserData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUseCases)(nil).UpdateUser), ctx, updateUserData)
 }

@@ -15,6 +15,11 @@ type AuthRepository interface {
 	SendVerifyEmailMessage(ctx context.Context, email string) error
 	SendForgetPasswordMessage(ctx context.Context, email string) error
 	ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error
+	ChangePassword(
+		ctx context.Context,
+		accessToken string,
+		changePasswordData domains.ChangePasswordDTO,
+	) error
 }
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/tokens_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,WebSocketsRepository,SettingsRepository
@@ -27,6 +32,11 @@ type TokensRepository interface {
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/users_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,ChatsRepository,WebSocketsRepository,SettingsRepository
 type UsersRepository interface {
 	GetCurrentUser(ctx context.Context, accessToken string) (*domains.User, error)
+	UpdateUser(
+		ctx context.Context,
+		accessToken string,
+		updateUserData domains.UpdateUserDTO,
+	) (*domains.User, error)
 	SearchUsers(
 		ctx context.Context,
 		filters *domains.UsersFilters,

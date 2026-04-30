@@ -18,6 +18,7 @@ type UseCases interface {
 	SendVerifyEmailMessage(ctx context.Context, email string) error
 	SendForgetPasswordMessage(ctx context.Context, email string) error
 	ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error
+	ChangePassword(ctx context.Context, changePasswordData domains.ChangePasswordDTO) error
 
 	// Messaging
 	SendMessage(ctx context.Context, message domains.Message) error
@@ -33,6 +34,7 @@ type UseCases interface {
 	GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error)
 
 	// Users
+	UpdateUser(ctx context.Context, updateUserData domains.UpdateUserDTO) (*domains.User, error)
 	SearchUsers(
 		ctx context.Context,
 		filters *domains.UsersFilters,

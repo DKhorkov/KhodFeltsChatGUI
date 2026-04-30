@@ -189,6 +189,190 @@ func TestRepository_GetCurrentUser(t *testing.T) {
 	}
 }
 
+func TestRepository_UpdateUser(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		accessToken    string
+		updateUserData domains.UpdateUserDTO
+		setupMocks     func(*mockhttp.MockHTTPClient)
+		expectedUser   *domains.User
+		expectedError  error
+	}{
+		{
+			name:           "successful update user",
+			accessToken:    "valid_access_token",
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				user := domains.User{
+					ID:       1,
+					Username: "newusername",
+					Email:    "john@example.com",
+				}
+				userData, _ := json.Marshal(user)
+
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						assert.Equal(t, http.MethodPut, req.Method)
+						assert.Equal(t, "/users/me", req.URL.Path)
+						assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
+
+						cookie, err := req.Cookie(accessTokenCookieName)
+						assert.NoError(t, err)
+						assert.Equal(t, "valid_access_token", cookie.Value)
+
+						var input domains.UpdateUserDTO
+
+						body, _ := io.ReadAll(req.Body)
+						err = json.Unmarshal(body, &input)
+						assert.NoError(t, err)
+						assert.Equal(t, pointers.New("newusername"), input.Username)
+
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewReader(userData)),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedUser: &domains.User{
+				ID:       1,
+				Username: "newusername",
+				Email:    "john@example.com",
+			},
+			expectedError: nil,
+		},
+		{
+			name:           "validation error - returns 400",
+			accessToken:    "valid_access_token",
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("ab")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`validation failed`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New(`validation failed`),
+		},
+		{
+			name:           "user not found - returns 404",
+			accessToken:    "valid_access_token",
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`user not found`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New(`user not found`),
+		},
+		{
+			name:           "unauthorized - returns 401",
+			accessToken:    "invalid_token",
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`unauthorized`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New(`unauthorized`),
+		},
+		{
+			name:           "internal server error - returns 500",
+			accessToken:    "valid_access_token",
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`internal server error`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New(`internal server error`),
+		},
+		{
+			name:           "http client error",
+			accessToken:    "valid_access_token",
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: errors.New("connection refused"),
+		},
+		{
+			name:           "invalid json response",
+			accessToken:    validToken,
+			updateUserData: domains.UpdateUserDTO{Username: pointers.New("newusername")},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewReader([]byte(`{invalid json}`))),
+					}, nil).
+					Times(1)
+			},
+			expectedUser:  nil,
+			expectedError: &json.SyntaxError{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := New(mockClient, "http://api.example.com")
+
+			user, err := repo.UpdateUser(context.Background(), tt.accessToken, tt.updateUserData)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.expectedUser, user)
+		})
+	}
+}
+
 func TestRepository_SearchUsers(t *testing.T) {
 	t.Parallel()
 
