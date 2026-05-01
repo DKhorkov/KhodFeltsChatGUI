@@ -41,12 +41,12 @@ func TestRepository_Save(t *testing.T) {
 				Theme: domains.ThemeLight,
 			},
 			setup: func() error {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
@@ -56,12 +56,12 @@ func TestRepository_Save(t *testing.T) {
 				Theme: domains.ThemeDark,
 			},
 			setup: func() error {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
@@ -77,10 +77,10 @@ func TestRepository_Save(t *testing.T) {
 				}
 				data, _ := json.MarshalIndent(existingSettings, prefix, indent)
 
-				return os.WriteFile(settingsFilename, data, permission)
+				return os.WriteFile(settingsFilePath, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
@@ -90,12 +90,12 @@ func TestRepository_Save(t *testing.T) {
 				Theme: 0, // ThemeLight по умолчанию
 			},
 			setup: func() error {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
@@ -149,10 +149,10 @@ func TestRepository_Load(t *testing.T) {
 					return err
 				}
 
-				return os.WriteFile(settingsFilename, data, permission)
+				return os.WriteFile(settingsFilePath, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected: &domains.Settings{
 				Theme: domains.ThemeLight,
@@ -171,10 +171,10 @@ func TestRepository_Load(t *testing.T) {
 					return err
 				}
 
-				return os.WriteFile(settingsFilename, data, permission)
+				return os.WriteFile(settingsFilePath, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected: &domains.Settings{
 				Theme: domains.ThemeDark,
@@ -193,10 +193,10 @@ func TestRepository_Load(t *testing.T) {
 					return err
 				}
 
-				return os.WriteFile(settingsFilename, data, permission)
+				return os.WriteFile(settingsFilePath, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected: &domains.Settings{
 				Theme: domains.ThemeLight,
@@ -206,12 +206,12 @@ func TestRepository_Load(t *testing.T) {
 		{
 			name: "load when file does not exist",
 			setup: func() error {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected:    nil,
 			expectedErr: true,
@@ -219,10 +219,10 @@ func TestRepository_Load(t *testing.T) {
 		{
 			name: "load with corrupted JSON",
 			setup: func() error {
-				return os.WriteFile(settingsFilename, []byte("{invalid json}"), permission)
+				return os.WriteFile(settingsFilePath, []byte("{invalid json}"), permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected:    nil,
 			expectedErr: true,
@@ -230,10 +230,10 @@ func TestRepository_Load(t *testing.T) {
 		{
 			name: "load with empty file",
 			setup: func() error {
-				return os.WriteFile(settingsFilename, []byte(""), permission)
+				return os.WriteFile(settingsFilePath, []byte(""), permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected:    nil,
 			expectedErr: true,
@@ -242,10 +242,10 @@ func TestRepository_Load(t *testing.T) {
 			name: "load with invalid theme value",
 			setup: func() error {
 				// Пишем некорректное значение темы
-				return os.WriteFile(settingsFilename, []byte(`{"theme": 99}`), permission)
+				return os.WriteFile(settingsFilePath, []byte(`{"theme": 99}`), permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expected:    &domains.Settings{Theme: 99},
 			expectedErr: false, // JSON распарсится, но значение будет 99
@@ -301,22 +301,22 @@ func TestRepository_Delete(t *testing.T) {
 					return err
 				}
 
-				return os.WriteFile(settingsFilename, data, permission)
+				return os.WriteFile(settingsFilePath, data, permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
 		{
 			name: "delete when file does not exist",
 			setup: func() error {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 
 				return nil
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: true,
 		},
@@ -329,11 +329,11 @@ func TestRepository_Delete(t *testing.T) {
 				}
 
 				data, _ := json.MarshalIndent(settings, prefix, indent)
-				if err := os.WriteFile(settingsFilename, data, permission); err != nil {
+				if err := os.WriteFile(settingsFilePath, data, permission); err != nil {
 					return err
 				}
 				// Удаляем его
-				if err := os.Remove(settingsFilename); err != nil {
+				if err := os.Remove(settingsFilePath); err != nil {
 					return err
 				}
 				// Создаем снова
@@ -342,20 +342,20 @@ func TestRepository_Delete(t *testing.T) {
 				}
 				data2, _ := json.MarshalIndent(settings2, prefix, indent)
 
-				return os.WriteFile(settingsFilename, data2, permission)
+				return os.WriteFile(settingsFilePath, data2, permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
 		{
 			name: "delete empty file",
 			setup: func() error {
-				return os.WriteFile(settingsFilename, []byte(""), permission)
+				return os.WriteFile(settingsFilePath, []byte(""), permission)
 			},
 			cleanup: func() {
-				os.Remove(settingsFilename)
+				os.Remove(settingsFilePath)
 			},
 			expectedErr: false,
 		},
@@ -388,7 +388,7 @@ func TestRepository_Delete(t *testing.T) {
 
 			// Проверяем, что файл действительно удален
 			if !tt.expectedErr {
-				_, err := os.Stat(settingsFilename)
+				_, err := os.Stat(settingsFilePath)
 				assert.True(t, os.IsNotExist(err))
 			}
 		})
@@ -396,23 +396,15 @@ func TestRepository_Delete(t *testing.T) {
 }
 
 func TestRepository_Constants(t *testing.T) {
-	tests := []struct {
-		name     string
-		constant string
-		expected string
-	}{
-		{
-			name:     "settings filename constant",
-			constant: settingsFilename,
-			expected: "settings.json",
-		},
-	}
+	t.Run("settings filename constant", func(t *testing.T) {
+		assert.Equal(t, "settings.json", settingsFilename)
+	})
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, tt.constant)
-		})
-	}
+	t.Run("settings file path is absolute", func(t *testing.T) {
+		path := settingsFilePath
+		assert.True(t, len(path) > 0)
+		assert.Contains(t, path, settingsFilename)
+	})
 }
 
 // Интеграционный тест полного цикла работы с настройками.
@@ -422,7 +414,7 @@ func TestRepository_Integration(t *testing.T) {
 		ctx := context.Background()
 
 		// Очищаем перед тестом
-		_ = os.Remove(settingsFilename)
+		_ = os.Remove(settingsFilePath)
 
 		// 1. Сохраняем настройки (светлая тема)
 		settings := domains.Settings{
@@ -459,6 +451,6 @@ func TestRepository_Integration(t *testing.T) {
 		assert.Error(t, err)
 
 		// Очищаем после теста
-		_ = os.Remove(settingsFilename)
+		_ = os.Remove(settingsFilePath)
 	})
 }

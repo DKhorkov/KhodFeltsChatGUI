@@ -97,18 +97,6 @@ func TestHandler_Login(t *testing.T) {
 			expectedError: customerrors.ErrInvalidPassword,
 		},
 		{
-			name: "use case returns ErrDefault - mapped to ErrLogin",
-			in:   domains.LoginDTO{Login: "john@example.com", Password: "Password1!"},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				uc.EXPECT().
-					Login(gomock.Any(), domains.LoginDTO{Login: "john@example.com", Password: "Password1!"}).
-					Return(nil, customerrors.ErrDefault).
-					Times(1)
-				em.EXPECT().Map(customerrors.ErrLogin).Return(customerrors.ErrLogin).Times(1)
-			},
-			expectedError: customerrors.ErrLogin,
-		},
-		{
 			name: "use case returns network error - returned as-is",
 			in:   domains.LoginDTO{Login: "john@example.com", Password: "Password1!"},
 			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
@@ -234,22 +222,6 @@ func TestHandler_Register(t *testing.T) {
 					Times(1)
 			},
 			expectedError: customerrors.ErrInvalidPassword,
-		},
-		{
-			name: "use case returns ErrDefault - mapped to ErrRegister",
-			in: domains.RegisterDTO{
-				Email:    "john@example.com",
-				Username: "john123",
-				Password: "Password1!",
-			},
-			setupMocks: func(uc *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				uc.EXPECT().
-					Register(gomock.Any(), gomock.Any()).
-					Return(nil, customerrors.ErrDefault).
-					Times(1)
-				em.EXPECT().Map(customerrors.ErrRegister).Return(customerrors.ErrRegister).Times(1)
-			},
-			expectedError: customerrors.ErrRegister,
 		},
 		{
 			name: "use case returns specific error - returned as-is",

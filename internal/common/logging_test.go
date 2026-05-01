@@ -2,6 +2,8 @@ package common_test
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
@@ -45,6 +47,7 @@ func TestCreateLogsDir(t *testing.T) {
 			setup: func() {
 				// Создаем файл вместо директории
 				_ = os.RemoveAll(common.LogsDir)
+				_ = os.MkdirAll(filepath.Dir(common.LogsDir), os.ModePerm)
 				f, _ := os.Create(common.LogsDir)
 				_ = f.Close()
 			},
@@ -90,23 +93,13 @@ func TestConstants(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		constant any
+		got      any
 		expected any
 	}{
 		{
 			name:     "LoggingTraceSkipLevel constant",
-			constant: common.LoggingTraceSkipLevel,
+			got:      common.LoggingTraceSkipLevel,
 			expected: 1,
-		},
-		{
-			name:     "LogsDir constant",
-			constant: common.LogsDir,
-			expected: "logs",
-		},
-		{
-			name:     "LogsPath format",
-			constant: common.LogsPath,
-			expected: "logs/%s.log",
 		},
 	}
 
@@ -114,9 +107,25 @@ func TestConstants(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if tt.constant != tt.expected {
-				t.Errorf("%s = %v, expected %v", tt.name, tt.constant, tt.expected)
+			if tt.got != tt.expected {
+				t.Errorf("%s = %v, expected %v", tt.name, tt.got, tt.expected)
 			}
 		})
+	}
+}
+
+func TestLogsDirIsAbsolute(t *testing.T) {
+	t.Parallel()
+
+	if !filepath.IsAbs(common.LogsDir) {
+		t.Errorf("LogsDir should be absolute path, got %s", common.LogsDir)
+	}
+}
+
+func TestLogsPathContainsLogsDir(t *testing.T) {
+	t.Parallel()
+
+	if !strings.HasPrefix(common.LogsPath, common.LogsDir) {
+		t.Errorf("LogsPath = %s should be inside LogsDir = %s", common.LogsPath, common.LogsDir)
 	}
 }
