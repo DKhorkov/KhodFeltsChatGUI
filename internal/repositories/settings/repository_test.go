@@ -402,7 +402,7 @@ func TestRepository_Constants(t *testing.T) {
 
 	t.Run("settings file path is absolute", func(t *testing.T) {
 		path := settingsFilePath
-		assert.True(t, len(path) > 0)
+		assert.True(t, path != "")
 		assert.Contains(t, path, settingsFilename)
 	})
 }
