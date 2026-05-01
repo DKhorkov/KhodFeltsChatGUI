@@ -38,6 +38,7 @@ func main() {
 	// Инициализируем переменные окружения для дальнейшего считывания в конфиге:
 	loadenv.Init()
 
+	common.CreateAppDataDir()
 	common.CreateLogsDir()
 
 	cfg := config.New()

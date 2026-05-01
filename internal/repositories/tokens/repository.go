@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"sync"
 
+	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 )
 
@@ -18,6 +20,8 @@ const (
 	prefix = ""
 	indent = "  "
 )
+
+var tokensFilePath = filepath.Join(common.AppDataDir(), tokensFilename)
 
 type Repository struct {
 	mu sync.RWMutex
@@ -36,14 +40,14 @@ func (r *Repository) Save(_ context.Context, tokens domains.TokensDTO) error {
 		return err
 	}
 
-	return os.WriteFile(tokensFilename, data, permission)
+	return os.WriteFile(tokensFilePath, data, permission)
 }
 
 func (r *Repository) Load(_ context.Context) (*domains.TokensDTO, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	data, err := os.ReadFile(tokensFilename)
+	data, err := os.ReadFile(tokensFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -60,5 +64,5 @@ func (r *Repository) Delete(_ context.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return os.Remove(tokensFilename)
+	return os.Remove(tokensFilePath)
 }

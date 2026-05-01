@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"errors"
 
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
@@ -50,10 +49,6 @@ func (h *Handler) Login(in domains.LoginDTO) error {
 	}
 
 	if _, err := h.useCases.Login(ctx, in); err != nil {
-		if errors.Is(err, customerrors.ErrDefault) {
-			return h.errorsMapper.Map(customerrors.ErrLogin)
-		}
-
 		return err
 	}
 
@@ -79,10 +74,6 @@ func (h *Handler) Register(in domains.RegisterDTO) error {
 	}
 
 	if _, err := h.useCases.Register(ctx, in); err != nil {
-		if errors.Is(err, customerrors.ErrDefault) {
-			return h.errorsMapper.Map(customerrors.ErrRegister)
-		}
-
 		return err
 	}
 

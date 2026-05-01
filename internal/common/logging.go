@@ -1,15 +1,19 @@
 package common
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+)
 
-const (
-	LoggingTraceSkipLevel = 1
-	LogsDir               = "logs"
-	LogsPath              = LogsDir + "/%s.log"
+const LoggingTraceSkipLevel = 1
+
+var (
+	LogsDir  = filepath.Join(AppDataDir(), "logs")
+	LogsPath = filepath.Join(LogsDir, "%s.log")
 )
 
 func CreateLogsDir() {
 	if _, err := os.Stat(LogsDir); os.IsNotExist(err) {
-		_ = os.Mkdir(LogsDir, os.ModePerm)
+		_ = os.MkdirAll(LogsDir, os.ModePerm)
 	}
 }
