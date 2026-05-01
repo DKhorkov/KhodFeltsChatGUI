@@ -17,7 +17,6 @@ func AppDataDir() string {
 		// Fallback на домашнюю директорию
 		home, _ := os.UserHomeDir()
 
-		return filepath.Join(home, "."+appName
 		return filepath.Join(home, "."+appName)
 	}
 
