@@ -38,6 +38,7 @@ var (
 	errNewPasswordEqualToOldPassword = errors.New(
 		"Старый пароль не может быть использован в качестве нового пароля",
 	)
+	errTokenExpired = errors.New("Токен устарел")
 
 	// Chats.
 	errInvalidChat         = errors.New("Неверный чат")
@@ -80,6 +81,7 @@ var rawMapping = map[string]error{
 	ErrWebsocket.Error():                              ErrDefault,
 	ErrWebsocketClosed.Error():                        ErrDefault,
 	ErrInvalidForgetPasswordToken.Error():             errInvalidForgetPasswordToken,
+	ErrTokenExpired.Error():                           errTokenExpired,
 
 	// Chats
 	ErrInvalidChat.Error():         errInvalidChat,

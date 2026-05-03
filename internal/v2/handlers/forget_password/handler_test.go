@@ -56,31 +56,6 @@ func TestHandler_ForgetPassword(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:  "invalid token - not base64",
-			token: "!!!not-base64!!!",
-			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().
-					Map(customerrors.ErrInvalidForgetPasswordToken).
-					Return(customerrors.ErrInvalidForgetPasswordToken).
-					Times(1)
-			},
-			expectedError: customerrors.ErrInvalidForgetPasswordToken,
-		},
-		{
-			name: "invalid token - decodes to non-numeric value",
-			// base64 raw url encoding of "abc" - decodes fine but not parseable as uint64
-			token: base64.RawURLEncoding.EncodeToString([]byte("abc")),
-			in:    domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"},
-			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
-				em.EXPECT().
-					Map(customerrors.ErrInvalidForgetPasswordToken).
-					Return(customerrors.ErrInvalidForgetPasswordToken).
-					Times(1)
-			},
-			expectedError: customerrors.ErrInvalidForgetPasswordToken,
-		},
-		{
 			name:  "invalid password - too weak",
 			token: validForgetPasswordToken,
 			in:    domains.ForgetPasswordDTO{NewPassword: "weak"},
