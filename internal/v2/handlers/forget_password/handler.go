@@ -40,7 +40,7 @@ func (h *Handler) ForgetPassword(
 ) error {
 	ctx := context.Background()
 
-	if len(forgetPasswordToken) == 0 {
+	if forgetPasswordToken == "" {
 		return h.errorsMapper.Map(errors.ErrInvalidForgetPasswordToken)
 	}
 
