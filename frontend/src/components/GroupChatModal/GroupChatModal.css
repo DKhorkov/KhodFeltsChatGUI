@@ -1,0 +1,59 @@
+.group-modal {
+    width: 420px;
+}
+
+.group-modal__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-2xl);
+}
+
+.group-modal__avatar {
+    width: 56px;
+    height: 56px;
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-xl);
+    flex-shrink: 0;
+}
+
+.group-modal__title h2 {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.group-modal__description {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+    display: block;
+}
+
+.group-modal__members {
+    margin-top: var(--space-lg);
+}
+
+.group-modal__members-heading {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.group-modal__you-badge {
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.user-item--clickable {
+    cursor: pointer;
+}
