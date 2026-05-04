@@ -243,6 +243,7 @@ linters:
           - nestif
           - gochecknoglobals
           - revive
+          - goconst
 
       - path: internal/repositories/*
         linters:

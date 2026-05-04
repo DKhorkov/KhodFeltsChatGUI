@@ -2,13 +2,11 @@ package forget_password
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	"github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
-	"github.com/DKhorkov/libs/security"
 	"github.com/DKhorkov/libs/validation"
 )
 
@@ -42,12 +40,7 @@ func (h *Handler) ForgetPassword(
 ) error {
 	ctx := context.Background()
 
-	bytesUserID, err := security.RawDecode(forgetPasswordToken)
-	if err != nil {
-		return h.errorsMapper.Map(errors.ErrInvalidForgetPasswordToken)
-	}
-
-	if _, err = strconv.ParseUint(string(bytesUserID), 10, 64); err != nil {
+	if forgetPasswordToken == "" {
 		return h.errorsMapper.Map(errors.ErrInvalidForgetPasswordToken)
 	}
 
