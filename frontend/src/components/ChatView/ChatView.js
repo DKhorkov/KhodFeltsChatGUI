@@ -10,10 +10,11 @@ import {
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
+import GroupChatModal from '../GroupChatModal/GroupChatModal.vue'
 
 export default {
     name: 'ChatView',
-    components: {EmojiPicker},
+    components: {EmojiPicker, GroupChatModal},
     emits: ['logout', 'show-create-chat', 'show-search-users', 'show-profile', 'new-message-notification'],
 
     setup(props, {emit}) {
@@ -28,6 +29,7 @@ export default {
         const isDarkTheme = ref(false)
         const isEmojiPickerVisible = ref(false)
         const selectedMember = ref(null)
+        const selectedGroupChat = ref(null)
 
         let isLoadingMore = false
         let hasMoreMessages = true
@@ -171,9 +173,34 @@ export default {
         }
 
         const openMemberProfile = (chat) => {
-            const member = getOtherMember(chat)
-            if (member) {
-                selectedMember.value = member
+            if (chat.type === CHAT_TYPE.PRIVATE) {
+                const member = getOtherMember(chat)
+                if (member) {
+                    selectedMember.value = member
+                }
+            } else {
+                selectedGroupChat.value = chat
+            }
+        }
+
+        const openChatInfo = () => {
+            if (!selectedChat.value) return
+            openMemberProfile(selectedChat.value)
+        }
+
+        const returnToGroupChat = ref(null)
+
+        const openGroupMemberProfile = (member) => {
+            returnToGroupChat.value = selectedGroupChat.value
+            selectedGroupChat.value = null
+            selectedMember.value = member
+        }
+
+        const closeMemberProfile = () => {
+            selectedMember.value = null
+            if (returnToGroupChat.value) {
+                selectedGroupChat.value = returnToGroupChat.value
+                returnToGroupChat.value = null
             }
         }
 
@@ -284,6 +311,10 @@ export default {
             textareaRef,
             isEmojiPickerVisible,
             selectedMember,
+            selectedGroupChat,
+            openChatInfo,
+            openGroupMemberProfile,
+            closeMemberProfile,
             insertEmoji,
             selectChat,
             sendMessage,

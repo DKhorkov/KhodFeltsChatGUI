@@ -226,6 +226,15 @@
     color: var(--text-primary);
 }
 
+.conversation__header-title {
+    cursor: pointer;
+    transition: color var(--transition-base);
+}
+
+.conversation__header-title:hover {
+    color: var(--accent);
+}
+
 .conversation__messages {
     flex: 1;
     overflow-y: auto;
