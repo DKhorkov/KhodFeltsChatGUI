@@ -31,7 +31,7 @@
           >
             <div
                 class="chat-item__avatar"
-                :class="{ 'chat-item__avatar--clickable': getOtherMember(chat) }"
+                :class="{ 'chat-item__avatar--clickable': true }"
                 @click.stop="openMemberProfile(chat)"
             >
               {{ getChatTitle(chat).charAt(0).toUpperCase() }}
@@ -49,7 +49,7 @@
       <!-- Правая панель — сообщения -->
       <main class="conversation" v-if="selectedChat" @keydown.escape="selectedChat = null" tabindex="-1" v-focus>
         <div class="conversation__header">
-          <h3>{{ getChatTitle(selectedChat) }}</h3>
+          <h3 class="conversation__header-title" @click="openChatInfo">{{ getChatTitle(selectedChat) }}</h3>
           <button @click="selectedChat = null" class="conversation__close-btn" title="Закрыть чат">&times;</button>
         </div>
 
@@ -143,6 +143,15 @@
 
       </div>
     </div>
+
+    <!-- Информация о групповом чате -->
+    <GroupChatModal
+        v-if="selectedGroupChat"
+        :chat="selectedGroupChat"
+        :current-user="currentUser"
+        @close="selectedGroupChat = null"
+        @open-member-profile="openGroupMemberProfile"
+    />
   </div>
 </template>
 
