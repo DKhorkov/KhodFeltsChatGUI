@@ -110,13 +110,13 @@
     <!-- Профиль участника чата -->
     <div v-if="selectedMember"
          class="modal-overlay"
-         @click="selectedMember = null"
-         @keydown.escape="selectedMember = null"
+         @click="closeMemberProfile"
+         @keydown.escape="closeMemberProfile"
          tabindex="-1"
          v-focus
     >
       <div class="modal-content profile-modal" @click.stop>
-        <button class="modal-content__close" @click="selectedMember = null" title="Закрыть">&times;</button>
+        <button class="modal-content__close" @click="closeMemberProfile" title="Закрыть">&times;</button>
         <div class="profile-modal__header">
           <div class="profile-modal__avatar">
             {{ selectedMember.username.charAt(0).toUpperCase() }}

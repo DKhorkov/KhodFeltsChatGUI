@@ -188,9 +188,20 @@ export default {
             openMemberProfile(selectedChat.value)
         }
 
+        const returnToGroupChat = ref(null)
+
         const openGroupMemberProfile = (member) => {
+            returnToGroupChat.value = selectedGroupChat.value
             selectedGroupChat.value = null
             selectedMember.value = member
+        }
+
+        const closeMemberProfile = () => {
+            selectedMember.value = null
+            if (returnToGroupChat.value) {
+                selectedGroupChat.value = returnToGroupChat.value
+                returnToGroupChat.value = null
+            }
         }
 
         const getSenderName = (message) => {
@@ -303,6 +314,7 @@ export default {
             selectedGroupChat,
             openChatInfo,
             openGroupMemberProfile,
+            closeMemberProfile,
             insertEmoji,
             selectChat,
             sendMessage,
