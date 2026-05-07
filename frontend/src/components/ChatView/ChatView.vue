@@ -47,10 +47,10 @@
       </aside>
 
       <!-- Правая панель — сообщения -->
-      <main class="conversation" v-if="selectedChat" @keydown.escape="selectedChat = null" tabindex="-1" v-focus>
+      <main class="conversation" v-if="selectedChat" @keydown.escape="closeChat()" tabindex="-1" v-focus>
         <div class="conversation__header">
           <h3 class="conversation__header-title" @click="openChatInfo">{{ getChatTitle(selectedChat) }}</h3>
-          <button @click="selectedChat = null" class="conversation__close-btn" title="Закрыть чат">&times;</button>
+          <button @click="closeChat()" class="conversation__close-btn" title="Закрыть чат">&times;</button>
         </div>
 
         <div class="conversation__messages" ref="messagesListRef">
