@@ -15,8 +15,8 @@ func New() Config {
 			Timeout: time.Second * time.Duration(
 				loadenv.GetEnvAsInt("HTTP_CLIENT_TIMEOUT", 5),
 			),
-			WebsocketURL: loadenv.GetEnv("HTTP_WEBSOCKET_URL", "ws://185.119.59.215:8080"),
-			BaseURL:      loadenv.GetEnv("HTTP_BASE_URL", "http://185.119.59.215:8080"),
+			WebsocketURL: loadenv.GetEnv("HTTP_WEBSOCKET_URL", "ws://185.119.59.215:8080/api"),
+			BaseURL:      loadenv.GetEnv("HTTP_BASE_URL", "http://185.119.59.215:8080/api"),
 		},
 		Logging: logging.Config{
 			Level: logging.Levels.DEBUG,
