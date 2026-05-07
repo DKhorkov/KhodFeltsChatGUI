@@ -83,6 +83,7 @@ export default {
 
         const selectChat = async (chat) => {
             selectedChat.value = chat
+            messages.value = []
             await loadMessages(chat.id)
             chat.isRead = true
         }
