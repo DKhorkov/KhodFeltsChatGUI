@@ -81,6 +81,11 @@ export default {
             }
         }
 
+        const closeChat = () => {
+            selectedChat.value = null
+            messages.value = []
+        }
+
         const selectChat = async (chat) => {
             selectedChat.value = chat
             await loadMessages(chat.id)
@@ -316,6 +321,7 @@ export default {
             openGroupMemberProfile,
             closeMemberProfile,
             insertEmoji,
+            closeChat,
             selectChat,
             sendMessage,
             getChatTitle,
