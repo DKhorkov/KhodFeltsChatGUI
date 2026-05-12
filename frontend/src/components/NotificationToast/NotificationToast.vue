@@ -1,10 +1,10 @@
 <template>
-  <div class="notification" @click="$emit('click')">
-    <div class="notification__content">
-      <div class="notification__icon">ℹ️</div>
-      <div class="notification__message">{{ message }}</div>
-      <button class="notification__close" @click.stop="$emit('close')">×</button>
+  <div class="toast" @click="$emit('click')">
+    <div class="toast__body">
+      <div v-if="sender" class="toast__sender">{{ sender }}</div>
+      <div class="toast__text">{{ message }}</div>
     </div>
+    <button class="toast__close" @click.stop="$emit('close')">×</button>
   </div>
 </template>
 

@@ -82,6 +82,7 @@ export default {
         }
 
         const closeChat = () => {
+            isEmojiPickerVisible.value = false
             selectedChat.value = null
             messages.value = []
         }
@@ -145,7 +146,8 @@ export default {
                 loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
 
                 emit('new-message-notification', {
-                    text: `${message.sender.username}: ${message.text}`,
+                    sender: message.sender.username,
+                    text: message.text,
                     chatId: message.chatId,
                 })
             } catch (err) {
