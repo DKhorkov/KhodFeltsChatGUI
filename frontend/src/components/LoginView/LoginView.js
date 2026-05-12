@@ -68,13 +68,15 @@ export default {
                     password: registerForm.value.password,
                 })
 
+                const registeredEmail = registerForm.value.email
+
                 activeTab.value = TAB.LOGIN
                 loginForm.value.login = registerForm.value.email
                 loginForm.value.password = registerForm.value.password
 
                 registerForm.value = {email: '', username: '', password: '', confirmPassword: ''}
 
-                showInfo('Регистрация прошла успешно. Теперь войдите')
+                showInfo(`Вы успешно зарегистрировались. Мы отправили письмо с подтверждением на ${registeredEmail} — перейдите по ссылке в письме, чтобы активировать аккаунт`)
             } catch (err) {
                 showError(err)
             }
