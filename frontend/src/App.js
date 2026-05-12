@@ -84,9 +84,9 @@ export default {
             currentView.value = VIEW.LOGIN
         }
 
-        const addNotification = (message, chatId = null) => {
+        const addNotification = (message, chatId = null, sender = '') => {
             const id = ++nextNotificationId
-            notifications.value.push({id, message, chatId})
+            notifications.value.push({id, message, chatId, sender})
 
             setTimeout(() => removeNotification(id), NOTIFICATION_DURATION_MS)
         }
@@ -104,8 +104,8 @@ export default {
             }
         }
 
-        const handleNewMessageNotification = ({text, chatId}) => {
-            addNotification(text, chatId)
+        const handleNewMessageNotification = ({sender, text, chatId}) => {
+            addNotification(text, chatId, sender)
         }
 
         const handleNotificationClick = (id) => {

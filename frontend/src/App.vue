@@ -54,6 +54,7 @@
         v-for="notification in notifications"
         :key="notification.id"
         :message="notification.message"
+        :sender="notification.sender"
         @click="handleNotificationClick(notification.id)"
         @close="removeNotification(notification.id)"
       />
