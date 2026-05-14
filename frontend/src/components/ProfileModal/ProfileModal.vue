@@ -106,9 +106,9 @@
       </div>
 
       <div class="profile-modal__section">
-        <label class="profile-modal__theme-row">
+        <label class="profile-modal__theme-row" @click="$emit('toggle-theme')">
           <span class="profile-modal__label">Тёмная тема</span>
-          <div class="theme-switch__toggle" @click="$emit('toggle-theme')">
+          <div class="theme-switch__toggle">
             <div class="theme-switch__track" :class="{ 'theme-switch__track--on': isDarkTheme }">
               <div class="theme-switch__thumb" :class="{ 'theme-switch__thumb--on': isDarkTheme }"></div>
             </div>
