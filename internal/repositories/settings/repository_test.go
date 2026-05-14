@@ -1,456 +1,393 @@
 package settings
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"os"
+	"errors"
+	"io"
+	"net/http"
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
+	mockhttp "github.com/DKhorkov/kfcGUI/mocks/http"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
-func TestRepository(t *testing.T) {
+const (
+	testBaseURL = "http://localhost:8080/api"
+	validToken  = "valid token"
+)
+
+func TestRepository_GetSettings(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
-		name string
+		name             string
+		accessToken      string
+		setupMocks       func(*mockhttp.MockHTTPClient)
+		expectedSettings *domains.Settings
+		expectedError    error
 	}{
 		{
-			name: "create new settings repository",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			repo := New()
-			assert.NotNil(t, repo)
-		})
-	}
-}
-
-func TestRepository_Save(t *testing.T) {
-	tests := []struct {
-		name        string
-		settings    domains.Settings
-		setup       func() error
-		cleanup     func()
-		expectedErr bool
-	}{
-		{
-			name: "successful save with light theme",
-			settings: domains.Settings{
-				Theme: domains.ThemeLight,
-			},
-			setup: func() error {
-				os.Remove(settingsFilePath)
-
-				return nil
-			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expectedErr: false,
-		},
-		{
-			name: "successful save with dark theme",
-			settings: domains.Settings{
-				Theme: domains.ThemeDark,
-			},
-			setup: func() error {
-				os.Remove(settingsFilePath)
-
-				return nil
-			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expectedErr: false,
-		},
-		{
-			name: "overwrite existing file successfully",
-			settings: domains.Settings{
-				Theme: domains.ThemeDark,
-			},
-			setup: func() error {
-				// Создаем существующий файл
-				existingSettings := domains.Settings{
-					Theme: domains.ThemeLight,
-				}
-				data, _ := json.MarshalIndent(existingSettings, prefix, indent)
-
-				return os.WriteFile(settingsFilePath, data, permission)
-			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expectedErr: false,
-		},
-		{
-			name: "save with zero value theme",
-			settings: domains.Settings{
-				Theme: 0, // ThemeLight по умолчанию
-			},
-			setup: func() error {
-				os.Remove(settingsFilePath)
-
-				return nil
-			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expectedErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			if tt.setup != nil {
-				if err := tt.setup(); err != nil {
-					t.Fatalf("Setup failed: %v", err)
-				}
-			}
-
-			// Cleanup
-			if tt.cleanup != nil {
-				defer tt.cleanup()
-			}
-
-			repo := New()
-			ctx := context.Background()
-
-			err := repo.Save(ctx, tt.settings)
-
-			if tt.expectedErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestRepository_Load(t *testing.T) {
-	tests := []struct {
-		name        string
-		setup       func() error
-		cleanup     func()
-		expected    *domains.Settings
-		expectedErr bool
-	}{
-		{
-			name: "successful load with light theme",
-			setup: func() error {
+			name:        "successful get settings with light theme",
+			accessToken: validToken,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				settings := domains.Settings{
 					Theme: domains.ThemeLight,
 				}
+				data, _ := json.Marshal(settings)
 
-				data, err := json.MarshalIndent(settings, prefix, indent)
-				if err != nil {
-					return err
-				}
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						cookie, err := req.Cookie(accessTokenCookieName)
+						if err != nil || cookie.Value != validToken {
+							return nil, errors.New("invalid cookie")
+						}
 
-				return os.WriteFile(settingsFilePath, data, permission)
+						if req.Method != http.MethodGet {
+							return nil, errors.New("invalid method")
+						}
+
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewReader(data)),
+						}, nil
+					}).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected: &domains.Settings{
+			expectedSettings: &domains.Settings{
 				Theme: domains.ThemeLight,
 			},
-			expectedErr: false,
+			expectedError: nil,
 		},
 		{
-			name: "successful load with dark theme",
-			setup: func() error {
+			name:        "successful get settings with dark theme",
+			accessToken: validToken,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				settings := domains.Settings{
 					Theme: domains.ThemeDark,
 				}
+				data, _ := json.Marshal(settings)
 
-				data, err := json.MarshalIndent(settings, prefix, indent)
-				if err != nil {
-					return err
-				}
-
-				return os.WriteFile(settingsFilePath, data, permission)
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewReader(data)),
+					}, nil).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected: &domains.Settings{
+			expectedSettings: &domains.Settings{
 				Theme: domains.ThemeDark,
 			},
-			expectedErr: false,
+			expectedError: nil,
 		},
 		{
-			name: "load with default theme (0)",
-			setup: func() error {
-				settings := domains.Settings{
-					Theme: 0,
-				}
-
-				data, err := json.MarshalIndent(settings, prefix, indent)
-				if err != nil {
-					return err
-				}
-
-				return os.WriteFile(settingsFilePath, data, permission)
+			name:        "unauthorized access",
+			accessToken: "invalid_token",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body:       io.NopCloser(bytes.NewReader([]byte("unauthorized"))),
+					}, nil).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected: &domains.Settings{
-				Theme: domains.ThemeLight,
-			},
-			expectedErr: false,
+			expectedSettings: nil,
+			expectedError:    errors.New("unauthorized"),
 		},
 		{
-			name: "load when file does not exist",
-			setup: func() error {
-				os.Remove(settingsFilePath)
-
-				return nil
+			name:        "settings not found",
+			accessToken: validToken,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body:       io.NopCloser(bytes.NewReader([]byte("settings not found"))),
+					}, nil).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected:    nil,
-			expectedErr: true,
+			expectedSettings: nil,
+			expectedError:    errors.New("settings not found"),
 		},
 		{
-			name: "load with corrupted JSON",
-			setup: func() error {
-				return os.WriteFile(settingsFilePath, []byte("{invalid json}"), permission)
+			name:        "http client error",
+			accessToken: validToken,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected:    nil,
-			expectedErr: true,
+			expectedSettings: nil,
+			expectedError:    errors.New("connection refused"),
 		},
 		{
-			name: "load with empty file",
-			setup: func() error {
-				return os.WriteFile(settingsFilePath, []byte(""), permission)
+			name:        "server internal error",
+			accessToken: validToken,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body:       io.NopCloser(bytes.NewReader([]byte("internal server error"))),
+					}, nil).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected:    nil,
-			expectedErr: true,
+			expectedSettings: nil,
+			expectedError:    errors.New("internal server error"),
 		},
 		{
-			name: "load with invalid theme value",
-			setup: func() error {
-				// Пишем некорректное значение темы
-				return os.WriteFile(settingsFilePath, []byte(`{"theme": 99}`), permission)
+			name:        "invalid json response",
+			accessToken: validToken,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewReader([]byte("{invalid json}"))),
+					}, nil).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expected:    &domains.Settings{Theme: 99},
-			expectedErr: false, // JSON распарсится, но значение будет 99
+			expectedSettings: nil,
+			expectedError:    errors.New("invalid character"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			if tt.setup != nil {
-				if err := tt.setup(); err != nil {
-					t.Fatalf("Setup failed: %v", err)
-				}
-			}
+			t.Parallel()
 
-			// Cleanup
-			if tt.cleanup != nil {
-				defer tt.cleanup()
-			}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			repo := New()
-			ctx := context.Background()
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			tt.setupMocks(mockClient)
 
-			result, err := repo.Load(ctx)
+			repo := New(mockClient, testBaseURL)
+			result, err := repo.GetSettings(context.Background(), tt.accessToken)
 
-			if tt.expectedErr {
+			if tt.expectedError != nil {
 				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.expected, result)
+			assert.Equal(t, tt.expectedSettings, result)
 		})
 	}
 }
 
-func TestRepository_Delete(t *testing.T) {
+func TestRepository_UpdateSettings(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
-		name        string
-		setup       func() error
-		cleanup     func()
-		expectedErr bool
+		name             string
+		accessToken      string
+		settings         domains.Settings
+		setupMocks       func(*mockhttp.MockHTTPClient)
+		expectedSettings *domains.Settings
+		expectedError    error
 	}{
 		{
-			name: "successful delete existing file",
-			setup: func() error {
-				settings := domains.Settings{
+			name:        "successful update to dark theme",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				responseSettings := domains.Settings{
 					Theme: domains.ThemeDark,
 				}
+				data, _ := json.Marshal(responseSettings)
 
-				data, err := json.MarshalIndent(settings, prefix, indent)
-				if err != nil {
-					return err
-				}
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						cookie, err := req.Cookie(accessTokenCookieName)
+						if err != nil || cookie.Value != validToken {
+							return nil, errors.New("invalid cookie")
+						}
 
-				return os.WriteFile(settingsFilePath, data, permission)
+						if req.Method != http.MethodPut {
+							return nil, errors.New("invalid method")
+						}
+
+						if req.Header.Get("Content-Type") != "application/json" {
+							return nil, errors.New("invalid content type")
+						}
+
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewReader(data)),
+						}, nil
+					}).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
+			expectedSettings: &domains.Settings{
+				Theme: domains.ThemeDark,
 			},
-			expectedErr: false,
+			expectedError: nil,
 		},
 		{
-			name: "delete when file does not exist",
-			setup: func() error {
-				os.Remove(settingsFilePath)
-
-				return nil
+			name:        "successful update to light theme",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeLight,
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
-			},
-			expectedErr: true,
-		},
-		{
-			name: "delete after multiple saves and deletes",
-			setup: func() error {
-				// Создаем файл
-				settings := domains.Settings{
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				responseSettings := domains.Settings{
 					Theme: domains.ThemeLight,
 				}
+				data, _ := json.Marshal(responseSettings)
 
-				data, _ := json.MarshalIndent(settings, prefix, indent)
-				if err := os.WriteFile(settingsFilePath, data, permission); err != nil {
-					return err
-				}
-				// Удаляем его
-				if err := os.Remove(settingsFilePath); err != nil {
-					return err
-				}
-				// Создаем снова
-				settings2 := domains.Settings{
-					Theme: domains.ThemeDark,
-				}
-				data2, _ := json.MarshalIndent(settings2, prefix, indent)
-
-				return os.WriteFile(settingsFilePath, data2, permission)
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewReader(data)),
+					}, nil).
+					Times(1)
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
+			expectedSettings: &domains.Settings{
+				Theme: domains.ThemeLight,
 			},
-			expectedErr: false,
+			expectedError: nil,
 		},
 		{
-			name: "delete empty file",
-			setup: func() error {
-				return os.WriteFile(settingsFilePath, []byte(""), permission)
+			name:        "unauthorized access",
+			accessToken: "invalid_token",
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
 			},
-			cleanup: func() {
-				os.Remove(settingsFilePath)
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body:       io.NopCloser(bytes.NewReader([]byte("unauthorized"))),
+					}, nil).
+					Times(1)
 			},
-			expectedErr: false,
+			expectedSettings: nil,
+			expectedError:    errors.New("unauthorized"),
+		},
+		{
+			name:        "settings not found",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body:       io.NopCloser(bytes.NewReader([]byte("settings not found"))),
+					}, nil).
+					Times(1)
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("settings not found"),
+		},
+		{
+			name:        "http client error",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("connection refused"),
+		},
+		{
+			name:        "bad request",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body:       io.NopCloser(bytes.NewReader([]byte("bad request"))),
+					}, nil).
+					Times(1)
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("bad request"),
+		},
+		{
+			name:        "server internal error",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body:       io.NopCloser(bytes.NewReader([]byte("internal server error"))),
+					}, nil).
+					Times(1)
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("internal server error"),
+		},
+		{
+			name:        "invalid json response",
+			accessToken: validToken,
+			settings: domains.Settings{
+				Theme: domains.ThemeDark,
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewReader([]byte("{invalid json}"))),
+					}, nil).
+					Times(1)
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("invalid character"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			if tt.setup != nil {
-				if err := tt.setup(); err != nil {
-					t.Fatalf("Setup failed: %v", err)
-				}
-			}
+			t.Parallel()
 
-			// Cleanup
-			if tt.cleanup != nil {
-				defer tt.cleanup()
-			}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			repo := New()
-			ctx := context.Background()
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			tt.setupMocks(mockClient)
 
-			err := repo.Delete(ctx)
+			repo := New(mockClient, testBaseURL)
+			result, err := repo.UpdateSettings(context.Background(), tt.accessToken, tt.settings)
 
-			if tt.expectedErr {
+			if tt.expectedError != nil {
 				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
 			}
 
-			// Проверяем, что файл действительно удален
-			if !tt.expectedErr {
-				_, err := os.Stat(settingsFilePath)
-				assert.True(t, os.IsNotExist(err))
-			}
+			assert.Equal(t, tt.expectedSettings, result)
 		})
 	}
-}
-
-func TestRepository_Constants(t *testing.T) {
-	t.Run("settings filename constant", func(t *testing.T) {
-		assert.Equal(t, "settings.json", settingsFilename)
-	})
-
-	t.Run("settings file path is absolute", func(t *testing.T) {
-		path := settingsFilePath
-		assert.True(t, path != "")
-		assert.Contains(t, path, settingsFilename)
-	})
-}
-
-// Интеграционный тест полного цикла работы с настройками.
-func TestRepository_Integration(t *testing.T) {
-	t.Run("full settings lifecycle", func(t *testing.T) {
-		repo := New()
-		ctx := context.Background()
-
-		// Очищаем перед тестом
-		_ = os.Remove(settingsFilePath)
-
-		// 1. Сохраняем настройки (светлая тема)
-		settings := domains.Settings{
-			Theme: domains.ThemeLight,
-		}
-
-		err := repo.Save(ctx, settings)
-		assert.NoError(t, err)
-
-		// 2. Загружаем настройки
-		loaded, err := repo.Load(ctx)
-		assert.NoError(t, err)
-		assert.Equal(t, settings.Theme, loaded.Theme)
-
-		// 3. Обновляем настройки (темная тема)
-		updatedSettings := domains.Settings{
-			Theme: domains.ThemeDark,
-		}
-
-		err = repo.Save(ctx, updatedSettings)
-		assert.NoError(t, err)
-
-		// 4. Загружаем обновленные настройки
-		loadedUpdated, err := repo.Load(ctx)
-		assert.NoError(t, err)
-		assert.Equal(t, updatedSettings.Theme, loadedUpdated.Theme)
-
-		// 5. Удаляем настройки
-		err = repo.Delete(ctx)
-		assert.NoError(t, err)
-
-		// 6. Проверяем, что файл удален
-		_, err = repo.Load(ctx)
-		assert.Error(t, err)
-
-		// Очищаем после теста
-		_ = os.Remove(settingsFilePath)
-	})
 }

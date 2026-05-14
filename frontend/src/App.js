@@ -70,8 +70,15 @@ export default {
             }
         })
 
-        const handleLoginSuccess = () => {
+        const handleLoginSuccess = async () => {
             currentView.value = VIEW.CHAT
+
+            try {
+                const theme = await GetTheme()
+                applyTheme(theme)
+            } catch (err) {
+                console.error("Ошибка загрузки темы:", err)
+            }
         }
 
         const handleLogout = async () => {

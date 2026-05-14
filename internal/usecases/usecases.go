@@ -396,9 +396,16 @@ func (u *UseCases) GetChatMessages(
 }
 
 func (u *UseCases) GetTheme(ctx context.Context) domains.ThemeType {
-	settings, err := u.settings.Load(ctx)
+	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to load settings", err)
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return domains.ThemeLight // default theme
+	}
+
+	settings, err := u.settings.GetSettings(ctx, tokens.AccessToken)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get settings", err)
 
 		return domains.ThemeLight // default theme
 	}
@@ -407,19 +414,22 @@ func (u *UseCases) GetTheme(ctx context.Context) domains.ThemeType {
 }
 
 func (u *UseCases) SetTheme(ctx context.Context, theme domains.ThemeType) error {
-	defaultSettings := domains.Settings{
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	settingsData := domains.Settings{
 		Theme: theme,
 	}
 
-	// Пытаемся загрузить настройки, если существуют. Иначе сохраняем дефолтные
-	settings, err := u.settings.Load(ctx)
-	if err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to load settings", err)
+	if _, err = u.settings.UpdateSettings(ctx, tokens.AccessToken, settingsData); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update settings", err)
 
-		return u.settings.Save(ctx, defaultSettings)
+		return u.errorsMapper.Map(err)
 	}
 
-	settings.Theme = theme
-
-	return u.settings.Save(ctx, *settings)
+	return nil
 }

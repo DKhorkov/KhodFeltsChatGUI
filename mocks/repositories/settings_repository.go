@@ -41,45 +41,32 @@ func (m *MockSettingsRepository) EXPECT() *MockSettingsRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Delete mocks base method.
-func (m *MockSettingsRepository) Delete(arg0 context.Context) error {
+// GetSettings mocks base method.
+func (m *MockSettingsRepository) GetSettings(ctx context.Context, accessToken string) (*domains.Settings, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete.
-func (mr *MockSettingsRepositoryMockRecorder) Delete(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSettingsRepository)(nil).Delete), arg0)
-}
-
-// Load mocks base method.
-func (m *MockSettingsRepository) Load(ctx context.Context) (*domains.Settings, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Load", ctx)
+	ret := m.ctrl.Call(m, "GetSettings", ctx, accessToken)
 	ret0, _ := ret[0].(*domains.Settings)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Load indicates an expected call of Load.
-func (mr *MockSettingsRepositoryMockRecorder) Load(ctx any) *gomock.Call {
+// GetSettings indicates an expected call of GetSettings.
+func (mr *MockSettingsRepositoryMockRecorder) GetSettings(ctx, accessToken any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Load", reflect.TypeOf((*MockSettingsRepository)(nil).Load), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettings", reflect.TypeOf((*MockSettingsRepository)(nil).GetSettings), ctx, accessToken)
 }
 
-// Save mocks base method.
-func (m *MockSettingsRepository) Save(ctx context.Context, settings domains.Settings) error {
+// UpdateSettings mocks base method.
+func (m *MockSettingsRepository) UpdateSettings(ctx context.Context, accessToken string, settings domains.Settings) (*domains.Settings, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, settings)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "UpdateSettings", ctx, accessToken, settings)
+	ret0, _ := ret[0].(*domains.Settings)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Save indicates an expected call of Save.
-func (mr *MockSettingsRepositoryMockRecorder) Save(ctx, settings any) *gomock.Call {
+// UpdateSettings indicates an expected call of UpdateSettings.
+func (mr *MockSettingsRepositoryMockRecorder) UpdateSettings(ctx, accessToken, settings any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSettingsRepository)(nil).Save), ctx, settings)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSettings", reflect.TypeOf((*MockSettingsRepository)(nil).UpdateSettings), ctx, accessToken, settings)
 }
