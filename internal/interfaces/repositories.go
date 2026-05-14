@@ -70,7 +70,10 @@ type WebSocketsRepository interface {
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/settings_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,WebSocketsRepository,TokensRepository
 type SettingsRepository interface {
-	Save(ctx context.Context, settings domains.Settings) error
-	Load(ctx context.Context) (*domains.Settings, error)
-	Delete(_ context.Context) error
+	GetSettings(ctx context.Context, accessToken string) (*domains.Settings, error)
+	UpdateSettings(
+		ctx context.Context,
+		accessToken string,
+		settings domains.Settings,
+	) (*domains.Settings, error)
 }

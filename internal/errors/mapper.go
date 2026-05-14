@@ -49,6 +49,9 @@ var (
 	errCreateChat          = errors.New(`Не удалось создать чат`)
 	errGetChatMessages     = errors.New(`Не удалось получить сообщения для чата`)
 
+	// Settings.
+	errSettingsNotFound = errors.New("Не удалось получить настройки")
+
 	// Limit.
 	errLimitExceeded = errors.New("Превышен лимит. Попробуйте позже")
 
@@ -91,6 +94,9 @@ var rawMapping = map[string]error{
 	ErrGetUserChats.Error():        errGetUserChats,
 	ErrCreateChat.Error():          errCreateChat,
 	ErrGetChatMessages.Error():     errGetChatMessages,
+
+	// Settings
+	ErrSettingsNotFound.Error(): errSettingsNotFound,
 
 	// Limit
 	ErrLimitExceeded.Error(): errLimitExceeded,

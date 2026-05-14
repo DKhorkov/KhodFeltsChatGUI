@@ -54,7 +54,7 @@ func main() {
 	usersRepository := usersrepository.New(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := chatsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := tokensrepository.New()
-	settingsRepository := settingsrepository.New()
+	settingsRepository := settingsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	websocketsRepository := wsrepository.New(cfg.HTTP.WebsocketURL, logger)
 
 	errorsMapper := errors.New()

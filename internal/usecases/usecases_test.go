@@ -2993,17 +2993,22 @@ func TestUseCases_GetTheme(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		setupMocks func(*mockrepositories.MockSettingsRepository, *mocks.MockLogger)
+		setupMocks func(*mockrepositories.MockTokensRepository, *mockrepositories.MockSettingsRepository, *mocks.MockLogger)
 		expected   domains.ThemeType
 	}{
 		{
 			name: "successful get light theme",
 			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
 				mockSettings *mockrepositories.MockSettingsRepository,
 				_ *mocks.MockLogger,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
 					Return(&domains.Settings{
 						Theme: domains.ThemeLight,
 					}, nil)
@@ -3013,11 +3018,16 @@ func TestUseCases_GetTheme(t *testing.T) {
 		{
 			name: "successful get dark theme",
 			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
 				mockSettings *mockrepositories.MockSettingsRepository,
 				_ *mocks.MockLogger,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
 					Return(&domains.Settings{
 						Theme: domains.ThemeDark,
 					}, nil)
@@ -3025,17 +3035,39 @@ func TestUseCases_GetTheme(t *testing.T) {
 			expected: domains.ThemeDark,
 		},
 		{
-			name: "load error - return default light theme",
+			name: "tokens load error - return default light theme",
 			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+			},
+			expected: domains.ThemeLight,
+		},
+		{
+			name: "get settings error - return default light theme",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
 				mockSettings *mockrepositories.MockSettingsRepository,
 				mockLogger *mocks.MockLogger,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
-					Return(nil, errors.New("settings file not found"))
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(nil, errors.New("settings not found"))
 
 				mockLogger.EXPECT().
-					ErrorContext(gomock.Any(), "failed to load settings", gomock.Any()).
+					ErrorContext(gomock.Any(), "failed to get settings", gomock.Any()).
 					Times(1)
 			},
 			expected: domains.ThemeLight,
@@ -3058,7 +3090,7 @@ func TestUseCases_GetTheme(t *testing.T) {
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockSettings, mockLogger)
+				tt.setupMocks(mockTokens, mockSettings, mockLogger)
 			}
 
 			uc := usecases.New(
@@ -3086,161 +3118,102 @@ func TestUseCases_SetTheme(t *testing.T) {
 	tests := []struct {
 		name          string
 		theme         domains.ThemeType
-		setupMocks    func(*mockrepositories.MockSettingsRepository, *mocks.MockLogger)
+		setupMocks    func(*mockrepositories.MockTokensRepository, *mockrepositories.MockSettingsRepository, *mocks.MockLogger, *mockerrors.MockErrorsMapper)
 		expectedError error
 	}{
 		{
-			name:  "successful set light theme when settings exist",
+			name:  "successful set light theme",
 			theme: domains.ThemeLight,
 			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
 				mockSettings *mockrepositories.MockSettingsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
-					Return(&domains.Settings{
-						Theme: domains.ThemeDark,
-					}, nil)
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
 
 				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
+					UpdateSettings(gomock.Any(), "token", domains.Settings{
 						Theme: domains.ThemeLight,
 					}).
-					Return(nil)
+					Return(&domains.Settings{Theme: domains.ThemeLight}, nil)
 			},
 			expectedError: nil,
 		},
 		{
-			name:  "successful set dark theme when settings exist",
+			name:  "successful set dark theme",
 			theme: domains.ThemeDark,
 			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
 				mockSettings *mockrepositories.MockSettingsRepository,
 				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
-					Return(&domains.Settings{
-						Theme: domains.ThemeLight,
-					}, nil)
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
 
 				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
+					UpdateSettings(gomock.Any(), "token", domains.Settings{
 						Theme: domains.ThemeDark,
 					}).
-					Return(nil)
+					Return(&domains.Settings{Theme: domains.ThemeDark}, nil)
 			},
 			expectedError: nil,
 		},
 		{
-			name:  "successful set theme when settings do not exist - create new settings",
+			name:  "tokens load error",
 			theme: domains.ThemeDark,
 			setupMocks: func(
-				mockSettings *mockrepositories.MockSettingsRepository,
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockSettingsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
-					Return(nil, errors.New("settings not found"))
+					Return(nil, errors.New("tokens not found"))
 
 				mockLogger.EXPECT().
-					ErrorContext(gomock.Any(), "failed to load settings", gomock.Any()).
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
 					Times(1)
 
-				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
-						Theme: domains.ThemeDark,
-					}).
-					Return(nil)
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("tokens not found"))
 			},
-			expectedError: nil,
+			expectedError: errors.New("tokens not found"),
 		},
 		{
-			name:  "failed to save after loading existing settings",
+			name:  "update settings error",
 			theme: domains.ThemeDark,
 			setupMocks: func(
-				mockSettings *mockrepositories.MockSettingsRepository,
-				_ *mocks.MockLogger,
-			) {
-				mockSettings.EXPECT().
-					Load(gomock.Any()).
-					Return(&domains.Settings{
-						Theme: domains.ThemeLight,
-					}, nil)
-
-				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
-						Theme: domains.ThemeDark,
-					}).
-					Return(errors.New("save failed"))
-			},
-			expectedError: errors.New("save failed"),
-		},
-		{
-			name:  "failed to save when creating new settings",
-			theme: domains.ThemeLight,
-			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
 				mockSettings *mockrepositories.MockSettingsRepository,
 				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
-				mockSettings.EXPECT().
+				mockTokens.EXPECT().
 					Load(gomock.Any()).
-					Return(nil, errors.New("settings not found"))
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					UpdateSettings(gomock.Any(), "token", domains.Settings{
+						Theme: domains.ThemeDark,
+					}).
+					Return(nil, errors.New("update failed"))
 
 				mockLogger.EXPECT().
-					ErrorContext(gomock.Any(), "failed to load settings", gomock.Any()).
+					ErrorContext(gomock.Any(), "failed to update settings", gomock.Any()).
 					Times(1)
 
-				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
-						Theme: domains.ThemeLight,
-					}).
-					Return(errors.New("save failed"))
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("update failed"))
 			},
-			expectedError: errors.New("save failed"),
-		},
-		{
-			name:  "set same theme - should update",
-			theme: domains.ThemeDark,
-			setupMocks: func(
-				mockSettings *mockrepositories.MockSettingsRepository,
-				_ *mocks.MockLogger,
-			) {
-				mockSettings.EXPECT().
-					Load(gomock.Any()).
-					Return(&domains.Settings{
-						Theme: domains.ThemeDark,
-					}, nil)
-
-				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
-						Theme: domains.ThemeDark,
-					}).
-					Return(nil)
-			},
-			expectedError: nil,
-		},
-		{
-			name:  "set theme after multiple operations",
-			theme: domains.ThemeLight,
-			setupMocks: func(
-				mockSettings *mockrepositories.MockSettingsRepository,
-				_ *mocks.MockLogger,
-			) {
-				// Первая загрузка
-				mockSettings.EXPECT().
-					Load(gomock.Any()).
-					Return(&domains.Settings{
-						Theme: domains.ThemeDark,
-					}, nil)
-
-				// Сохранение
-				mockSettings.EXPECT().
-					Save(gomock.Any(), domains.Settings{
-						Theme: domains.ThemeLight,
-					}).
-					Return(nil)
-			},
-			expectedError: nil,
+			expectedError: errors.New("update failed"),
 		},
 	}
 
@@ -3260,7 +3233,7 @@ func TestUseCases_SetTheme(t *testing.T) {
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockSettings, mockLogger)
+				tt.setupMocks(mockTokens, mockSettings, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
