@@ -9,6 +9,7 @@ import {
 } from '../../../wailsjs/go/chat/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {GetSettings} from '../../../wailsjs/go/settings/Handler'
+import {ShowNotification} from '../../../wailsjs/go/notification/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 const CONSENT_NEW_MESSAGE = 1
@@ -153,23 +154,6 @@ export default {
             }
         }
 
-        const showSystemNotification = (message) => {
-            if (document.hasFocus()) return
-            if ((webPushConsents.value & CONSENT_NEW_MESSAGE) === 0) return
-            if (Notification.permission !== 'granted') return
-
-            const notification = new Notification(message.sender.username, {
-                body: message.text,
-            })
-
-            notification.onclick = () => {
-                window.focus()
-                selectChat(chats.value.find(c => c.id === message.chatId) || {id: message.chatId})
-                    .catch(err => console.error('Ошибка открытия чата из уведомления:', err))
-                notification.close()
-            }
-        }
-
         const handleNewMessage = async (message) => {
             try {
                 if (selectedChat.value?.id === message.chatId) {
@@ -187,7 +171,10 @@ export default {
                     chatId: message.chatId,
                 })
 
-                showSystemNotification(message)
+                if (!document.hasFocus() && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
+                    ShowNotification(message.sender.username, message.text)
+                        .catch(err => console.error('Ошибка системного уведомления:', err))
+                }
             } catch (err) {
                 console.error("Ошибка обработки нового сообщения:", err)
             }
@@ -306,10 +293,6 @@ export default {
         let scrollHandler = null
 
         onMounted(async () => {
-            if (Notification.permission !== 'granted') {
-                await Notification.requestPermission()
-            }
-
             try {
                 currentUser.value = await GetCurrentUser()
                 const theme = await GetTheme()
