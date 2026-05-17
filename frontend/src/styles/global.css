@@ -461,7 +461,7 @@ body {
     cursor: pointer;
 }
 
-.profile-modal__change-password-toggle {
+.profile-modal__toggle {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -469,7 +469,7 @@ body {
     padding: var(--space-sm) 0;
 }
 
-.profile-modal__change-password-toggle:hover .profile-modal__chevron {
+.profile-modal__toggle:hover .profile-modal__chevron {
     color: var(--accent);
 }
 
@@ -485,7 +485,7 @@ body {
     transform: rotate(90deg);
 }
 
-.profile-modal__change-password-form {
+.profile-modal__form {
     margin-top: var(--space-lg);
 }
 

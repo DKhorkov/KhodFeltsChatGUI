@@ -33,7 +33,7 @@
 
       <div class="profile-modal__section">
         <div
-            class="profile-modal__change-password-toggle"
+            class="profile-modal__toggle"
             @click="isEditProfileOpen = !isEditProfileOpen"
         >
           <span class="profile-modal__label">Редактировать профиль</span>
@@ -43,7 +43,7 @@
 
         <form
             v-if="isEditProfileOpen"
-            class="profile-modal__change-password-form"
+            class="profile-modal__form"
             @submit.prevent="updateUser"
         >
           <div class="modal-content__form-group">
@@ -62,7 +62,7 @@
 
       <div class="profile-modal__section">
         <div
-            class="profile-modal__change-password-toggle"
+            class="profile-modal__toggle"
             @click="isChangePasswordOpen = !isChangePasswordOpen"
         >
           <span class="profile-modal__label">Сменить пароль</span>
@@ -72,7 +72,7 @@
 
         <form
             v-if="isChangePasswordOpen"
-            class="profile-modal__change-password-form"
+            class="profile-modal__form"
             @submit.prevent="changePassword"
         >
           <div class="modal-content__form-group">
@@ -107,7 +107,7 @@
 
       <div class="profile-modal__section">
         <div
-            class="profile-modal__change-password-toggle"
+            class="profile-modal__toggle"
             @click="isNotificationsOpen = !isNotificationsOpen"
         >
           <span class="profile-modal__label">Уведомления</span>
