@@ -457,7 +457,10 @@ func (u *UseCases) GetSettings(ctx context.Context) (*domains.Settings, error) {
 	return settings, nil
 }
 
-func (u *UseCases) UpdateSettings(ctx context.Context, settings domains.Settings) (*domains.Settings, error) {
+func (u *UseCases) UpdateSettings(
+	ctx context.Context,
+	settings domains.Settings,
+) (*domains.Settings, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)

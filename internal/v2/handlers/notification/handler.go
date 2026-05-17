@@ -24,11 +24,9 @@ func (h *Handler) SetContext(ctx context.Context) {
 }
 
 func (h *Handler) ShowNotification(title, body string) error {
-	iconPath := common.AppIconPath()
-	logging.LogInfo(h.logger, "Отправка системного уведомления", "title", title, "iconPath", iconPath)
-
-	if err := beeep.Notify(title, body, iconPath); err != nil {
+	if err := beeep.Notify(title, body, common.AppIconPath()); err != nil {
 		logging.LogError(h.logger, "Ошибка отправки системного уведомления", err)
+
 		return err
 	}
 

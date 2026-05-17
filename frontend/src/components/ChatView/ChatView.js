@@ -38,6 +38,10 @@ export default {
 
         let isLoadingMore = false
         let hasMoreMessages = true
+        let isWindowFocused = true
+
+        const onWindowFocus = () => { isWindowFocused = true }
+        const onWindowBlur = () => { isWindowFocused = false }
 
         const reloadSettings = async () => {
             try {
@@ -171,7 +175,7 @@ export default {
                     chatId: message.chatId,
                 })
 
-                if (!document.hasFocus() && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
+                if (!isWindowFocused && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
                     ShowNotification(message.sender.username, message.text)
                         .catch(err => console.error('Ошибка системного уведомления:', err))
                 }
@@ -306,12 +310,18 @@ export default {
 
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
+
+            window.addEventListener('focus', onWindowFocus)
+            window.addEventListener('blur', onWindowBlur)
         })
 
         onUnmounted(() => {
             StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
+
+            window.removeEventListener('focus', onWindowFocus)
+            window.removeEventListener('blur', onWindowBlur)
         })
 
         watch(messagesListRef, (el, _, onCleanup) => {
