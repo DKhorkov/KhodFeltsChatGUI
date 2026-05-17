@@ -42,6 +42,12 @@ export default {
             try {
                 const settings = await GetSettings()
                 webPushConsents.value = settings.webPushConsents
+
+                const newIsDark = settings.theme === THEME.DARK
+                if (isDarkTheme.value !== newIsDark) {
+                    isDarkTheme.value = newIsDark
+                    document.documentElement.setAttribute('data-bs-theme', newIsDark ? 'dark' : 'light')
+                }
             } catch (err) {
                 console.error('Ошибка загрузки настроек:', err)
             }
