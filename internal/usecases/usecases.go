@@ -421,15 +421,56 @@ func (u *UseCases) SetTheme(ctx context.Context, theme domains.ThemeType) error 
 		return u.errorsMapper.Map(err)
 	}
 
-	settingsData := domains.Settings{
-		Theme: theme,
+	currentSettings, err := u.settings.GetSettings(ctx, tokens.AccessToken)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get settings", err)
+
+		return u.errorsMapper.Map(err)
 	}
 
-	if _, err = u.settings.UpdateSettings(ctx, tokens.AccessToken, settingsData); err != nil {
+	currentSettings.Theme = theme
+
+	if _, err = u.settings.UpdateSettings(ctx, tokens.AccessToken, *currentSettings); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to update settings", err)
 
 		return u.errorsMapper.Map(err)
 	}
 
 	return nil
+}
+
+func (u *UseCases) GetSettings(ctx context.Context) (*domains.Settings, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	settings, err := u.settings.GetSettings(ctx, tokens.AccessToken)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get settings", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	return settings, nil
+}
+
+func (u *UseCases) UpdateSettings(ctx context.Context, settings domains.Settings) (*domains.Settings, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	updatedSettings, err := u.settings.UpdateSettings(ctx, tokens.AccessToken, settings)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update settings", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	return updatedSettings, nil
 }

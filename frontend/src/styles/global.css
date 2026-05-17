@@ -376,7 +376,7 @@ body {
    ═══════════════════════════════════════ */
 .profile-modal {
     width: 420px;
-    height: 570px;
+    max-height: 80vh;
 }
 
 .profile-modal__header {
@@ -499,14 +499,47 @@ body {
 }
 
 /* ═══════════════════════════════════════
-   Переключатель темы
+   Уведомления (секция в профиле)
    ═══════════════════════════════════════ */
-.theme-switch__toggle {
-    display: flex;
-    align-items: center;
+.profile-modal__notifications {
+    margin-top: var(--space-lg);
 }
 
-.theme-switch__track {
+.notifications__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.notifications__group-label {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.notifications__toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) 0 var(--space-xs) var(--space-md);
+}
+
+.notifications__channel-label {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════
+   Тогл-переключатель (общий компонент)
+   ═══════════════════════════════════════ */
+.toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.toggle__track {
     width: 44px;
     height: 24px;
     background: var(--border);
@@ -516,11 +549,11 @@ body {
     cursor: pointer;
 }
 
-.theme-switch__track--on {
+.toggle__track--on {
     background: var(--accent);
 }
 
-.theme-switch__thumb {
+.toggle__thumb {
     width: 20px;
     height: 20px;
     background: var(--text-on-accent);
@@ -532,7 +565,7 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
-.theme-switch__thumb--on {
+.toggle__thumb--on {
     transform: translateX(20px);
 }
 

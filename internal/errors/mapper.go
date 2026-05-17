@@ -50,7 +50,9 @@ var (
 	errGetChatMessages     = errors.New(`Не удалось получить сообщения для чата`)
 
 	// Settings.
-	errSettingsNotFound = errors.New("Не удалось получить настройки")
+	errSettingsNotFound            = errors.New("Не удалось получить настройки")
+	errWebPushSubscriptionNotFound = errors.New("Подписка на push-уведомления не найдена")
+	errWebPushSubscriptionExpired  = errors.New("Подписка на push-уведомления устарела")
 
 	// Limit.
 	errLimitExceeded = errors.New("Превышен лимит. Попробуйте позже")
@@ -96,7 +98,9 @@ var rawMapping = map[string]error{
 	ErrGetChatMessages.Error():     errGetChatMessages,
 
 	// Settings
-	ErrSettingsNotFound.Error(): errSettingsNotFound,
+	ErrSettingsNotFound.Error():            errSettingsNotFound,
+	ErrWebPushSubscriptionNotFound.Error(): errWebPushSubscriptionNotFound,
+	ErrWebPushSubscriptionExpired.Error():  errWebPushSubscriptionExpired,
 
 	// Limit
 	ErrLimitExceeded.Error(): errLimitExceeded,
