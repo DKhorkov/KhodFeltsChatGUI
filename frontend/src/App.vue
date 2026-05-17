@@ -38,7 +38,7 @@
       :isDarkTheme="chatViewRef.isDarkTheme"
       @toggle-theme="chatViewRef.toggleTheme()"
       @logout="isProfileVisible = false; handleLogout()"
-      @close="isProfileVisible = false"
+      @close="isProfileVisible = false; chatViewRef.reloadSettings()"
       @user-updated="chatViewRef.currentUser = $event"
     />
 

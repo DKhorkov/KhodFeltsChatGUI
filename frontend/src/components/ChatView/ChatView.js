@@ -8,7 +8,10 @@ import {
     StopListening
 } from '../../../wailsjs/go/chat/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
+import {GetSettings} from '../../../wailsjs/go/settings/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
+
+const CONSENT_NEW_MESSAGE = 1
 import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
 import GroupChatModal from '../GroupChatModal/GroupChatModal.vue'
 
@@ -30,9 +33,19 @@ export default {
         const isEmojiPickerVisible = ref(false)
         const selectedMember = ref(null)
         const selectedGroupChat = ref(null)
+        const webPushConsents = ref(0)
 
         let isLoadingMore = false
         let hasMoreMessages = true
+
+        const reloadSettings = async () => {
+            try {
+                const settings = await GetSettings()
+                webPushConsents.value = settings.webPushConsents
+            } catch (err) {
+                console.error('Ошибка загрузки настроек:', err)
+            }
+        }
 
         const loadChats = async () => {
             try {
@@ -134,6 +147,23 @@ export default {
             }
         }
 
+        const showSystemNotification = (message) => {
+            if (document.hasFocus()) return
+            if ((webPushConsents.value & CONSENT_NEW_MESSAGE) === 0) return
+            if (Notification.permission !== 'granted') return
+
+            const notification = new Notification(message.sender.username, {
+                body: message.text,
+            })
+
+            notification.onclick = () => {
+                window.focus()
+                selectChat(chats.value.find(c => c.id === message.chatId) || {id: message.chatId})
+                    .catch(err => console.error('Ошибка открытия чата из уведомления:', err))
+                notification.close()
+            }
+        }
+
         const handleNewMessage = async (message) => {
             try {
                 if (selectedChat.value?.id === message.chatId) {
@@ -150,6 +180,8 @@ export default {
                     text: message.text,
                     chatId: message.chatId,
                 })
+
+                showSystemNotification(message)
             } catch (err) {
                 console.error("Ошибка обработки нового сообщения:", err)
             }
@@ -276,6 +308,7 @@ export default {
                 currentUser.value = await GetCurrentUser()
                 const theme = await GetTheme()
                 isDarkTheme.value = theme === THEME.DARK
+                await reloadSettings()
                 await loadChats()
                 await StartListening()
             } catch (err) {
@@ -337,6 +370,7 @@ export default {
             openChatById,
             toggleTheme,
             isDarkTheme,
+            reloadSettings,
         }
     }
 }
