@@ -25,6 +25,7 @@ func (h *Handler) SetContext(ctx context.Context) {
 
 	if err := wailsruntime.InitializeNotifications(ctx); err != nil {
 		logging.LogError(h.logger, "Ошибка инициализации уведомлений", err)
+
 		return
 	}
 
@@ -38,6 +39,7 @@ func (h *Handler) SetContext(ctx context.Context) {
 	wailsruntime.OnNotificationResponse(ctx, func(result wailsruntime.NotificationResult) {
 		if result.Error != nil {
 			logging.LogError(h.logger, "Ошибка ответа на уведомление", result.Error)
+
 			return
 		}
 
@@ -67,13 +69,13 @@ func (h *Handler) ShowNotification(title, body string, chatID int) error {
 	return nil
 }
 
+func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
+
+func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
+
 func (h *Handler) focusWindow() {
 	wailsruntime.WindowUnminimise(h.wailsCtx)
 	wailsruntime.WindowShow(h.wailsCtx)
 	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, true)
 	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, false)
 }
-
-func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
-
-func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
