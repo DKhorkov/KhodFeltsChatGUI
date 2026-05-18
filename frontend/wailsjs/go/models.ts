@@ -225,6 +225,22 @@ export namespace domains {
 	        this.password = source["password"];
 	    }
 	}
+	export class Settings {
+	    theme: number;
+	    emailConsents: number;
+	    webPushConsents: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Settings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.theme = source["theme"];
+	        this.emailConsents = source["emailConsents"];
+	        this.webPushConsents = source["webPushConsents"];
+	    }
+	}
 	export class UpdateUserDTO {
 	    username?: string;
 	

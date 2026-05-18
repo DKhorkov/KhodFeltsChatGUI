@@ -129,6 +129,21 @@ func (mr *MockUseCasesMockRecorder) GetCurrentUser(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentUser", reflect.TypeOf((*MockUseCases)(nil).GetCurrentUser), ctx)
 }
 
+// GetSettings mocks base method.
+func (m *MockUseCases) GetSettings(ctx context.Context) (*domains.Settings, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSettings", ctx)
+	ret0, _ := ret[0].(*domains.Settings)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSettings indicates an expected call of GetSettings.
+func (mr *MockUseCasesMockRecorder) GetSettings(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettings", reflect.TypeOf((*MockUseCases)(nil).GetSettings), ctx)
+}
+
 // GetTheme mocks base method.
 func (m *MockUseCases) GetTheme(ctx context.Context) domains.ThemeType {
 	m.ctrl.T.Helper()
@@ -301,6 +316,21 @@ func (m *MockUseCases) SetTheme(ctx context.Context, theme domains.ThemeType) er
 func (mr *MockUseCasesMockRecorder) SetTheme(ctx, theme any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTheme", reflect.TypeOf((*MockUseCases)(nil).SetTheme), ctx, theme)
+}
+
+// UpdateSettings mocks base method.
+func (m *MockUseCases) UpdateSettings(ctx context.Context, settings domains.Settings) (*domains.Settings, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSettings", ctx, settings)
+	ret0, _ := ret[0].(*domains.Settings)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSettings indicates an expected call of UpdateSettings.
+func (mr *MockUseCasesMockRecorder) UpdateSettings(ctx, settings any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSettings", reflect.TypeOf((*MockUseCases)(nil).UpdateSettings), ctx, settings)
 }
 
 // UpdateUser mocks base method.

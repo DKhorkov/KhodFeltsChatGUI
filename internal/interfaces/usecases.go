@@ -44,4 +44,6 @@ type UseCases interface {
 	// Settings
 	GetTheme(ctx context.Context) domains.ThemeType
 	SetTheme(ctx context.Context, theme domains.ThemeType) error
+	GetSettings(ctx context.Context) (*domains.Settings, error)
+	UpdateSettings(ctx context.Context, settings domains.Settings) (*domains.Settings, error)
 }

@@ -8,7 +8,11 @@ import {
     StopListening
 } from '../../../wailsjs/go/chat/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
+import {GetSettings} from '../../../wailsjs/go/settings/Handler'
+import {ShowNotification} from '../../../wailsjs/go/notification/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
+
+const CONSENT_NEW_MESSAGE = 1
 import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
 import GroupChatModal from '../GroupChatModal/GroupChatModal.vue'
 
@@ -30,9 +34,29 @@ export default {
         const isEmojiPickerVisible = ref(false)
         const selectedMember = ref(null)
         const selectedGroupChat = ref(null)
+        const webPushConsents = ref(0)
 
         let isLoadingMore = false
         let hasMoreMessages = true
+        let isWindowFocused = true
+
+        const onWindowFocus = () => { isWindowFocused = true }
+        const onWindowBlur = () => { isWindowFocused = false }
+
+        const reloadSettings = async () => {
+            try {
+                const settings = await GetSettings()
+                webPushConsents.value = settings.webPushConsents
+
+                const newIsDark = settings.theme === THEME.DARK
+                if (isDarkTheme.value !== newIsDark) {
+                    isDarkTheme.value = newIsDark
+                    document.documentElement.setAttribute('data-bs-theme', newIsDark ? 'dark' : 'light')
+                }
+            } catch (err) {
+                console.error('Ошибка загрузки настроек:', err)
+            }
+        }
 
         const loadChats = async () => {
             try {
@@ -136,6 +160,11 @@ export default {
 
         const handleNewMessage = async (message) => {
             try {
+                if (!isWindowFocused && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
+                    ShowNotification(message.sender.username, message.text, message.chatId)
+                        .catch(err => console.error('Ошибка системного уведомления:', err))
+                }
+
                 if (selectedChat.value?.id === message.chatId) {
                     messages.value.push({...message, isRead: false})
                     await nextTick()
@@ -268,14 +297,11 @@ export default {
         let scrollHandler = null
 
         onMounted(async () => {
-            if (Notification.permission !== 'granted') {
-                await Notification.requestPermission()
-            }
-
             try {
                 currentUser.value = await GetCurrentUser()
                 const theme = await GetTheme()
                 isDarkTheme.value = theme === THEME.DARK
+                await reloadSettings()
                 await loadChats()
                 await StartListening()
             } catch (err) {
@@ -284,12 +310,22 @@ export default {
 
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
+            window.runtime.EventsOn(WAILS_EVENT.OPEN_CHAT, (chatId) => {
+                openChatById(chatId).catch(err => console.error('Ошибка открытия чата из уведомления:', err))
+            })
+
+            window.addEventListener('focus', onWindowFocus)
+            window.addEventListener('blur', onWindowBlur)
         })
 
         onUnmounted(() => {
             StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
+            window.runtime.EventsOff(WAILS_EVENT.OPEN_CHAT)
+
+            window.removeEventListener('focus', onWindowFocus)
+            window.removeEventListener('blur', onWindowBlur)
         })
 
         watch(messagesListRef, (el, _, onCleanup) => {
@@ -337,6 +373,7 @@ export default {
             openChatById,
             toggleTheme,
             isDarkTheme,
+            reloadSettings,
         }
     }
 }

@@ -21,8 +21,10 @@ import (
 	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chat"
 	createchathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
 	forgetpasswordhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/forget_password"
+	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notification"
 	profilehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/profile"
 	searchusershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/search_users"
+	settingshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/settings"
 	themehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/theme"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
@@ -101,6 +103,8 @@ func main() {
 	)
 
 	themeHandler := themehandler.New(useCases)
+	settingsHandler := settingshandler.New(useCases)
+	notificationHandler := notificationhandler.New(logger)
 
 	// 8. Создаем главное приложение
 	app := application.New(
@@ -115,6 +119,8 @@ func main() {
 			forgetPasswordHandler,
 			themeHandler,
 			profileHandler,
+			settingsHandler,
+			notificationHandler,
 		},
 	)
 

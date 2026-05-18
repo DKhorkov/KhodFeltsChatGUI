@@ -3112,6 +3112,293 @@ func TestUseCases_GetTheme(t *testing.T) {
 	}
 }
 
+func TestUseCases_GetSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		setupMocks       func(*mockrepositories.MockTokensRepository, *mockrepositories.MockSettingsRepository, *mocks.MockLogger, *mockerrors.MockErrorsMapper)
+		expectedSettings *domains.Settings
+		expectedError    error
+	}{
+		{
+			name: "successful get settings",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(&domains.Settings{
+						Theme:           domains.ThemeDark,
+						EmailConsents:   domains.ConsentNewMessage,
+						WebPushConsents: 0,
+					}, nil)
+			},
+			expectedSettings: &domains.Settings{
+				Theme:           domains.ThemeDark,
+				EmailConsents:   domains.ConsentNewMessage,
+				WebPushConsents: 0,
+			},
+			expectedError: nil,
+		},
+		{
+			name: "tokens load error",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("tokens not found"))
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("tokens not found"),
+		},
+		{
+			name: "get settings error",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockSettings *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(nil, errors.New("settings error"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to get settings", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("settings error"))
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("settings error"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockSettings, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			result, err := uc.GetSettings(ctx)
+
+			assert.Equal(t, tt.expectedSettings, result)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUseCases_UpdateSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		input            domains.Settings
+		setupMocks       func(*mockrepositories.MockTokensRepository, *mockrepositories.MockSettingsRepository, *mocks.MockLogger, *mockerrors.MockErrorsMapper)
+		expectedSettings *domains.Settings
+		expectedError    error
+	}{
+		{
+			name: "successful update settings",
+			input: domains.Settings{
+				Theme:           domains.ThemeDark,
+				EmailConsents:   domains.ConsentNewMessage,
+				WebPushConsents: domains.ConsentNewMessage,
+			},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockSettings *mockrepositories.MockSettingsRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					UpdateSettings(gomock.Any(), "token", domains.Settings{
+						Theme:           domains.ThemeDark,
+						EmailConsents:   domains.ConsentNewMessage,
+						WebPushConsents: domains.ConsentNewMessage,
+					}).
+					Return(&domains.Settings{
+						Theme:           domains.ThemeDark,
+						EmailConsents:   domains.ConsentNewMessage,
+						WebPushConsents: domains.ConsentNewMessage,
+					}, nil)
+			},
+			expectedSettings: &domains.Settings{
+				Theme:           domains.ThemeDark,
+				EmailConsents:   domains.ConsentNewMessage,
+				WebPushConsents: domains.ConsentNewMessage,
+			},
+			expectedError: nil,
+		},
+		{
+			name: "tokens load error",
+			input: domains.Settings{
+				Theme:         domains.ThemeLight,
+				EmailConsents: domains.ConsentNewMessage,
+			},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("tokens not found"))
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("tokens not found"),
+		},
+		{
+			name: "update settings error",
+			input: domains.Settings{
+				Theme:           domains.ThemeDark,
+				WebPushConsents: domains.ConsentNewMessage,
+			},
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockSettings *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					UpdateSettings(gomock.Any(), "token", domains.Settings{
+						Theme:           domains.ThemeDark,
+						WebPushConsents: domains.ConsentNewMessage,
+					}).
+					Return(nil, errors.New("update failed"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to update settings", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("update failed"))
+			},
+			expectedSettings: nil,
+			expectedError:    errors.New("update failed"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockSettings, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			result, err := uc.UpdateSettings(ctx, tt.input)
+
+			assert.Equal(t, tt.expectedSettings, result)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestUseCases_SetTheme(t *testing.T) {
 	t.Parallel()
 
@@ -3135,10 +3422,15 @@ func TestUseCases_SetTheme(t *testing.T) {
 					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
 
 				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(&domains.Settings{Theme: domains.ThemeDark, EmailConsents: 1}, nil)
+
+				mockSettings.EXPECT().
 					UpdateSettings(gomock.Any(), "token", domains.Settings{
-						Theme: domains.ThemeLight,
+						Theme:         domains.ThemeLight,
+						EmailConsents: 1,
 					}).
-					Return(&domains.Settings{Theme: domains.ThemeLight}, nil)
+					Return(&domains.Settings{Theme: domains.ThemeLight, EmailConsents: 1}, nil)
 			},
 			expectedError: nil,
 		},
@@ -3154,6 +3446,10 @@ func TestUseCases_SetTheme(t *testing.T) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
 					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(&domains.Settings{Theme: domains.ThemeLight}, nil)
 
 				mockSettings.EXPECT().
 					UpdateSettings(gomock.Any(), "token", domains.Settings{
@@ -3187,6 +3483,33 @@ func TestUseCases_SetTheme(t *testing.T) {
 			expectedError: errors.New("tokens not found"),
 		},
 		{
+			name:  "get settings error",
+			theme: domains.ThemeDark,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockSettings *mockrepositories.MockSettingsRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(nil, errors.New("get settings failed"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to get settings", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(gomock.Any()).
+					Return(errors.New("get settings failed"))
+			},
+			expectedError: errors.New("get settings failed"),
+		},
+		{
 			name:  "update settings error",
 			theme: domains.ThemeDark,
 			setupMocks: func(
@@ -3198,6 +3521,10 @@ func TestUseCases_SetTheme(t *testing.T) {
 				mockTokens.EXPECT().
 					Load(gomock.Any()).
 					Return(&domains.TokensDTO{AccessToken: "token", RefreshToken: "refresh"}, nil)
+
+				mockSettings.EXPECT().
+					GetSettings(gomock.Any(), "token").
+					Return(&domains.Settings{Theme: domains.ThemeLight}, nil)
 
 				mockSettings.EXPECT().
 					UpdateSettings(gomock.Any(), "token", domains.Settings{

@@ -22,6 +22,7 @@ export const TAB = Object.freeze({
 export const WAILS_EVENT = Object.freeze({
     NEW_MESSAGE: 'new_message',
     CHATS_UPDATED: 'chats_updated',
+    OPEN_CHAT: 'open_chat',
 })
 
 export const MESSAGES_PAGE_SIZE = 10

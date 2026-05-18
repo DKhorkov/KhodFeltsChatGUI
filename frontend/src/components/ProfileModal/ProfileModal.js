@@ -1,5 +1,8 @@
-import {inject, ref} from 'vue'
+import {computed, inject, onMounted, ref} from 'vue'
 import {ChangePassword, UpdateUser} from '../../../wailsjs/go/profile/Handler'
+import {GetSettings, UpdateSettings} from '../../../wailsjs/go/settings/Handler'
+
+const CONSENT_NEW_MESSAGE = 1
 
 export default {
     name: 'ProfileModal',
@@ -26,6 +29,53 @@ export default {
         const oldPassword = ref('')
         const newPassword = ref('')
         const confirmPassword = ref('')
+
+        const isNotificationsOpen = ref(false)
+        const emailConsents = ref(0)
+        const webPushConsents = ref(0)
+
+        const emailNewMessageConsent = computed(() => (emailConsents.value & CONSENT_NEW_MESSAGE) !== 0)
+        const webPushNewMessageConsent = computed(() => (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0)
+
+        const loadSettings = async () => {
+            try {
+                const settings = await GetSettings()
+                emailConsents.value = settings.emailConsents
+                webPushConsents.value = settings.webPushConsents
+            } catch (err) {
+                console.error('Ошибка загрузки настроек:', err)
+            }
+        }
+
+        const toggleEmailConsent = async () => {
+            try {
+                const newValue = emailConsents.value ^ CONSENT_NEW_MESSAGE
+                const settings = await UpdateSettings({
+                    theme: props.isDarkTheme ? 1 : 0,
+                    emailConsents: newValue,
+                    webPushConsents: webPushConsents.value,
+                })
+                emailConsents.value = settings.emailConsents
+                webPushConsents.value = settings.webPushConsents
+            } catch (err) {
+                showError(err)
+            }
+        }
+
+        const toggleWebPushConsent = async () => {
+            try {
+                const newValue = webPushConsents.value ^ CONSENT_NEW_MESSAGE
+                const settings = await UpdateSettings({
+                    theme: props.isDarkTheme ? 1 : 0,
+                    emailConsents: emailConsents.value,
+                    webPushConsents: newValue,
+                })
+                emailConsents.value = settings.emailConsents
+                webPushConsents.value = settings.webPushConsents
+            } catch (err) {
+                showError(err)
+            }
+        }
 
         const formatDate = (dateStr) => {
             return new Date(dateStr).toLocaleDateString('ru-RU', {
@@ -78,6 +128,10 @@ export default {
             }
         }
 
+        onMounted(() => {
+            loadSettings()
+        })
+
         return {
             formatDate,
             isEditProfileOpen,
@@ -88,6 +142,11 @@ export default {
             newPassword,
             confirmPassword,
             changePassword,
+            isNotificationsOpen,
+            emailNewMessageConsent,
+            webPushNewMessageConsent,
+            toggleEmailConsent,
+            toggleWebPushConsent,
         }
     },
 }

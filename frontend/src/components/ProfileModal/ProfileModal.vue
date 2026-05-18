@@ -33,7 +33,7 @@
 
       <div class="profile-modal__section">
         <div
-            class="profile-modal__change-password-toggle"
+            class="profile-modal__toggle"
             @click="isEditProfileOpen = !isEditProfileOpen"
         >
           <span class="profile-modal__label">Редактировать профиль</span>
@@ -43,7 +43,7 @@
 
         <form
             v-if="isEditProfileOpen"
-            class="profile-modal__change-password-form"
+            class="profile-modal__form"
             @submit.prevent="updateUser"
         >
           <div class="modal-content__form-group">
@@ -62,7 +62,7 @@
 
       <div class="profile-modal__section">
         <div
-            class="profile-modal__change-password-toggle"
+            class="profile-modal__toggle"
             @click="isChangePasswordOpen = !isChangePasswordOpen"
         >
           <span class="profile-modal__label">Сменить пароль</span>
@@ -72,7 +72,7 @@
 
         <form
             v-if="isChangePasswordOpen"
-            class="profile-modal__change-password-form"
+            class="profile-modal__form"
             @submit.prevent="changePassword"
         >
           <div class="modal-content__form-group">
@@ -106,11 +106,44 @@
       </div>
 
       <div class="profile-modal__section">
+        <div
+            class="profile-modal__toggle"
+            @click="isNotificationsOpen = !isNotificationsOpen"
+        >
+          <span class="profile-modal__label">Уведомления</span>
+          <span class="profile-modal__chevron"
+                :class="{ 'profile-modal__chevron--open': isNotificationsOpen }">&#9654;</span>
+        </div>
+
+        <div v-if="isNotificationsOpen" class="profile-modal__notifications">
+          <div class="notifications__group">
+            <span class="notifications__group-label">Новые сообщения</span>
+            <div class="notifications__toggle-row">
+              <span class="notifications__channel-label">Email</span>
+              <div class="toggle" @click="toggleEmailConsent">
+                <div class="toggle__track" :class="{ 'toggle__track--on': emailNewMessageConsent }">
+                  <div class="toggle__thumb" :class="{ 'toggle__thumb--on': emailNewMessageConsent }"></div>
+                </div>
+              </div>
+            </div>
+            <div class="notifications__toggle-row">
+              <span class="notifications__channel-label">Web Push</span>
+              <div class="toggle" @click="toggleWebPushConsent">
+                <div class="toggle__track" :class="{ 'toggle__track--on': webPushNewMessageConsent }">
+                  <div class="toggle__thumb" :class="{ 'toggle__thumb--on': webPushNewMessageConsent }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-modal__section">
         <label class="profile-modal__theme-row" @click="$emit('toggle-theme')">
           <span class="profile-modal__label">Тёмная тема</span>
-          <div class="theme-switch__toggle">
-            <div class="theme-switch__track" :class="{ 'theme-switch__track--on': isDarkTheme }">
-              <div class="theme-switch__thumb" :class="{ 'theme-switch__thumb--on': isDarkTheme }"></div>
+          <div class="toggle">
+            <div class="toggle__track" :class="{ 'toggle__track--on': isDarkTheme }">
+              <div class="toggle__thumb" :class="{ 'toggle__thumb--on': isDarkTheme }"></div>
             </div>
           </div>
         </label>
