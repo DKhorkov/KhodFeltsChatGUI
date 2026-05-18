@@ -160,6 +160,11 @@ export default {
 
         const handleNewMessage = async (message) => {
             try {
+                if (!isWindowFocused && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
+                    ShowNotification(message.sender.username, message.text, message.chatId)
+                        .catch(err => console.error('Ошибка системного уведомления:', err))
+                }
+
                 if (selectedChat.value?.id === message.chatId) {
                     messages.value.push({...message, isRead: false})
                     await nextTick()
@@ -174,11 +179,6 @@ export default {
                     text: message.text,
                     chatId: message.chatId,
                 })
-
-                if (!isWindowFocused && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
-                    ShowNotification(message.sender.username, message.text, message.chatId)
-                        .catch(err => console.error('Ошибка системного уведомления:', err))
-                }
             } catch (err) {
                 console.error("Ошибка обработки нового сообщения:", err)
             }
