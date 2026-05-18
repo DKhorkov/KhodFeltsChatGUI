@@ -312,6 +312,11 @@ linters:
           - gochecknoglobals
           - gochecknoinits
 
+      - path: internal/common/appdata_test.go
+        linters:
+          - paralleltest
+          - tparallel
+
       - path: internal/v1/windows/*
         linters:
           - testpackage
