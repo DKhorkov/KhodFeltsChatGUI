@@ -1,16 +1,11 @@
 package common
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 )
 
-const (
-	appName     = "KhodFeltsChatGUI"
-	iconFile    = "icon.png"
-	srcIconPath = "assets/icon.png"
-)
+const appName = "KhodFeltsChatGUI"
 
 // AppDataDir возвращает абсолютный путь к директории данных приложения.
 // На macOS: ~/Library/Application Support/KhodFeltsChatGUI
@@ -34,32 +29,4 @@ func CreateAppDataDir() {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		_ = os.MkdirAll(dir, os.ModePerm)
 	}
-}
-
-// AppIconPath возвращает путь к иконке приложения в AppData.
-func AppIconPath() string {
-	return filepath.Join(AppDataDir(), iconFile)
-}
-
-// CopyAppIcon копирует иконку приложения из assets в AppData.
-func CopyAppIcon() {
-	src, err := os.Open(srcIconPath)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		_ = src.Close()
-	}()
-
-	dst, err := os.Create(AppIconPath())
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		_ = dst.Close()
-	}()
-
-	_, _ = io.Copy(dst, src)
 }

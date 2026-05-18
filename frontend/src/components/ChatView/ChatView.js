@@ -176,7 +176,7 @@ export default {
                 })
 
                 if (!isWindowFocused && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
-                    ShowNotification(message.sender.username, message.text)
+                    ShowNotification(message.sender.username, message.text, message.chatId)
                         .catch(err => console.error('Ошибка системного уведомления:', err))
                 }
             } catch (err) {
@@ -310,6 +310,9 @@ export default {
 
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
+            window.runtime.EventsOn(WAILS_EVENT.OPEN_CHAT, (chatId) => {
+                openChatById(chatId).catch(err => console.error('Ошибка открытия чата из уведомления:', err))
+            })
 
             window.addEventListener('focus', onWindowFocus)
             window.addEventListener('blur', onWindowBlur)
@@ -319,6 +322,7 @@ export default {
             StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
+            window.runtime.EventsOff(WAILS_EVENT.OPEN_CHAT)
 
             window.removeEventListener('focus', onWindowFocus)
             window.removeEventListener('blur', onWindowBlur)

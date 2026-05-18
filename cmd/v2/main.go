@@ -42,7 +42,6 @@ func main() {
 
 	common.CreateAppDataDir()
 	common.CreateLogsDir()
-	common.CopyAppIcon()
 
 	cfg := config.New()
 

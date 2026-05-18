@@ -6,8 +6,8 @@ export function SetContext(arg1) {
   return window['go']['notification']['Handler']['SetContext'](arg1);
 }
 
-export function ShowNotification(arg1, arg2) {
-  return window['go']['notification']['Handler']['ShowNotification'](arg1, arg2);
+export function ShowNotification(arg1, arg2, arg3) {
+  return window['go']['notification']['Handler']['ShowNotification'](arg1, arg2, arg3);
 }
 
 export function StartListening() {

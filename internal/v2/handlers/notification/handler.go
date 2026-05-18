@@ -3,10 +3,11 @@ package notification
 import (
 	"context"
 
-	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/libs/logging"
-	"github.com/gen2brain/beeep"
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+const openChatEventName = "open_chat"
 
 type Handler struct {
 	logger   logging.Logger
@@ -21,10 +22,43 @@ func New(logger logging.Logger) *Handler {
 
 func (h *Handler) SetContext(ctx context.Context) {
 	h.wailsCtx = ctx
+
+	if err := wailsruntime.InitializeNotifications(ctx); err != nil {
+		logging.LogError(h.logger, "Ошибка инициализации уведомлений", err)
+		return
+	}
+
+	authorized, err := wailsruntime.RequestNotificationAuthorization(ctx)
+	if err != nil {
+		logging.LogError(h.logger, "Ошибка запроса разрешения на уведомления", err)
+	} else {
+		logging.LogInfo(h.logger, "Разрешение на уведомления", "authorized", authorized)
+	}
+
+	wailsruntime.OnNotificationResponse(ctx, func(result wailsruntime.NotificationResult) {
+		if result.Error != nil {
+			logging.LogError(h.logger, "Ошибка ответа на уведомление", result.Error)
+			return
+		}
+
+		chatID, ok := result.Response.UserInfo["chatId"]
+		if !ok {
+			return
+		}
+
+		wailsruntime.WindowShow(h.wailsCtx)
+		wailsruntime.EventsEmit(h.wailsCtx, openChatEventName, chatID)
+	})
 }
 
-func (h *Handler) ShowNotification(title, body string) error {
-	if err := beeep.Notify(title, body, common.AppIconPath()); err != nil {
+func (h *Handler) ShowNotification(title, body string, chatID int) error {
+	if err := wailsruntime.SendNotification(h.wailsCtx, wailsruntime.NotificationOptions{
+		Title: title,
+		Body:  body,
+		Data: map[string]interface{}{
+			"chatId": chatID,
+		},
+	}); err != nil {
 		logging.LogError(h.logger, "Ошибка отправки системного уведомления", err)
 
 		return err
