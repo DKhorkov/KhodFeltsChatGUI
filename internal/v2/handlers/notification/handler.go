@@ -55,7 +55,7 @@ func (h *Handler) ShowNotification(title, body string, chatID int) error {
 	if err := wailsruntime.SendNotification(h.wailsCtx, wailsruntime.NotificationOptions{
 		Title: title,
 		Body:  body,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"chatId": chatID,
 		},
 	}); err != nil {
