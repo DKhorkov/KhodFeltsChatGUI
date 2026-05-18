@@ -46,7 +46,7 @@ func (h *Handler) SetContext(ctx context.Context) {
 			return
 		}
 
-		wailsruntime.WindowShow(h.wailsCtx)
+		h.focusWindow()
 		wailsruntime.EventsEmit(h.wailsCtx, openChatEventName, chatID)
 	})
 }
@@ -65,6 +65,13 @@ func (h *Handler) ShowNotification(title, body string, chatID int) error {
 	}
 
 	return nil
+}
+
+func (h *Handler) focusWindow() {
+	wailsruntime.WindowUnminimise(h.wailsCtx)
+	wailsruntime.WindowShow(h.wailsCtx)
+	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, true)
+	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, false)
 }
 
 func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
