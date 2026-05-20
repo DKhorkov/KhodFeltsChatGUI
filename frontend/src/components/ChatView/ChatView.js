@@ -169,16 +169,15 @@ export default {
                     messages.value.push({...message, isRead: false})
                     await nextTick()
                     scrollToBottom()
-                    return
+                } else {
+                    emit('new-message-notification', {
+                        sender: message.sender.username,
+                        text: message.text,
+                        chatId: message.chatId,
+                    })
                 }
 
                 loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
-
-                emit('new-message-notification', {
-                    sender: message.sender.username,
-                    text: message.text,
-                    chatId: message.chatId,
-                })
             } catch (err) {
                 console.error("Ошибка обработки нового сообщения:", err)
             }
