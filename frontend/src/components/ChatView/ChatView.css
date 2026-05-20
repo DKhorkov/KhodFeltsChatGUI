@@ -189,6 +189,15 @@
     font-weight: 600;
 }
 
+.chat-item__last-message {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
 .chat-item__unread-dot {
     width: 8px;
     height: 8px;
