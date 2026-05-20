@@ -209,6 +209,17 @@ export default {
             return `Чат #${chat.id}`
         }
 
+        const getLastMessagePreview = (chat) => {
+            if (!chat.messages || chat.messages.length === 0) return null
+
+            const lastMessage = chat.messages[chat.messages.length - 1]
+            const senderName = lastMessage.sender.id === currentUser.value?.id
+                ? 'Вы'
+                : lastMessage.sender.username
+
+            return `${senderName}: ${lastMessage.text}`
+        }
+
         const openMemberProfile = (chat) => {
             if (chat.type === CHAT_TYPE.PRIVATE) {
                 const member = getOtherMember(chat)
@@ -364,6 +375,7 @@ export default {
             selectChat,
             sendMessage,
             getChatTitle,
+            getLastMessagePreview,
             getOtherMember,
             openMemberProfile,
             getSenderName,
