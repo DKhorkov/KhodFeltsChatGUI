@@ -152,6 +152,8 @@ export default {
 
                 await nextTick()
                 scrollToBottom()
+
+                loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
             } catch (err) {
                 showError(err)
                 newMessage.value = text
