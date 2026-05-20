@@ -152,6 +152,8 @@ export default {
 
                 await nextTick()
                 scrollToBottom()
+
+                loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
             } catch (err) {
                 showError(err)
                 newMessage.value = text
@@ -206,6 +208,17 @@ export default {
             if (otherMember) return otherMember.username
 
             return `Чат #${chat.id}`
+        }
+
+        const getLastMessagePreview = (chat) => {
+            if (!chat.messages || chat.messages.length === 0) return null
+
+            const lastMessage = chat.messages[chat.messages.length - 1]
+            const senderName = lastMessage.sender.id === currentUser.value?.id
+                ? 'Вы'
+                : lastMessage.sender.username
+
+            return `${senderName}: ${lastMessage.text}`
         }
 
         const openMemberProfile = (chat) => {
@@ -363,6 +376,7 @@ export default {
             selectChat,
             sendMessage,
             getChatTitle,
+            getLastMessagePreview,
             getOtherMember,
             openMemberProfile,
             getSenderName,

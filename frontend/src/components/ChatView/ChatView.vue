@@ -40,6 +40,9 @@
               <div class="chat-item__title" :class="{ 'chat-item__title--bold': !chat.isRead }">
                 {{ getChatTitle(chat) }}
               </div>
+              <div v-if="getLastMessagePreview(chat)" class="chat-item__last-message">
+                {{ getLastMessagePreview(chat) }}
+              </div>
             </div>
             <div v-if="!chat.isRead" class="chat-item__unread-dot"></div>
           </div>
