@@ -32,6 +32,18 @@ export default {
         const textareaRef = ref(null)
         const isDarkTheme = ref(false)
         const isEmojiPickerVisible = ref(false)
+        let emojiCloseTimer = null
+
+        const showEmojiPicker = () => {
+            clearTimeout(emojiCloseTimer)
+            isEmojiPickerVisible.value = true
+        }
+
+        const scheduleEmojiClose = () => {
+            emojiCloseTimer = setTimeout(() => {
+                isEmojiPickerVisible.value = false
+            }, 500)
+        }
         const selectedMember = ref(null)
         const selectedGroupChat = ref(null)
         const webPushConsents = ref(0)
@@ -365,6 +377,8 @@ export default {
             messagesListRef,
             textareaRef,
             isEmojiPickerVisible,
+            showEmojiPicker,
+            scheduleEmojiClose,
             selectedMember,
             selectedGroupChat,
             openChatInfo,

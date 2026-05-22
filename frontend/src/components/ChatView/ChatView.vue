@@ -83,12 +83,15 @@
                 placeholder="Введите сообщение..."
                 rows="3"
             ></textarea>
-            <div class="conversation__emoji-wrapper">
+            <div
+                class="conversation__emoji-wrapper"
+                @mouseenter="showEmojiPicker"
+                @mouseleave="scheduleEmojiClose"
+            >
               <button
                   type="button"
                   class="conversation__emoji-toggle"
                   :class="{ 'conversation__emoji-toggle--active': isEmojiPickerVisible }"
-                  @click="isEmojiPickerVisible = !isEmojiPickerVisible"
                   title="Смайлы"
               >
                 &#x1F642;
