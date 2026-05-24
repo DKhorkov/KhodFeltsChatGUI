@@ -13,7 +13,7 @@ import {GetCurrentUser} from '../../../wailsjs/go/users/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {GetSettings} from '../../../wailsjs/go/settings/Handler'
 import {ShowNotification} from '../../../wailsjs/go/notifications/Handler'
-import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
+import {CHAT_TYPE, EMOJI_CLOSE_DELAY_MS, HIGHLIGHT_DURATION_MS, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 const CONSENT_NEW_MESSAGE = 1
 import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
@@ -45,7 +45,7 @@ export default {
         const scheduleEmojiClose = () => {
             emojiCloseTimer = setTimeout(() => {
                 isEmojiPickerVisible.value = false
-            }, 500)
+            }, EMOJI_CLOSE_DELAY_MS)
         }
         const selectedMember = ref(null)
         const selectedGroupChat = ref(null)
@@ -306,7 +306,7 @@ export default {
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' })
                 highlightedMessageId.value = messageId
-                setTimeout(() => { highlightedMessageId.value = null }, 1500)
+                setTimeout(() => { highlightedMessageId.value = null }, HIGHLIGHT_DURATION_MS)
             }
         }
 

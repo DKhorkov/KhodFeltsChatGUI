@@ -29,3 +29,5 @@ export const WAILS_EVENT = Object.freeze({
 export const MESSAGES_PAGE_SIZE = 10
 export const NOTIFICATION_DURATION_MS = 3000
 export const SEARCH_DEBOUNCE_MS = 500
+export const EMOJI_CLOSE_DELAY_MS = 500
+export const HIGHLIGHT_DURATION_MS = 1500
