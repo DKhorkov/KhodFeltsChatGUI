@@ -36,4 +36,4 @@
 
 ## Wails-биндинги
 
-`forget_password/Handler`: `ForgetPassword`
+`auth/Handler`: `ForgetPassword`

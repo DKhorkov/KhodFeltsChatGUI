@@ -56,12 +56,12 @@ wails.Run(&options.App{
 
 Биндятся следующие хендлеры:
 - `authHandler`
-- `chatHandler`
-- `createChatHandler`
-- `searchUsersHandler`
-- `forgetPasswordHandler`
+- `chatsHandler`
+- `messagesHandler`
+- `usersHandler`
 - `themeHandler`
-- `profileHandler`
+- `settingsHandler`
+- `notificationsHandler`
 
 ## Параметры окна
 

@@ -3,7 +3,9 @@
 import {domains} from '../models';
 import {context} from '../models';
 
-export function ChangePassword(arg1:domains.ChangePasswordDTO):Promise<void>;
+export function GetCurrentUser():Promise<domains.User>;
+
+export function SearchUsers(arg1:domains.UsersFilters,arg2:domains.Pagination):Promise<Array<domains.User>>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
 

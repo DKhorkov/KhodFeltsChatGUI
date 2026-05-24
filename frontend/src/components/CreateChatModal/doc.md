@@ -35,5 +35,5 @@
 
 ## Wails-биндинги
 
-- `create_chat/Handler`: `CreateChat`
-- `search_users/Handler`: `SearchUsers`
+- `chats/Handler`: `CreateChat`
+- `users/Handler`: `SearchUsers`

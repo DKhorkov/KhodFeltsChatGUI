@@ -1,5 +1,5 @@
 import {inject, ref} from 'vue'
-import {ForgetPassword} from '../../../wailsjs/go/forget_password/Handler'
+import {ForgetPassword} from '../../../wailsjs/go/auth/Handler'
 
 export default {
     name: 'ForgetPasswordModal',

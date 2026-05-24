@@ -1,5 +1,5 @@
 import {inject, ref} from 'vue'
-import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
+import {SearchUsers} from '../../../wailsjs/go/users/Handler'
 import {SEARCH_DEBOUNCE_MS} from '../../constants'
 import {debounce} from '../../utils/debounce'
 

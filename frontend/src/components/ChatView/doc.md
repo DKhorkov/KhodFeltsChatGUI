@@ -56,7 +56,9 @@
 
 ## Wails-биндинги
 
-- `chat/Handler`: `GetUserChats`, `GetCurrentUser`, `GetChatMessages`, `SendMessage`, `StartListening`, `StopListening`
+- `chats/Handler`: `GetUserChats`, `StartListening`, `StopListening`
+- `messages/Handler`: `GetChatMessages`, `SendMessage`, `DeleteMessage`
+- `users/Handler`: `GetCurrentUser`
 - `theme/Handler`: `GetTheme`, `ToggleTheme`
 - `settings/Handler`: `GetSettings`
 - `notification/Handler`: `ShowNotification`

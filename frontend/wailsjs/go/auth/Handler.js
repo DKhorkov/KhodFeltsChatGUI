@@ -6,6 +6,10 @@ export function Authenticate() {
   return window['go']['auth']['Handler']['Authenticate']();
 }
 
+export function ChangePassword(arg1) {
+  return window['go']['auth']['Handler']['ChangePassword'](arg1);
+}
+
 export function ForgetPassword(arg1, arg2) {
   return window['go']['auth']['Handler']['ForgetPassword'](arg1, arg2);
 }

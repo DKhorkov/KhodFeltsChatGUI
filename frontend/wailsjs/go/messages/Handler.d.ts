@@ -3,7 +3,11 @@
 import {domains} from '../models';
 import {context} from '../models';
 
-export function ForgetPassword(arg1:string,arg2:domains.ForgetPasswordDTO):Promise<void>;
+export function DeleteMessage(arg1:number,arg2:boolean):Promise<void>;
+
+export function GetChatMessages(arg1:number,arg2:domains.Pagination):Promise<Array<domains.Message>>;
+
+export function SendMessage(arg1:number,arg2:string,arg3:any):Promise<void>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
 

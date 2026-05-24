@@ -120,7 +120,9 @@
 - `GroupChatModal` — отображается поверх при просмотре информации о групповом чате
 
 ### Wails-биндинги
-`chat/Handler`: `GetUserChats`, `GetCurrentUser`, `GetChatMessages`, `SendMessage`, `StartListening`, `StopListening`
+`chats/Handler`: `GetUserChats`, `StartListening`, `StopListening`
+`messages/Handler`: `GetChatMessages`, `SendMessage`, `DeleteMessage`
+`users/Handler`: `GetCurrentUser`
 `theme/Handler`: `GetTheme`, `ToggleTheme`
 
 ---
@@ -209,8 +211,8 @@
 - `createChat()` — валидирует выбор участников, вызывает `CreateChat({type, memberIDs, title, description})`, генерирует `chat-created`
 
 ### Wails-биндинги
-`create_chat/Handler`: `CreateChat`
-`search_users/Handler`: `SearchUsers`
+`chats/Handler`: `CreateChat`
+`users/Handler`: `SearchUsers`
 
 ---
 
@@ -279,7 +281,7 @@
 - `formatDate(dateStr)` — форматирует дату регистрации в локаль `ru-RU`
 
 ### Wails-биндинги
-`search_users/Handler`: `SearchUsers`
+`users/Handler`: `SearchUsers`
 
 ---
 
@@ -316,7 +318,7 @@
 - `resetPassword()` — валидирует поля и совпадение паролей, вызывает `ForgetPassword(token, {newPassword})`, показывает подтверждение и закрывает модалку
 
 ### Wails-биндинги
-`forget_password/Handler`: `ForgetPassword`
+`auth/Handler`: `ForgetPassword`
 
 ---
 
@@ -362,7 +364,8 @@
 - `formatDate(dateStr)` — форматирует дату в локаль `ru-RU`
 
 ### Wails-биндинги
-`profile/Handler`: `ChangePassword`, `UpdateUser`
+`auth/Handler`: `ChangePassword`
+`users/Handler`: `UpdateUser`
 
 ---
 

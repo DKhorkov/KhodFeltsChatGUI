@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chats"
@@ -16,67 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
-
-func TestHandler_GetCurrentUser(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name          string
-		setupMocks    func(*mockusecases.MockUseCases)
-		expectedUser  *domains.User
-		expectedError error
-	}{
-		{
-			name: "successful get current user",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetCurrentUser(gomock.Any()).
-					Return(&domains.User{ID: 1, Username: "john"}, nil).
-					Times(1)
-			},
-			expectedUser:  &domains.User{ID: 1, Username: "john"},
-			expectedError: nil,
-		},
-		{
-			name: "use case error",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetCurrentUser(gomock.Any()).
-					Return(nil, errors.New("session expired")).
-					Times(1)
-			},
-			expectedUser:  nil,
-			expectedError: errors.New("session expired"),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
-			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
-
-			if tt.setupMocks != nil {
-				tt.setupMocks(mockUseCases)
-			}
-
-			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
-
-			user, err := h.GetCurrentUser()
-
-			if tt.expectedError != nil {
-				assert.Error(t, err)
-				assert.Nil(t, user)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedUser, user)
-			}
-		})
-	}
-}
 
 func TestHandler_GetUserChats(t *testing.T) {
 	t.Parallel()
@@ -154,7 +92,7 @@ func TestHandler_GetUserChats(t *testing.T) {
 				tt.setupMocks(mockUseCases)
 			}
 
-			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil)
 
 			chats, err := h.GetUserChats(tt.pagination)
 
@@ -169,155 +107,77 @@ func TestHandler_GetUserChats(t *testing.T) {
 	}
 }
 
-func TestHandler_GetChatMessages(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		chatID           uint64
-		pagination       *domains.Pagination
-		setupMocks       func(*mockusecases.MockUseCases)
-		expectedMessages []domains.Message
-		expectedError    error
-	}{
-		{
-			name:   "successful get messages",
-			chatID: 42,
-			pagination: &domains.Pagination{
-				Limit:  pointers.New[uint64](10),
-				Offset: pointers.New[uint64](0),
-			},
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetChatMessages(gomock.Any(), uint64(42), &domains.Pagination{Limit: pointers.New[uint64](10), Offset: pointers.New[uint64](0)}).
-					Return([]domains.Message{{ID: 1, Text: "hello"}, {ID: 2, Text: "world"}}, nil).
-					Times(1)
-			},
-			expectedMessages: []domains.Message{{ID: 1, Text: "hello"}, {ID: 2, Text: "world"}},
-			expectedError:    nil,
-		},
-		{
-			name:       "get messages without pagination",
-			chatID:     42,
-			pagination: nil,
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetChatMessages(gomock.Any(), uint64(42), (*domains.Pagination)(nil)).
-					Return([]domains.Message{}, nil).
-					Times(1)
-			},
-			expectedMessages: []domains.Message{},
-			expectedError:    nil,
-		},
-		{
-			name:       "use case error",
-			chatID:     42,
-			pagination: nil,
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetChatMessages(gomock.Any(), uint64(42), gomock.Any()).
-					Return(nil, customerrors.ErrGetChatMessages).
-					Times(1)
-			},
-			expectedMessages: nil,
-			expectedError:    customerrors.ErrGetChatMessages,
-		},
-		{
-			name:       "chat not found",
-			chatID:     999,
-			pagination: nil,
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetChatMessages(gomock.Any(), uint64(999), gomock.Any()).
-					Return(nil, customerrors.ErrChatNotFound).
-					Times(1)
-			},
-			expectedMessages: nil,
-			expectedError:    customerrors.ErrChatNotFound,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
-			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
-
-			if tt.setupMocks != nil {
-				tt.setupMocks(mockUseCases)
-			}
-
-			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
-
-			messages, err := h.GetChatMessages(tt.chatID, tt.pagination)
-
-			if tt.expectedError != nil {
-				assert.Error(t, err)
-				assert.Nil(t, messages)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedMessages, messages)
-			}
-		})
-	}
-}
-
-func TestHandler_SendMessage(t *testing.T) {
+func TestHandler_CreateChat(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name          string
-		chatID        uint64
-		text          string
-		setupMocks    func(*mockusecases.MockUseCases)
+		in            domains.CreateChatDTO
+		setupMocks    func(*mockusecases.MockUseCases, *mockerrors.MockErrorsMapper)
+		expectedChat  *domains.Chat
 		expectedError error
 	}{
 		{
-			name:   "successful send message",
-			chatID: 42,
-			text:   "Hello!",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
+			name: "successful create private chat",
+			in: domains.CreateChatDTO{
+				Type:      domains.ChatTypePrivate,
+				MemberIDs: []uint64{2},
+			},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
-					GetCurrentUser(gomock.Any()).
-					Return(&domains.User{ID: 1, Username: "john"}, nil).
-					Times(1)
-				uc.EXPECT().
-					SendMessage(gomock.Any(), gomock.Any()).
-					Return(nil).
+					CreateChat(gomock.Any(), gomock.Any()).
+					Return(&domains.Chat{ID: 1, Type: domains.ChatTypePrivate}, nil).
 					Times(1)
 			},
+			expectedChat:  &domains.Chat{ID: 1, Type: domains.ChatTypePrivate},
 			expectedError: nil,
 		},
 		{
-			name:   "get current user error",
-			chatID: 42,
-			text:   "Hello!",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
+			name: "successful create group chat",
+			in: domains.CreateChatDTO{
+				Type:        domains.ChatTypeGroup,
+				MemberIDs:   []uint64{2, 3},
+				Title:       pointers.New("Test Group"),
+				Description: pointers.New("Description"),
+			},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
-					GetCurrentUser(gomock.Any()).
-					Return(nil, errors.New("session expired")).
+					CreateChat(gomock.Any(), gomock.Any()).
+					Return(&domains.Chat{ID: 2, Type: domains.ChatTypeGroup}, nil).
 					Times(1)
 			},
-			expectedError: errors.New("session expired"),
+			expectedChat:  &domains.Chat{ID: 2, Type: domains.ChatTypeGroup},
+			expectedError: nil,
 		},
 		{
-			name:   "send message use case error",
-			chatID: 42,
-			text:   "Hello!",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetCurrentUser(gomock.Any()).
-					Return(&domains.User{ID: 1}, nil).
-					Times(1)
-				uc.EXPECT().
-					SendMessage(gomock.Any(), gomock.Any()).
-					Return(errors.New("websocket closed")).
+			name: "invalid chat - private with no members",
+			in: domains.CreateChatDTO{
+				Type:      domains.ChatTypePrivate,
+				MemberIDs: []uint64{},
+			},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(gomock.Any()).
+					Return(customerrors.ErrInvalidChat).
 					Times(1)
 			},
-			expectedError: errors.New("websocket closed"),
+			expectedChat:  nil,
+			expectedError: customerrors.ErrInvalidChat,
+		},
+		{
+			name: "use case error",
+			in: domains.CreateChatDTO{
+				Type:      domains.ChatTypePrivate,
+				MemberIDs: []uint64{2},
+			},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
+				uc.EXPECT().
+					CreateChat(gomock.Any(), gomock.Any()).
+					Return(nil, errors.New("create failed")).
+					Times(1)
+			},
+			expectedChat:  nil,
+			expectedError: errors.New("create failed"),
 		},
 	}
 
@@ -331,184 +191,19 @@ func TestHandler_SendMessage(t *testing.T) {
 			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockUseCases)
+				tt.setupMocks(mockUseCases, mockMapper)
 			}
 
-			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, nil)
 
-			err := h.SendMessage(tt.chatID, tt.text, nil)
+			chat, err := h.CreateChat(tt.in)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
+				assert.Nil(t, chat)
 			} else {
 				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestHandler_DeleteMessage(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name          string
-		messageID     uint64
-		forAll        bool
-		setupMocks    func(*mockusecases.MockUseCases)
-		expectedError error
-	}{
-		{
-			name:      "successful delete for self",
-			messageID: 42,
-			forAll:    false,
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					DeleteMessage(gomock.Any(), domains.DeleteMessageDTO{
-						MessageID: 42,
-						ForAll:    false,
-					}).
-					Return(nil).
-					Times(1)
-			},
-			expectedError: nil,
-		},
-		{
-			name:      "successful delete for all",
-			messageID: 42,
-			forAll:    true,
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					DeleteMessage(gomock.Any(), domains.DeleteMessageDTO{
-						MessageID: 42,
-						ForAll:    true,
-					}).
-					Return(nil).
-					Times(1)
-			},
-			expectedError: nil,
-		},
-		{
-			name:      "use case error",
-			messageID: 42,
-			forAll:    false,
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					DeleteMessage(gomock.Any(), domains.DeleteMessageDTO{
-						MessageID: 42,
-						ForAll:    false,
-					}).
-					Return(errors.New("delete failed")).
-					Times(1)
-			},
-			expectedError: errors.New("delete failed"),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
-			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
-
-			if tt.setupMocks != nil {
-				tt.setupMocks(mockUseCases)
-			}
-
-			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
-
-			err := h.DeleteMessage(tt.messageID, tt.forAll)
-
-			if tt.expectedError != nil {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestHandler_ToggleTheme(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name          string
-		setupMocks    func(*mockusecases.MockUseCases)
-		expectedTheme domains.ThemeType
-		expectedError error
-	}{
-		{
-			name: "toggle from light to dark",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetTheme(gomock.Any()).
-					Return(domains.ThemeLight).
-					Times(1)
-				uc.EXPECT().
-					SetTheme(gomock.Any(), domains.ThemeDark).
-					Return(nil).
-					Times(1)
-			},
-			expectedTheme: domains.ThemeDark,
-			expectedError: nil,
-		},
-		{
-			name: "toggle from dark to light",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetTheme(gomock.Any()).
-					Return(domains.ThemeDark).
-					Times(1)
-				uc.EXPECT().
-					SetTheme(gomock.Any(), domains.ThemeLight).
-					Return(nil).
-					Times(1)
-			},
-			expectedTheme: domains.ThemeLight,
-			expectedError: nil,
-		},
-		{
-			name: "set theme error returns ThemeLight",
-			setupMocks: func(uc *mockusecases.MockUseCases) {
-				uc.EXPECT().
-					GetTheme(gomock.Any()).
-					Return(domains.ThemeLight).
-					Times(1)
-				uc.EXPECT().
-					SetTheme(gomock.Any(), domains.ThemeDark).
-					Return(errors.New("storage error")).
-					Times(1)
-			},
-			expectedTheme: domains.ThemeLight,
-			expectedError: errors.New("storage error"),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-
-			mockUseCases := mockusecases.NewMockUseCases(ctrl)
-			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
-
-			if tt.setupMocks != nil {
-				tt.setupMocks(mockUseCases)
-			}
-
-			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
-
-			theme, err := h.ToggleTheme()
-
-			assert.Equal(t, tt.expectedTheme, theme)
-
-			if tt.expectedError != nil {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedChat, chat)
 			}
 		})
 	}
@@ -522,7 +217,7 @@ func TestHandler_SetContext(t *testing.T) {
 	mockUseCases := mockusecases.NewMockUseCases(ctrl)
 	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
-	h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+	h := chathandler.New(mockUseCases, mockMapper, nil)
 	h.SetContext(context.Background())
 }
 
@@ -569,7 +264,7 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 
 			tt.setupMocks(mockUseCases, mockLogger)
 
-			h := chathandler.New(mockUseCases, mockMapper, mockLogger, config.ValidationConfig{})
+			h := chathandler.New(mockUseCases, mockMapper, mockLogger)
 
 			if tt.name != "stop without start does not panic" {
 				h.StartListening()

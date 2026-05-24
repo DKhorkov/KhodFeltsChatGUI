@@ -1,4 +1,4 @@
-package profile
+package users
 
 import (
 	"context"
@@ -34,24 +34,19 @@ func (h *Handler) SetContext(ctx context.Context) {
 	h.wailsCtx = ctx
 }
 
-func (h *Handler) ChangePassword(in domains.ChangePasswordDTO) error {
+func (h *Handler) GetCurrentUser() (*domains.User, error) {
 	ctx := context.Background()
 
-	// Валидация нового пароля
-	if !validation.ValidateValueByRules(in.NewPassword, h.validationConfig.PasswordRegExps) {
-		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
-	}
+	return h.useCases.GetCurrentUser(ctx)
+}
 
-	// Валидация старого пароля
-	if !validation.ValidateValueByRules(in.OldPassword, h.validationConfig.PasswordRegExps) {
-		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
-	}
+func (h *Handler) SearchUsers(
+	filters *domains.UsersFilters,
+	pagination *domains.Pagination,
+) ([]domains.User, error) {
+	ctx := context.Background()
 
-	if err := h.useCases.ChangePassword(ctx, in); err != nil {
-		return err
-	}
-
-	return nil
+	return h.useCases.SearchUsers(ctx, filters, pagination)
 }
 
 func (h *Handler) UpdateUser(in domains.UpdateUserDTO) (*domains.User, error) {

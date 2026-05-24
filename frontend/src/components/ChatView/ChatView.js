@@ -1,16 +1,18 @@
 import {inject, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {
-    DeleteMessage,
-    GetChatMessages,
-    GetCurrentUser,
     GetUserChats,
-    SendMessage,
     StartListening,
     StopListening
-} from '../../../wailsjs/go/chat/Handler'
+} from '../../../wailsjs/go/chats/Handler'
+import {
+    DeleteMessage,
+    GetChatMessages,
+    SendMessage
+} from '../../../wailsjs/go/messages/Handler'
+import {GetCurrentUser} from '../../../wailsjs/go/users/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {GetSettings} from '../../../wailsjs/go/settings/Handler'
-import {ShowNotification} from '../../../wailsjs/go/notification/Handler'
+import {ShowNotification} from '../../../wailsjs/go/notifications/Handler'
 import {CHAT_TYPE, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 const CONSENT_NEW_MESSAGE = 1

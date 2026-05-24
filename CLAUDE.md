@@ -49,7 +49,7 @@ wails build
 cmd/v2/main.go              — точка входа Wails v2
 internal/
   v2/application/           — App (Startup/Shutdown/BindHandlers)
-  v2/handlers/              — 7 хендлеров (auth, chat, create_chat, search_users, forget_password, profile, theme)
+  v2/handlers/              — 7 хендлеров (auth, chats, messages, users, theme, settings, notifications)
   config/                   — конфигурация из env
   domains/                  — доменные модели
   errors/                   — ошибки и маппер

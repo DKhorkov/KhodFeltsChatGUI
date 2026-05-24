@@ -100,15 +100,39 @@ func (h *Handler) SendForgetPassword(email string) error {
 	return h.useCases.SendForgetPasswordMessage(ctx, email)
 }
 
-func (h *Handler) ForgetPassword(token string, in domains.ForgetPasswordDTO) error {
+func (h *Handler) ForgetPassword(forgetPasswordToken string, in domains.ForgetPasswordDTO) error {
 	ctx := context.Background()
+
+	if forgetPasswordToken == "" {
+		return h.errorsMapper.Map(customerrors.ErrInvalidForgetPasswordToken)
+	}
 
 	// Валидация пароля
 	if !validation.ValidateValueByRules(in.NewPassword, h.validationConfig.PasswordRegExps) {
 		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
 	}
 
-	return h.useCases.ForgetPassword(ctx, token, in.NewPassword)
+	return h.useCases.ForgetPassword(ctx, forgetPasswordToken, in.NewPassword)
+}
+
+func (h *Handler) ChangePassword(in domains.ChangePasswordDTO) error {
+	ctx := context.Background()
+
+	// Валидация нового пароля
+	if !validation.ValidateValueByRules(in.NewPassword, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
+	}
+
+	// Валидация старого пароля
+	if !validation.ValidateValueByRules(in.OldPassword, h.validationConfig.PasswordRegExps) {
+		return h.errorsMapper.Map(customerrors.ErrInvalidPassword)
+	}
+
+	if err := h.useCases.ChangePassword(ctx, in); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (h *Handler) Authenticate() error {

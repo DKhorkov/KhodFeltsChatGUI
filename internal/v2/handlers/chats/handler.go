@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
-	"github.com/DKhorkov/kfcGUI/internal/common"
-	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
@@ -26,10 +25,9 @@ const (
 )
 
 type Handler struct {
-	useCases         interfaces.UseCases
-	errorsMapper     interfaces.ErrorsMapper
-	logger           logging.Logger
-	validationConfig config.ValidationConfig
+	useCases     interfaces.UseCases
+	errorsMapper interfaces.ErrorsMapper
+	logger       logging.Logger
 
 	wailsCtx                context.Context
 	goroutinesCtx           context.Context
@@ -41,24 +39,16 @@ func New(
 	useCases interfaces.UseCases,
 	errorsMapper interfaces.ErrorsMapper,
 	logger logging.Logger,
-	validationConfig config.ValidationConfig,
 ) *Handler {
 	return &Handler{
-		useCases:         useCases,
-		errorsMapper:     errorsMapper,
-		logger:           logger,
-		validationConfig: validationConfig,
+		useCases:     useCases,
+		errorsMapper: errorsMapper,
+		logger:       logger,
 	}
 }
 
 func (h *Handler) SetContext(ctx context.Context) {
 	h.wailsCtx = ctx
-}
-
-func (h *Handler) GetCurrentUser() (*domains.User, error) {
-	ctx := context.Background()
-
-	return h.useCases.GetCurrentUser(ctx)
 }
 
 func (h *Handler) GetUserChats(pagination *domains.Pagination) ([]domains.Chat, error) {
@@ -67,65 +57,30 @@ func (h *Handler) GetUserChats(pagination *domains.Pagination) ([]domains.Chat, 
 	return h.useCases.GetUserChats(ctx, pagination)
 }
 
-func (h *Handler) GetChatMessages(
-	chatID uint64,
-	pagination *domains.Pagination,
-) ([]domains.Message, error) {
+func (h *Handler) CreateChat(
+	in domains.CreateChatDTO,
+) (*domains.Chat, error) {
 	ctx := context.Background()
 
-	return h.useCases.GetChatMessages(ctx, chatID, pagination)
-}
-
-func (h *Handler) SendMessage(chatID uint64, text string, replyToMessageID *uint64) error {
-	ctx := context.Background()
-
-	sender, err := h.useCases.GetCurrentUser(ctx)
-	if err != nil {
-		return err
+	if !in.IsValid() {
+		return nil, h.errorsMapper.Map(
+			fmt.Errorf("%w: chat is not valid: %v+", customerrors.ErrInvalidChat, in),
+		)
 	}
 
-	message := domains.Message{
-		ChatID: chatID,
-		Text:   text,
-		Sender: domains.User{
-			ID: sender.ID,
-		},
-		CreatedAt: time.Now().In(common.Timezone),
-		UpdatedAt: time.Now().In(common.Timezone),
-		IsRead:    true, // Сообщение прочитано для отправителя
+	members := make([]domains.User, 0, len(in.MemberIDs))
+	for _, id := range in.MemberIDs {
+		members = append(members, domains.User{ID: id})
 	}
 
-	if replyToMessageID != nil {
-		message.ReplyToMessage = &domains.Message{ID: *replyToMessageID}
+	chat := &domains.Chat{
+		Type:        in.Type,
+		Members:     members,
+		Title:       in.Title,
+		Description: in.Description,
 	}
 
-	return h.useCases.SendMessage(ctx, message)
-}
-
-func (h *Handler) DeleteMessage(messageID uint64, forAll bool) error {
-	ctx := context.Background()
-
-	return h.useCases.DeleteMessage(ctx, domains.DeleteMessageDTO{
-		MessageID: messageID,
-		ForAll:    forAll,
-	})
-}
-
-func (h *Handler) ToggleTheme() (domains.ThemeType, error) {
-	ctx := context.Background()
-
-	currentTheme := h.useCases.GetTheme(ctx)
-
-	newTheme := domains.ThemeLight
-	if currentTheme == domains.ThemeLight {
-		newTheme = domains.ThemeDark
-	}
-
-	if err := h.useCases.SetTheme(ctx, newTheme); err != nil {
-		return domains.ThemeLight, err
-	}
-
-	return newTheme, nil
+	return h.useCases.CreateChat(ctx, *chat)
 }
 
 func (h *Handler) StartListening() {

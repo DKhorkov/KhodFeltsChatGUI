@@ -19,14 +19,12 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
 	"github.com/DKhorkov/kfcGUI/internal/v2/application"
 	authhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/auth"
-	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chats"
-	createchathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
-	forgetpasswordhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/forget_password"
+	chatshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chats"
+	messageshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/messages"
 	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notifications"
-	profilehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/profile"
-	searchusershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/search_users"
 	settingshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/settings"
 	themehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/theme"
+	usershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/users"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
 	"github.com/wailsapp/wails/v2"
@@ -82,24 +80,15 @@ func main() {
 		cfg.Validation,
 	)
 
-	chatHandler := chathandler.New(
+	chatsHandler := chatshandler.New(
 		useCases,
 		errorsMapper,
 		logger,
-		cfg.Validation,
 	)
 
-	createChatHandler := createchathandler.New(useCases, errorsMapper)
+	messagesHandler := messageshandler.New(useCases)
 
-	searchUsersHandler := searchusershandler.New(useCases)
-
-	forgetPasswordHandler := forgetpasswordhandler.New(
-		useCases,
-		errorsMapper,
-		cfg.Validation,
-	)
-
-	profileHandler := profilehandler.New(
+	usersHandler := usershandler.New(
 		useCases,
 		errorsMapper,
 		cfg.Validation,
@@ -116,12 +105,10 @@ func main() {
 		errorsMapper,
 		[]interfaces.Handler{
 			authHandler,
-			chatHandler,
-			createChatHandler,
-			searchUsersHandler,
-			forgetPasswordHandler,
+			chatsHandler,
+			messagesHandler,
+			usersHandler,
 			themeHandler,
-			profileHandler,
 			settingsHandler,
 			notificationHandler,
 		},

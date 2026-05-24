@@ -1,8 +1,8 @@
-# Пакет internal/v2/handlers/chat
+# Пакет internal/v2/handlers/chats
 
 ## Назначение
 
-Основной хендлер чата. Управляет получением чатов, сообщений, отправкой сообщений, переключением темы. Запускает фоновые горутины для чтения WebSocket-сообщений, обновления токенов и периодического обновления списка чатов.
+Хендлер чатов. Управляет получением и созданием чатов. Запускает фоновые горутины для чтения WebSocket-событий, обновления токенов и периодического обновления списка чатов.
 
 ## Константы
 
@@ -18,37 +18,31 @@
 
 | Тип | Описание |
 |-----|----------|
-| `Handler` | Wails-хендлер чата. Содержит `useCases`, `errorsMapper`, `logger`, `validationConfig`, контексты горутин и `sync.WaitGroup`. |
+| `Handler` | Wails-хендлер чатов. Содержит `useCases`, `errorsMapper`, `logger`, контексты горутин и `sync.WaitGroup`. |
 
 ## Функции и методы
 
 | Сигнатура | Описание |
 |-----------|----------|
-| `New(useCases interfaces.UseCases, errorsMapper interfaces.ErrorsMapper, logger logging.Logger, validationConfig config.ValidationConfig) *Handler` | Конструктор хендлера. |
+| `New(useCases interfaces.UseCases, errorsMapper interfaces.ErrorsMapper, logger logging.Logger) *Handler` | Конструктор хендлера. |
 | `(h *Handler) SetContext(ctx context.Context)` | Устанавливает Wails-контекст. |
-| `(h *Handler) GetCurrentUser() (*domains.User, error)` | Возвращает текущего пользователя. |
 | `(h *Handler) GetUserChats(pagination *domains.Pagination) ([]domains.Chat, error)` | Возвращает чаты пользователя с пагинацией. |
-| `(h *Handler) GetChatMessages(chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)` | Возвращает сообщения чата с пагинацией. |
-| `(h *Handler) SendMessage(chatID uint64, text string, replyToMessageID *uint64) error` | Отправка сообщения в чат. Автоматически определяет отправителя. Поддерживает ответ на сообщение. |
-| `(h *Handler) DeleteMessage(messageID uint64, forAll bool) error` | Удаление сообщения (для себя или для всех). |
-| `(h *Handler) ToggleTheme() (domains.ThemeType, error)` | Переключает тему (светлая/тёмная). |
-| `(h *Handler) StartListening()` | Запускает фоновые горутины: чтение сообщений, обновление токенов, обновление чатов. |
+| `(h *Handler) CreateChat(in domains.CreateChatDTO) (*domains.Chat, error)` | Создание чата. Валидирует DTO через `IsValid()`, формирует список участников и вызывает use case. |
+| `(h *Handler) StartListening()` | Запускает фоновые горутины: чтение WS-событий, обновление токенов, обновление чатов. |
 | `(h *Handler) StopListening()` | Останавливает все фоновые горутины и ожидает их завершения. |
 
 ### Приватные методы
 
 | Сигнатура | Описание |
 |-----------|----------|
-| `(h *Handler) readMessages()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`. |
+| `(h *Handler) readEvents()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`. |
 | `(h *Handler) refreshTokens()` | Горутина периодического обновления токенов (раз в минуту). |
 | `(h *Handler) updateChats()` | Горутина периодического обновления списка чатов (раз в 5 секунд). Эмитит событие `chats_updated`. |
 
 ## Зависимости
 
-- `github.com/DKhorkov/kfcGUI/internal/common` — `Timezone`
-- `github.com/DKhorkov/kfcGUI/internal/config` — `ValidationConfig`
-- `github.com/DKhorkov/kfcGUI/internal/domains` — `User`, `Chat`, `Message`, `Pagination`, `ThemeType`
-- `github.com/DKhorkov/kfcGUI/internal/errors` — `ErrWebsocketClosed`
+- `github.com/DKhorkov/kfcGUI/internal/domains` — `Chat`, `CreateChatDTO`, `Pagination`, `WSEvent`, `MessageDeletedPayload`
+- `github.com/DKhorkov/kfcGUI/internal/errors` — `ErrWebsocketClosed`, `ErrInvalidChat`
 - `github.com/DKhorkov/kfcGUI/internal/interfaces` — `UseCases`, `ErrorsMapper`
 - `github.com/DKhorkov/libs/logging` — логирование
 - `github.com/wailsapp/wails/v2/pkg/runtime` — `EventsEmit`
