@@ -161,28 +161,6 @@ export default {
                 await SendMessage(selectedChat.value.id, text, replyId)
 
                 messages.value.forEach(m => m.isRead = true)
-
-                messages.value.push({
-                    id: Date.now(),
-                    text,
-                    chatId: selectedChat.value.id,
-                    createdAt: new Date().toISOString(),
-                    sender: {
-                        id: currentUser.value?.id,
-                        username: currentUser.value?.username,
-                    },
-                    replyToMessage: reply ? {
-                        id: reply.id,
-                        sender: reply.sender,
-                        text: reply.text,
-                        createdAt: reply.createdAt,
-                    } : undefined,
-                })
-
-                await nextTick()
-                scrollToBottom()
-
-                loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
             } catch (err) {
                 showError(err)
                 newMessage.value = text
@@ -371,9 +349,6 @@ export default {
 
             try {
                 await DeleteMessage(messageId, forAll)
-
-                const idx = messages.value.findIndex(m => m.id === messageId)
-                if (idx >= 0) messages.value.splice(idx, 1)
 
                 loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
             } catch (err) {

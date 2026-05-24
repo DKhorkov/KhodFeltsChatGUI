@@ -76,6 +76,9 @@
 | `messages` | `ref<Message[]>` | Сообщения активного чата (в хронологическом порядке) |
 | `currentUser` | `ref<User\|null>` | Текущий авторизованный пользователь |
 | `newMessage` | `ref<string>` | Текст в поле ввода |
+| `replyToMessage` | `ref<Message\|null>` | Сообщение, на которое отвечаем |
+| `contextMenu` | `ref<Object>` | Состояние контекстного меню (visible, x, y, message, deleteExpanded) |
+| `highlightedMessageId` | `ref<number\|null>` | ID подсвеченного сообщения (при скролле к ответу) |
 | `messagesListRef` | `ref<HTMLElement>` | Ссылка на контейнер сообщений для скролла |
 | `textareaRef` | `ref<HTMLElement>` | Ссылка на textarea для позиционирования курсора после вставки эмодзи |
 | `isDarkTheme` | `ref<boolean>` | Состояние темы |
@@ -96,9 +99,14 @@
 | `loadMoreMessages()` | Загружает следующую страницу сообщений по смещению `messages.length`; вызывается при прокрутке к верхней границе |
 | `selectChat(chat)` | Устанавливает `selectedChat`, загружает сообщения, помечает чат как прочитанный |
 | `openChatById(chatId)` | Находит чат по ID в `chats` и вызывает `selectChat`. Используется из `App.js` при клике по уведомлению |
-| `sendMessage()` | Отправляет сообщение через `SendMessage(chatId, text)`, оптимистично добавляет его в список |
+| `sendMessage()` | Отправляет сообщение через `SendMessage(chatId, text, replyId)`, помечает все прочитанными. UI обновляется по WS-событию от сервера |
 | `handleNewMessage(message)` | Обработчик события `new_message`: добавляет в открытый чат или показывает уведомление |
+| `handleMessageDeleted(payload)` | Обработчик события `message_deleted`: удаляет сообщение из UI по ID |
 | `handleChatsUpdated(updatedChats)` | Обработчик события `chats_updated`: заменяет весь список чатов |
+| `deleteContextMessage(forAll)` | Удаляет сообщение через `DeleteMessage()`. UI обновляется по WS-событию от сервера |
+| `replyToContextMessage()` | Устанавливает `replyToMessage` для ответа через контекстное меню |
+| `openContextMenu(event, message)` | Открывает контекстное меню сообщения с позиционированием к viewport |
+| `copyContextMessage()` | Копирует текст сообщения в буфер обмена |
 | `getChatTitle(chat)` | Возвращает `chat.title` или имя собеседника (для приватного), или `Чат #id` |
 | `getOtherMember(chat)` | Для приватного чата возвращает участника, который не является текущим пользователем |
 | `openMemberProfile(chat)` | Открывает профиль участника (приватный чат) или `GroupChatModal` (групповой) |
@@ -111,7 +119,7 @@
 | `formatDate(dateStr)` | Форматирует дату в локаль `ru-RU` (день, месяц, год) |
 
 ### Жизненный цикл
-- `onMounted`: запрашивает разрешение на уведомления браузера, загружает текущего пользователя, тему, чаты, вызывает `StartListening()` для подключения к WebSocket/SSE на Go-стороне, подписывается на Wails Events
+- `onMounted`: загружает текущего пользователя, тему, настройки, чаты, вызывает `StartListening()` для подключения к WebSocket на Go-стороне, подписывается на Wails Events (`NEW_MESSAGE`, `MESSAGE_DELETED`, `CHATS_UPDATED`, `OPEN_CHAT`)
 - `onUnmounted`: вызывает `StopListening()`, отписывается от Events
 - `watch(messagesListRef)`: при появлении DOM-элемента навешивает scroll-обработчик для бесконечной пагинации вверх
 
