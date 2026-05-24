@@ -39,6 +39,16 @@
 | `(h *Handler) refreshTokens()` | Горутина периодического обновления токенов (раз в минуту). |
 | `(h *Handler) updateChats()` | Горутина периодического обновления списка чатов (раз в 5 секунд). Эмитит событие `chats_updated`. |
 
+## Тесты (`handler_test.go`)
+
+| Тест | Описание |
+|------|----------|
+| `TestHandler_GetUserChats` | Получение чатов: без пагинации, с пагинацией, пустой список, ошибка use case. |
+| `TestHandler_CreateChat` | Создание чата: приватный, групповой, невалидный DTO, ошибка use case. |
+| `TestHandler_SetContext` | Установка Wails-контекста. |
+| `TestHandler_StartListening_StopListening` | Запуск/остановка горутин: выход по `ErrWebsocketClosed`, остановка без запуска. |
+| `TestHandler_ReadEvents` | Горутина чтения WS-событий: generic ошибка + продолжение, невалидный JSON для `new_message`, невалидный JSON для `message_deleted`, неизвестный тип события, выход по отмене контекста. |
+
 ## Зависимости
 
 - `github.com/DKhorkov/kfcGUI/internal/domains` — `Chat`, `CreateChatDTO`, `Pagination`, `WSEvent`, `MessageDeletedPayload`

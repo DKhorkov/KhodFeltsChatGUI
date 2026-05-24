@@ -2,7 +2,9 @@ package chats_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"sync/atomic"
 	"testing"
 
 	"github.com/DKhorkov/kfcGUI/internal/domains"
@@ -227,6 +229,7 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 	tests := []struct {
 		name       string
 		setupMocks func(*mockusecases.MockUseCases, *loggingmocks.MockLogger)
+		skipStart  bool
 	}{
 		{
 			name: "start and stop with ReadEvent returning ErrWebsocketClosed",
@@ -249,6 +252,7 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 		{
 			name:       "stop without start does not panic",
 			setupMocks: func(_ *mockusecases.MockUseCases, _ *loggingmocks.MockLogger) {},
+			skipStart:  true,
 		},
 	}
 
@@ -266,10 +270,177 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 
 			h := chathandler.New(mockUseCases, mockMapper, mockLogger)
 
-			if tt.name != "stop without start does not panic" {
+			if !tt.skipStart {
 				h.StartListening()
 			}
 
+			h.StopListening()
+		})
+	}
+}
+
+func TestHandler_ReadEvents(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		setupMocks func(*mockusecases.MockUseCases, *loggingmocks.MockLogger)
+	}{
+		{
+			name: "ReadEvent returns generic error then exits on ErrWebsocketClosed",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return nil, errors.New("connection timeout")
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns NewMessage with invalid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return &domains.WSEvent{
+								Type:    domains.WSEventNewMessage,
+								Payload: json.RawMessage(`{invalid json`),
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns MessageDeleted with invalid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return &domains.WSEvent{
+								Type:    domains.WSEventMessageDeleted,
+								Payload: json.RawMessage(`not a json`),
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns unknown event type then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return &domains.WSEvent{
+								Type:    domains.WSEventType("unknown_event"),
+								Payload: json.RawMessage(`{}`),
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "context cancellation stops readEvents goroutine",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(ctx context.Context) (*domains.WSEvent, error) {
+						<-ctx.Done()
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+			mockLogger := loggingmocks.NewMockLogger(ctrl)
+
+			tt.setupMocks(mockUseCases, mockLogger)
+
+			h := chathandler.New(mockUseCases, mockMapper, mockLogger)
+			h.StartListening()
 			h.StopListening()
 		})
 	}
