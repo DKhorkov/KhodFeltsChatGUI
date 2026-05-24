@@ -1,4 +1,4 @@
-package chat_test
+package chats_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/config"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
-	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chat"
+	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chats"
 	mockerrors "github.com/DKhorkov/kfcGUI/mocks/errors"
 	mockusecases "github.com/DKhorkov/kfcGUI/mocks/usecases"
 	loggingmocks "github.com/DKhorkov/libs/logging/mocks"
@@ -336,7 +336,90 @@ func TestHandler_SendMessage(t *testing.T) {
 
 			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
 
-			err := h.SendMessage(tt.chatID, tt.text)
+			err := h.SendMessage(tt.chatID, tt.text, nil)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestHandler_DeleteMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		messageID     uint64
+		forAll        bool
+		setupMocks    func(*mockusecases.MockUseCases)
+		expectedError error
+	}{
+		{
+			name:      "successful delete for self",
+			messageID: 42,
+			forAll:    false,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					DeleteMessage(gomock.Any(), domains.DeleteMessageDTO{
+						MessageID: 42,
+						ForAll:    false,
+					}).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:      "successful delete for all",
+			messageID: 42,
+			forAll:    true,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					DeleteMessage(gomock.Any(), domains.DeleteMessageDTO{
+						MessageID: 42,
+						ForAll:    true,
+					}).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:      "use case error",
+			messageID: 42,
+			forAll:    false,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					DeleteMessage(gomock.Any(), domains.DeleteMessageDTO{
+						MessageID: 42,
+						ForAll:    false,
+					}).
+					Return(errors.New("delete failed")).
+					Times(1)
+			},
+			expectedError: errors.New("delete failed"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := chathandler.New(mockUseCases, mockMapper, nil, config.ValidationConfig{})
+
+			err := h.DeleteMessage(tt.messageID, tt.forAll)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -451,12 +534,12 @@ func TestHandler_StartListening_StopListening(t *testing.T) {
 		setupMocks func(*mockusecases.MockUseCases, *loggingmocks.MockLogger)
 	}{
 		{
-			name: "start and stop with ReadMessage returning ErrWebsocketClosed",
+			name: "start and stop with ReadEvent returning ErrWebsocketClosed",
 			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
 				// readMessages goroutine: exits on ErrWebsocketClosed
 				uc.EXPECT().
-					ReadMessage(gomock.Any()).
-					Return((*domains.Message)(nil), customerrors.ErrWebsocketClosed).
+					ReadEvent(gomock.Any()).
+					Return((*domains.WSEvent)(nil), customerrors.ErrWebsocketClosed).
 					AnyTimes()
 				// logging.LogInfo is called inside readMessages on ErrWebsocketClosed
 				logger.EXPECT().

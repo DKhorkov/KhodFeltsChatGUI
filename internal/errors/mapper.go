@@ -49,6 +49,10 @@ var (
 	errCreateChat          = errors.New(`Не удалось создать чат`)
 	errGetChatMessages     = errors.New(`Не удалось получить сообщения для чата`)
 
+	// Messages.
+	errMessageNotFound  = errors.New("Сообщение не найдено")
+	errNotMessageAuthor = errors.New("Только автор сообщения может удалить его для всех")
+
 	// Settings.
 	errSettingsNotFound            = errors.New("Не удалось получить настройки")
 	errWebPushSubscriptionNotFound = errors.New("Подписка на push-уведомления не найдена")
@@ -96,6 +100,10 @@ var rawMapping = map[string]error{
 	ErrGetUserChats.Error():        errGetUserChats,
 	ErrCreateChat.Error():          errCreateChat,
 	ErrGetChatMessages.Error():     errGetChatMessages,
+
+	// Messages
+	ErrNotMessageAuthor.Error(): errNotMessageAuthor,
+	ErrMessageNotFound.Error():  errMessageNotFound,
 
 	// Settings
 	ErrSettingsNotFound.Error():            errSettingsNotFound,

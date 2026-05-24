@@ -1,0 +1,20 @@
+package domains
+
+import "encoding/json"
+
+type WSEventType string
+
+const (
+	WSEventNewMessage     WSEventType = "new_message"
+	WSEventMessageDeleted WSEventType = "message_deleted"
+)
+
+type WSEvent struct {
+	Type    WSEventType     `json:"type"`
+	Payload json.RawMessage `json:"payload"`
+}
+
+type MessageDeletedPayload struct {
+	MessageID uint64 `json:"messageId"`
+	ChatID    uint64 `json:"chatId"`
+}

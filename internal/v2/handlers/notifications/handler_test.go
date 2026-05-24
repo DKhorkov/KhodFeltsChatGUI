@@ -1,9 +1,9 @@
-package notification_test
+package notifications_test
 
 import (
 	"testing"
 
-	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notification"
+	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notifications"
 	"github.com/DKhorkov/libs/logging"
 )
 

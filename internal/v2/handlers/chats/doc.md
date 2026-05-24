@@ -12,6 +12,7 @@
 | `updateChatsInterval` | `5 * time.Second` | Интервал обновления списка чатов. |
 | `chatsUpdatedEventName` | `"chats_updated"` | Имя Wails-события обновления чатов. |
 | `newMessageEventName` | `"new_message"` | Имя Wails-события нового сообщения. |
+| `messageDeletedEventName` | `"message_deleted"` | Имя Wails-события удаления сообщения. |
 
 ## Типы
 
@@ -28,7 +29,8 @@
 | `(h *Handler) GetCurrentUser() (*domains.User, error)` | Возвращает текущего пользователя. |
 | `(h *Handler) GetUserChats(pagination *domains.Pagination) ([]domains.Chat, error)` | Возвращает чаты пользователя с пагинацией. |
 | `(h *Handler) GetChatMessages(chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)` | Возвращает сообщения чата с пагинацией. |
-| `(h *Handler) SendMessage(chatID uint64, text string) error` | Отправка сообщения в чат. Автоматически определяет отправителя. |
+| `(h *Handler) SendMessage(chatID uint64, text string, replyToMessageID *uint64) error` | Отправка сообщения в чат. Автоматически определяет отправителя. Поддерживает ответ на сообщение. |
+| `(h *Handler) DeleteMessage(messageID uint64, forAll bool) error` | Удаление сообщения (для себя или для всех). |
 | `(h *Handler) ToggleTheme() (domains.ThemeType, error)` | Переключает тему (светлая/тёмная). |
 | `(h *Handler) StartListening()` | Запускает фоновые горутины: чтение сообщений, обновление токенов, обновление чатов. |
 | `(h *Handler) StopListening()` | Останавливает все фоновые горутины и ожидает их завершения. |
@@ -37,7 +39,7 @@
 
 | Сигнатура | Описание |
 |-----------|----------|
-| `(h *Handler) readMessages()` | Горутина чтения сообщений из WebSocket. Эмитит событие `new_message`. |
+| `(h *Handler) readMessages()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`. |
 | `(h *Handler) refreshTokens()` | Горутина периодического обновления токенов (раз в минуту). |
 | `(h *Handler) updateChats()` | Горутина периодического обновления списка чатов (раз в 5 секунд). Эмитит событие `chats_updated`. |
 

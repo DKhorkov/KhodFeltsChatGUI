@@ -12,6 +12,7 @@ import (
 type UseCases struct {
 	users        interfaces.UsersRepository
 	chats        interfaces.ChatsRepository
+	messages     interfaces.MessagesRepository
 	auth         interfaces.AuthRepository
 	tokens       interfaces.TokensRepository
 	settings     interfaces.SettingsRepository
@@ -23,6 +24,7 @@ type UseCases struct {
 func New(
 	users interfaces.UsersRepository,
 	chats interfaces.ChatsRepository,
+	messages interfaces.MessagesRepository,
 	auth interfaces.AuthRepository,
 	tokens interfaces.TokensRepository,
 	settings interfaces.SettingsRepository,
@@ -33,6 +35,7 @@ func New(
 	return &UseCases{
 		users:        users,
 		chats:        chats,
+		messages:     messages,
 		auth:         auth,
 		tokens:       tokens,
 		settings:     settings,
@@ -241,7 +244,7 @@ func (u *UseCases) SendMessage(ctx context.Context, message domains.Message) err
 	return nil
 }
 
-func (u *UseCases) ReadMessage(ctx context.Context) (*domains.Message, error) {
+func (u *UseCases) ReadEvent(ctx context.Context) (*domains.WSEvent, error) {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
@@ -255,14 +258,31 @@ func (u *UseCases) ReadMessage(ctx context.Context) (*domains.Message, error) {
 		return nil, u.errorsMapper.Map(err)
 	}
 
-	message, err := u.ws.ReadMessage(ctx)
+	event, err := u.ws.ReadEvent(ctx)
 	if err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to read message", err)
+		logging.LogErrorContext(ctx, u.logger, "failed to read event", err)
 
 		return nil, u.errorsMapper.Map(err)
 	}
 
-	return message, nil
+	return event, nil
+}
+
+func (u *UseCases) DeleteMessage(ctx context.Context, dto domains.DeleteMessageDTO) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	if err = u.messages.DeleteMessage(ctx, tokens.AccessToken, dto); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to delete message", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
 }
 
 func (u *UseCases) CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error) {
@@ -379,7 +399,7 @@ func (u *UseCases) GetChatMessages(
 		return nil, u.errorsMapper.Map(err)
 	}
 
-	messages, err := u.chats.GetChatMessages(ctx, tokens.AccessToken, chatID, pagination)
+	messages, err := u.messages.GetChatMessages(ctx, tokens.AccessToken, chatID, pagination)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to get chat messages", err)
 

@@ -11,6 +11,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	authrepository "github.com/DKhorkov/kfcGUI/internal/repositories/auth"
 	chatsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/chats"
+	messagesrepository "github.com/DKhorkov/kfcGUI/internal/repositories/messages"
 	settingsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/settings"
 	tokensrepository "github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
 	usersrepository "github.com/DKhorkov/kfcGUI/internal/repositories/users"
@@ -18,10 +19,10 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
 	"github.com/DKhorkov/kfcGUI/internal/v2/application"
 	authhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/auth"
-	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chat"
+	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chats"
 	createchathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
 	forgetpasswordhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/forget_password"
-	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notification"
+	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notifications"
 	profilehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/profile"
 	searchusershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/search_users"
 	settingshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/settings"
@@ -55,6 +56,7 @@ func main() {
 	authRepository := authrepository.New(httpClient, cfg.HTTP.BaseURL)
 	usersRepository := usersrepository.New(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := chatsrepository.New(httpClient, cfg.HTTP.BaseURL)
+	messagesRepository := messagesrepository.New(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := tokensrepository.New()
 	settingsRepository := settingsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	websocketsRepository := wsrepository.New(cfg.HTTP.WebsocketURL, logger)
@@ -64,6 +66,7 @@ func main() {
 	useCases := usecases.New(
 		usersRepository,
 		chatsRepository,
+		messagesRepository,
 		authRepository,
 		tokensRepository,
 		settingsRepository,

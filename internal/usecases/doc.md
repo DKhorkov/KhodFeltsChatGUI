@@ -14,7 +14,7 @@
 
 | Функция | Сигнатура | Описание |
 |---------|-----------|----------|
-| `New` | `New(users, chats, auth, tokens, settings, ws, logger, errorsMapper) *UseCases` | Создает экземпляр `UseCases` со всеми зависимостями |
+| `New` | `New(users, chats, messages, auth, tokens, settings, ws, logger, errorsMapper) *UseCases` | Создает экземпляр `UseCases` со всеми зависимостями |
 
 ## Методы
 
@@ -46,7 +46,8 @@
 | `GetUserChats` | `(ctx, *domains.Pagination) ([]domains.Chat, error)` | Получает чаты текущего пользователя с пагинацией |
 | `GetChatMessages` | `(ctx, chatID uint64, *domains.Pagination) ([]domains.Message, error)` | Получает сообщения чата; конвертирует время в локальную таймзону |
 | `SendMessage` | `(ctx, domains.Message) error` | Подключается к WebSocket (если не подключен) и отправляет сообщение |
-| `ReadMessage` | `(ctx) (*domains.Message, error)` | Подключается к WebSocket и читает входящее сообщение |
+| `ReadEvent` | `(ctx) (*domains.WSEvent, error)` | Подключается к WebSocket и читает WS-событие (envelope) |
+| `DeleteMessage` | `(ctx, domains.DeleteMessageDTO) error` | Удаление сообщения через HTTP API |
 
 ### Пользователи
 

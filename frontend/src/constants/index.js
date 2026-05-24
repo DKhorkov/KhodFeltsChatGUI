@@ -21,6 +21,7 @@ export const TAB = Object.freeze({
 
 export const WAILS_EVENT = Object.freeze({
     NEW_MESSAGE: 'new_message',
+    MESSAGE_DELETED: 'message_deleted',
     CHATS_UPDATED: 'chats_updated',
     OPEN_CHAT: 'open_chat',
 })

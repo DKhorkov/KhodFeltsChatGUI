@@ -1,10 +1,11 @@
-package chats
+package messages
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -39,11 +40,12 @@ func New(httpClient interfaces.HTTPClient, baseURL string) *Repository {
 	}
 }
 
-func (r *Repository) GetUserChats(
+func (r *Repository) GetChatMessages(
 	ctx context.Context,
 	accessToken string,
+	chatID uint64,
 	pagination *domains.Pagination,
-) ([]domains.Chat, error) {
+) ([]domains.Message, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -59,7 +61,9 @@ func (r *Repository) GetUserChats(
 		}
 	}
 
-	fullURL, err := url.Parse(r.baseURL + "/chats")
+	path := fmt.Sprintf("%s/chats/%d/messages", r.baseURL, chatID)
+
+	fullURL, err := url.Parse(path)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +86,6 @@ func (r *Repository) GetUserChats(
 	if err != nil {
 		return nil, err
 	}
-
 	defer r.CloseBody(ctx, resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
@@ -94,35 +97,32 @@ func (r *Repository) GetUserChats(
 		return nil, errors.New(string(data))
 	}
 
-	var chats []domains.Chat
-	if err = json.Unmarshal(data, &chats); err != nil {
+	var messages []domains.Message
+	if err = json.Unmarshal(data, &messages); err != nil {
 		return nil, err
 	}
 
-	return chats, nil
+	return messages, nil
 }
 
-func (r *Repository) CreateChat(
+func (r *Repository) DeleteMessage(
 	ctx context.Context,
 	accessToken string,
-	chat domains.Chat,
-) (*domains.Chat, error) {
+	dto domains.DeleteMessageDTO,
+) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	body, err := json.Marshal(chat)
+	body, err := json.Marshal(dto)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		r.baseURL+"/chats",
-		bytes.NewReader(body),
-	)
+	path := fmt.Sprintf("%s/messages/%d", r.baseURL, dto.MessageID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, path, bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
@@ -135,24 +135,19 @@ func (r *Repository) CreateChat(
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer r.CloseBody(ctx, resp.Body)
 
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		return nil, errors.New(string(data))
-	}
-
-	var createdChat domains.Chat
-	if err = json.Unmarshal(data, &createdChat); err != nil {
-		return nil, err
-	}
-
-	return &createdChat, nil
+	return nil
 }

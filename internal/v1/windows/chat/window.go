@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -339,7 +340,7 @@ func (w *Window) startReadMessagesGoroutine() {
 
 				return
 			default:
-				message, err := w.useCases.ReadMessage(w.ctx)
+				event, err := w.useCases.ReadEvent(w.ctx)
 				if err != nil {
 					// Соккет закрыт, отключаем горутину
 					if errors.Is(err, customerrors.ErrWebsocketClosed) {
@@ -351,12 +352,21 @@ func (w *Window) startReadMessagesGoroutine() {
 						return
 					}
 
-					logging.LogErrorContext(w.ctx, w.logger, "Не удалось прочитать сообщение", err)
+					logging.LogErrorContext(w.ctx, w.logger, "Не удалось прочитать событие", err)
 
 					continue
 				}
 
-				w.readMessage(*message)
+				if event.Type == domains.WSEventNewMessage {
+					var message domains.Message
+					if err = json.Unmarshal(event.Payload, &message); err != nil {
+						logging.LogErrorContext(w.ctx, w.logger, "Не удалось распарсить сообщение", err)
+
+						continue
+					}
+
+					w.readMessage(message)
+				}
 			}
 		}
 	}()

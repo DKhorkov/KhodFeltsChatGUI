@@ -1,7 +1,8 @@
-package chat
+package chats
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sync"
 	"time"
@@ -19,8 +20,9 @@ const (
 	refreshTokensInterval = 1 * time.Minute
 	updateChatsInterval   = 5 * time.Second
 
-	chatsUpdatedEventName = "chats_updated"
-	newMessageEventName   = "new_message"
+	chatsUpdatedEventName   = "chats_updated"
+	newMessageEventName     = "new_message"
+	messageDeletedEventName = "message_deleted"
 )
 
 type Handler struct {
@@ -74,7 +76,7 @@ func (h *Handler) GetChatMessages(
 	return h.useCases.GetChatMessages(ctx, chatID, pagination)
 }
 
-func (h *Handler) SendMessage(chatID uint64, text string) error {
+func (h *Handler) SendMessage(chatID uint64, text string, replyToMessageID *uint64) error {
 	ctx := context.Background()
 
 	sender, err := h.useCases.GetCurrentUser(ctx)
@@ -93,7 +95,20 @@ func (h *Handler) SendMessage(chatID uint64, text string) error {
 		IsRead:    true, // Сообщение прочитано для отправителя
 	}
 
+	if replyToMessageID != nil {
+		message.ReplyToMessage = &domains.Message{ID: *replyToMessageID}
+	}
+
 	return h.useCases.SendMessage(ctx, message)
+}
+
+func (h *Handler) DeleteMessage(messageID uint64, forAll bool) error {
+	ctx := context.Background()
+
+	return h.useCases.DeleteMessage(ctx, domains.DeleteMessageDTO{
+		MessageID: messageID,
+		ForAll:    forAll,
+	})
 }
 
 func (h *Handler) ToggleTheme() (domains.ThemeType, error) {
@@ -121,7 +136,7 @@ func (h *Handler) StartListening() {
 	// Запускаем горутину для чтения сообщений
 	h.wg.Add(1)
 
-	go h.readMessages()
+	go h.readEvents()
 
 	// Запускаем обновление токенов
 	h.wg.Add(1)
@@ -142,7 +157,7 @@ func (h *Handler) StopListening() {
 	h.wg.Wait()
 }
 
-func (h *Handler) readMessages() {
+func (h *Handler) readEvents() {
 	defer h.wg.Done()
 
 	for {
@@ -150,7 +165,7 @@ func (h *Handler) readMessages() {
 		case <-h.goroutinesCtx.Done():
 			return
 		default:
-			message, err := h.useCases.ReadMessage(h.goroutinesCtx)
+			event, err := h.useCases.ReadEvent(h.goroutinesCtx)
 			if err != nil {
 				// Соккет закрыт, отключаем горутину
 				if errors.Is(err, customerrors.ErrWebsocketClosed) {
@@ -165,15 +180,50 @@ func (h *Handler) readMessages() {
 				logging.LogErrorContext(
 					h.goroutinesCtx,
 					h.logger,
-					"Не удалось прочитать сообщение",
+					"Не удалось прочитать событие",
 					err,
 				)
 
 				continue
 			}
 
-			// Отправляем событие на фронтенд
-			runtime.EventsEmit(h.wailsCtx, newMessageEventName, message)
+			switch event.Type {
+			case domains.WSEventNewMessage:
+				var message domains.Message
+				if err = json.Unmarshal(event.Payload, &message); err != nil {
+					logging.LogErrorContext(
+						h.goroutinesCtx,
+						h.logger,
+						"Не удалось распарсить сообщение из WS-события",
+						err,
+					)
+
+					continue
+				}
+
+				runtime.EventsEmit(h.wailsCtx, newMessageEventName, message)
+			case domains.WSEventMessageDeleted:
+				var dto domains.MessageDeletedPayload
+				if err = json.Unmarshal(event.Payload, &dto); err != nil {
+					logging.LogErrorContext(
+						h.goroutinesCtx,
+						h.logger,
+						"Не удалось распарсить payload удаления из WS-события",
+						err,
+					)
+
+					continue
+				}
+
+				runtime.EventsEmit(h.wailsCtx, messageDeletedEventName, dto)
+			default:
+				logging.LogInfoContext(
+					h.goroutinesCtx,
+					h.logger,
+					"Получен неизвестный тип WS-события",
+					"type", event.Type,
+				)
+			}
 		}
 	}
 }

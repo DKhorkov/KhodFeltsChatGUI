@@ -64,7 +64,21 @@
             >
               <span>Новые сообщения</span>
             </div>
-            <div :class="['message-bubble', { 'message-bubble--own': message.sender.id === currentUser?.id }]">
+            <div
+                :class="['message-bubble', { 'message-bubble--own': message.sender.id === currentUser?.id, 'message-bubble--highlight': highlightedMessageId === message.id }]"
+                :data-message-id="message.id"
+                @contextmenu.prevent="openContextMenu($event, message)"
+            >
+              <div
+                  v-if="message.replyToMessage"
+                  class="message-bubble__reply"
+                  @click="scrollToMessage(message.replyToMessage.id)"
+              >
+                <span class="message-bubble__reply-sender">
+                  {{ message.replyToMessage.sender.id === currentUser?.id ? 'Вы' : message.replyToMessage.sender.username }}
+                </span>
+                <span class="message-bubble__reply-text">{{ message.replyToMessage.text }}</span>
+              </div>
               <div class="message-bubble__header">
                 <span class="message-bubble__sender">{{ getSenderName(message) }}</span>
                 <span class="message-bubble__time">{{ formatTime(message.createdAt) }}</span>
@@ -75,6 +89,15 @@
         </div>
 
         <div class="conversation__composer">
+          <div v-if="replyToMessage" class="conversation__reply-bar">
+            <div class="conversation__reply-bar-content">
+              <span class="conversation__reply-bar-sender">
+                {{ replyToMessage.sender.id === currentUser?.id ? 'Вы' : replyToMessage.sender.username }}
+              </span>
+              <span class="conversation__reply-bar-text">{{ replyToMessage.text }}</span>
+            </div>
+            <button class="conversation__reply-bar-close" @click="cancelReply" title="Отменить ответ">&times;</button>
+          </div>
           <div class="conversation__composer-input">
             <textarea
                 ref="textareaRef"
@@ -158,6 +181,27 @@
         @close="selectedGroupChat = null"
         @open-member-profile="openGroupMemberProfile"
     />
+
+    <!-- Контекстное меню сообщения -->
+    <div
+        v-if="contextMenu.visible"
+        class="context-menu"
+        :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+    >
+      <button class="context-menu__item" @click="replyToContextMessage">Ответить</button>
+      <button class="context-menu__item" @click="copyContextMessage">Копировать текст</button>
+      <div v-if="contextMenu.message?.sender.id === currentUser?.id" class="context-menu__delete-group">
+        <button
+            v-if="!contextMenu.deleteExpanded"
+            class="context-menu__item context-menu__item--danger"
+            @click="contextMenu.deleteExpanded = true"
+        >Удалить</button>
+        <template v-else>
+          <button class="context-menu__item context-menu__item--danger" @click="deleteContextMessage(false)">Удалить у себя</button>
+          <button class="context-menu__item context-menu__item--danger" @click="deleteContextMessage(true)">Удалить у всех</button>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 

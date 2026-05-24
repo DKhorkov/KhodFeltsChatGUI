@@ -22,7 +22,8 @@ type UseCases interface {
 
 	// Messaging
 	SendMessage(ctx context.Context, message domains.Message) error
-	ReadMessage(ctx context.Context) (*domains.Message, error)
+	ReadEvent(ctx context.Context) (*domains.WSEvent, error)
+	DeleteMessage(ctx context.Context, dto domains.DeleteMessageDTO) error
 	GetChatMessages(
 		ctx context.Context,
 		chatID uint64,

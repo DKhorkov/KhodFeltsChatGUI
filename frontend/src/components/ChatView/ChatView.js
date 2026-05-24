@@ -1,5 +1,6 @@
 import {inject, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {
+    DeleteMessage,
     GetChatMessages,
     GetCurrentUser,
     GetUserChats,
@@ -47,6 +48,9 @@ export default {
         const selectedMember = ref(null)
         const selectedGroupChat = ref(null)
         const webPushConsents = ref(0)
+        const replyToMessage = ref(null)
+        const highlightedMessageId = ref(null)
+        const contextMenu = ref({ visible: false, x: 0, y: 0, message: null, deleteExpanded: false })
 
         let isLoadingMore = false
         let hasMoreMessages = true
@@ -121,6 +125,8 @@ export default {
             isEmojiPickerVisible.value = false
             selectedChat.value = null
             messages.value = []
+            replyToMessage.value = null
+            contextMenu.value.visible = false
         }
 
         const selectChat = async (chat) => {
@@ -144,10 +150,13 @@ export default {
             if (!newMessage.value.trim() || !selectedChat.value) return
 
             const text = newMessage.value
+            const reply = replyToMessage.value
             newMessage.value = ''
+            replyToMessage.value = null
 
             try {
-                await SendMessage(selectedChat.value.id, text)
+                const replyId = reply ? reply.id : null
+                await SendMessage(selectedChat.value.id, text, replyId)
 
                 messages.value.forEach(m => m.isRead = true)
 
@@ -160,6 +169,12 @@ export default {
                         id: currentUser.value?.id,
                         username: currentUser.value?.username,
                     },
+                    replyToMessage: reply ? {
+                        id: reply.id,
+                        sender: reply.sender,
+                        text: reply.text,
+                        createdAt: reply.createdAt,
+                    } : undefined,
                 })
 
                 await nextTick()
@@ -169,6 +184,7 @@ export default {
             } catch (err) {
                 showError(err)
                 newMessage.value = text
+                replyToMessage.value = reply
             }
         }
 
@@ -288,6 +304,72 @@ export default {
             return prev.isRead || prev.sender.id === currentUser.value?.id
         }
 
+        const handleMessageDeleted = (payload) => {
+            if (selectedChat.value?.id === payload.chatId) {
+                const idx = messages.value.findIndex(m => m.id === payload.messageId)
+                if (idx >= 0) messages.value.splice(idx, 1)
+            }
+
+            loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
+        }
+
+        const cancelReply = () => {
+            replyToMessage.value = null
+        }
+
+        const scrollToMessage = async (messageId) => {
+            const el = document.querySelector(`.message-bubble[data-message-id="${messageId}"]`)
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                highlightedMessageId.value = messageId
+                setTimeout(() => { highlightedMessageId.value = null }, 1500)
+            }
+        }
+
+        const openContextMenu = (event, message) => {
+            contextMenu.value = {
+                visible: true,
+                x: event.clientX,
+                y: event.clientY,
+                message,
+                deleteExpanded: false,
+            }
+        }
+
+        const closeContextMenu = () => {
+            contextMenu.value.visible = false
+        }
+
+        const replyToContextMessage = () => {
+            replyToMessage.value = contextMenu.value.message
+            contextMenu.value.visible = false
+            if (textareaRef.value) textareaRef.value.focus()
+        }
+
+        const copyContextMessage = () => {
+            if (contextMenu.value.message) {
+                navigator.clipboard.writeText(contextMenu.value.message.text).catch(console.error)
+            }
+            contextMenu.value.visible = false
+        }
+
+        const deleteContextMessage = async (forAll) => {
+            const messageId = contextMenu.value.message?.id
+            contextMenu.value.visible = false
+            if (!messageId) return
+
+            try {
+                await DeleteMessage(messageId, forAll)
+
+                const idx = messages.value.findIndex(m => m.id === messageId)
+                if (idx >= 0) messages.value.splice(idx, 1)
+
+                loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
+            } catch (err) {
+                showError(err)
+            }
+        }
+
         const insertEmoji = async (emoji) => {
             const textarea = textareaRef.value
             if (!textarea) {
@@ -333,6 +415,7 @@ export default {
             }
 
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
+            window.runtime.EventsOn(WAILS_EVENT.MESSAGE_DELETED, handleMessageDeleted)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
             window.runtime.EventsOn(WAILS_EVENT.OPEN_CHAT, (chatId) => {
                 openChatById(chatId).catch(err => console.error('Ошибка открытия чата из уведомления:', err))
@@ -340,16 +423,19 @@ export default {
 
             window.addEventListener('focus', onWindowFocus)
             window.addEventListener('blur', onWindowBlur)
+            window.addEventListener('click', closeContextMenu)
         })
 
         onUnmounted(() => {
             StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
+            window.runtime.EventsOff(WAILS_EVENT.MESSAGE_DELETED)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
             window.runtime.EventsOff(WAILS_EVENT.OPEN_CHAT)
 
             window.removeEventListener('focus', onWindowFocus)
             window.removeEventListener('blur', onWindowBlur)
+            window.removeEventListener('click', closeContextMenu)
         })
 
         watch(messagesListRef, (el, _, onCleanup) => {
@@ -401,6 +487,15 @@ export default {
             toggleTheme,
             isDarkTheme,
             reloadSettings,
+            replyToMessage,
+            highlightedMessageId,
+            contextMenu,
+            cancelReply,
+            scrollToMessage,
+            openContextMenu,
+            replyToContextMessage,
+            copyContextMessage,
+            deleteContextMessage,
         }
     }
 }
