@@ -309,7 +309,11 @@ export default {
         const handleMessageDeleted = (payload) => {
             if (selectedChat.value?.id === payload.chatId) {
                 const idx = messages.value.findIndex(m => m.id === payload.messageId)
-                if (idx >= 0) messages.value.splice(idx, 1)
+                if (idx >= 0) {
+                    messages.value.splice(idx, 1)
+                } else {
+                    console.warn('message_deleted: сообщение не найдено в текущем списке', payload.messageId)
+                }
             }
 
             loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
@@ -329,10 +333,15 @@ export default {
         }
 
         const openContextMenu = (event, message) => {
+            const menuWidth = 200
+            const menuHeight = 160
+            const x = Math.min(event.clientX, window.innerWidth - menuWidth)
+            const y = Math.min(event.clientY, window.innerHeight - menuHeight)
+
             contextMenu.value = {
                 visible: true,
-                x: event.clientX,
-                y: event.clientY,
+                x,
+                y,
                 message,
                 deleteExpanded: false,
             }

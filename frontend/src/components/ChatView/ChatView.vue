@@ -98,36 +98,38 @@
             </div>
             <button class="conversation__reply-bar-close" @click="cancelReply" title="Отменить ответ">&times;</button>
           </div>
-          <div class="conversation__composer-input">
-            <textarea
-                ref="textareaRef"
-                v-model="newMessage"
-                @keydown.enter.exact.prevent="sendMessage"
-                placeholder="Введите сообщение..."
-                rows="3"
-            ></textarea>
-            <div
-                class="conversation__emoji-wrapper"
-                @mouseenter="showEmojiPicker"
-                @mouseleave="scheduleEmojiClose"
-            >
-              <button
-                  type="button"
-                  class="conversation__emoji-toggle"
-                  :class="{ 'conversation__emoji-toggle--active': isEmojiPickerVisible }"
-                  title="Смайлы"
+          <div class="conversation__composer-row">
+            <div class="conversation__composer-input">
+              <textarea
+                  ref="textareaRef"
+                  v-model="newMessage"
+                  @keydown.enter.exact.prevent="sendMessage"
+                  placeholder="Введите сообщение..."
+                  rows="3"
+              ></textarea>
+              <div
+                  class="conversation__emoji-wrapper"
+                  @mouseenter="showEmojiPicker"
+                  @mouseleave="scheduleEmojiClose"
               >
-                &#x1F642;
-              </button>
-              <EmojiPicker
-                  v-if="isEmojiPickerVisible"
-                  @select="insertEmoji"
-              />
+                <button
+                    type="button"
+                    class="conversation__emoji-toggle"
+                    :class="{ 'conversation__emoji-toggle--active': isEmojiPickerVisible }"
+                    title="Смайлы"
+                >
+                  &#x1F642;
+                </button>
+                <EmojiPicker
+                    v-if="isEmojiPickerVisible"
+                    @select="insertEmoji"
+                />
+              </div>
             </div>
+            <button @click="sendMessage" :disabled="!newMessage.trim()">
+              Отправить
+            </button>
           </div>
-          <button @click="sendMessage" :disabled="!newMessage.trim()">
-            Отправить
-          </button>
         </div>
       </main>
 
@@ -194,7 +196,7 @@
         <button
             v-if="!contextMenu.deleteExpanded"
             class="context-menu__item context-menu__item--danger"
-            @click="contextMenu.deleteExpanded = true"
+            @click.stop="contextMenu.deleteExpanded = true"
         >Удалить</button>
         <template v-else>
           <button class="context-menu__item context-menu__item--danger" @click="deleteContextMessage(false)">Удалить у себя</button>
