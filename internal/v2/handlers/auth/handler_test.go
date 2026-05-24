@@ -640,7 +640,10 @@ func TestHandler_ChangePassword(t *testing.T) {
 	}{
 		{
 			name: "successful change password",
-			in:   domains.ChangePasswordDTO{OldPassword: "OldPassword1!", NewPassword: "NewPassword1!"},
+			in: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword1!",
+				NewPassword: "NewPassword1!",
+			},
 			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					ChangePassword(gomock.Any(), domains.ChangePasswordDTO{OldPassword: "OldPassword1!", NewPassword: "NewPassword1!"}).
@@ -673,7 +676,10 @@ func TestHandler_ChangePassword(t *testing.T) {
 		},
 		{
 			name: "use case error",
-			in:   domains.ChangePasswordDTO{OldPassword: "OldPassword1!", NewPassword: "NewPassword1!"},
+			in: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword1!",
+				NewPassword: "NewPassword1!",
+			},
 			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
 				uc.EXPECT().
 					ChangePassword(gomock.Any(), gomock.Any()).

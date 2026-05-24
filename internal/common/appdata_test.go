@@ -87,8 +87,11 @@ func TestCreateAppDataDir(t *testing.T) {
 			exists := !os.IsNotExist(err)
 
 			if exists != tt.expectedExist {
-				t.Errorf("CreateAppDataDir() после вызова, директория существует = %v, ожидалось %v",
-					exists, tt.expectedExist)
+				t.Errorf(
+					"CreateAppDataDir() после вызова, директория существует = %v, ожидалось %v",
+					exists,
+					tt.expectedExist,
+				)
 			}
 		})
 	}

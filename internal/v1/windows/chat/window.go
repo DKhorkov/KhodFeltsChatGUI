@@ -360,7 +360,12 @@ func (w *Window) startReadMessagesGoroutine() {
 				if event.Type == domains.WSEventNewMessage {
 					var message domains.Message
 					if err = json.Unmarshal(event.Payload, &message); err != nil {
-						logging.LogErrorContext(w.ctx, w.logger, "Не удалось распарсить сообщение", err)
+						logging.LogErrorContext(
+							w.ctx,
+							w.logger,
+							"Не удалось распарсить сообщение",
+							err,
+						)
 
 						continue
 					}
