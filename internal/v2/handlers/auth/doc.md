@@ -2,7 +2,7 @@
 
 ## Назначение
 
-Хендлер аутентификации и регистрации пользователей. Выполняет валидацию входных данных (email, username, пароль) перед вызовом use cases.
+Хендлер аутентификации, регистрации и управления паролями. Выполняет валидацию входных данных (email, username, пароль) перед вызовом use cases.
 
 ## Типы
 
@@ -20,7 +20,8 @@
 | `(h *Handler) Register(in domains.RegisterDTO) error` | Регистрация. Валидирует email, username и пароль. |
 | `(h *Handler) SendVerifyEmail(email string) error` | Отправка письма для подтверждения email. Валидирует email. |
 | `(h *Handler) SendForgetPassword(email string) error` | Отправка письма для сброса пароля. Валидирует email. |
-| `(h *Handler) ForgetPassword(token string, in domains.ForgetPasswordDTO) error` | Сброс пароля по токену. Валидирует новый пароль. |
+| `(h *Handler) ForgetPassword(token string, in domains.ForgetPasswordDTO) error` | Сброс пароля по токену. Валидирует пустой токен и новый пароль. |
+| `(h *Handler) ChangePassword(in domains.ChangePasswordDTO) error` | Смена пароля. Валидирует старый и новый пароли. |
 | `(h *Handler) Authenticate() error` | Проверка текущей аутентификации пользователя. |
 | `(h *Handler) Logout() error` | Выход из системы. |
 | `(h *Handler) StartListening()` | Заглушка (не реализовано). |
@@ -29,7 +30,7 @@
 ## Зависимости
 
 - `github.com/DKhorkov/kfcGUI/internal/config` — `ValidationConfig`
-- `github.com/DKhorkov/kfcGUI/internal/domains` — `LoginDTO`, `RegisterDTO`, `ForgetPasswordDTO`
+- `github.com/DKhorkov/kfcGUI/internal/domains` — `LoginDTO`, `RegisterDTO`, `ForgetPasswordDTO`, `ChangePasswordDTO`
 - `github.com/DKhorkov/kfcGUI/internal/errors` — кастомные ошибки валидации
 - `github.com/DKhorkov/kfcGUI/internal/interfaces` — `UseCases`, `ErrorsMapper`
 - `github.com/DKhorkov/libs/validation` — валидация по регулярным выражениям

@@ -49,7 +49,8 @@
 
 | Тип | Описание |
 |-----|----------|
-| `Message` | Сообщение: `ID`, `ChatID`, `Sender` (`User`), `Text`, `CreatedAt`, `UpdatedAt`, `IsRead` |
+| `Message` | Сообщение: `ID`, `ChatID`, `Sender` (`User`), `Text`, `CreatedAt`, `UpdatedAt`, `IsRead`, `ReplyToMessage *Message` |
+| `DeleteMessageDTO` | DTO удаления сообщения: `MessageID`, `ForAll` (`UserID` исключён из JSON через `json:"-"`) |
 
 **Функции и методы:**
 
@@ -59,6 +60,14 @@
 | `(*Message).From(user User) *Message` | Устанавливает отправителя |
 | `(*Message).Received() *Message` | Устанавливает `CreatedAt` в текущее время |
 | `(*Message).Updated() *Message` | Устанавливает `UpdatedAt` в текущее время |
+
+### WebSocket-события (`ws_event.go`)
+
+| Тип | Описание |
+|-----|----------|
+| `WSEventType` | Тип WS-события (`string`). Значения: `WSEventNewMessage` (`"new_message"`), `WSEventMessageDeleted` (`"message_deleted"`) |
+| `WSEvent` | WS-событие: `Type WSEventType`, `Payload json.RawMessage` |
+| `MessageDeletedPayload` | Полезная нагрузка удаления: `MessageID uint64`, `ChatID uint64` |
 
 ### Пагинация (`pagination.go`)
 

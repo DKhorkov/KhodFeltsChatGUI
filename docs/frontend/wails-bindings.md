@@ -43,92 +43,63 @@ import { Login } from '../../../wailsjs/go/auth/Handler'
 | `Logout` | `(): Promise<void>` | Завершение сессии |
 | `SendVerifyEmail` | `(arg1: string): Promise<void>` | Отправка письма подтверждения email |
 | `SendForgetPassword` | `(arg1: string): Promise<void>` | Отправка письма со ссылкой сброса пароля |
-| `ForgetPassword` | `(arg1: string, arg2: ForgetPasswordDTO): Promise<void>` | Сброс пароля по токену из письма (также доступен в пакете `forget_password`) |
+| `ForgetPassword` | `(arg1: string, arg2: ForgetPasswordDTO): Promise<void>` | Сброс пароля по токену из письма |
+| `ChangePassword` | `(arg1: ChangePasswordDTO): Promise<void>` | Смена пароля: требует старый и новый пароль |
 | `StartListening` | `(): Promise<void>` | Служебный метод хендлера |
 | `StopListening` | `(): Promise<void>` | Служебный метод хендлера |
 | `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод хендлера |
 
-Используется в: `App.js`, `LoginView.js`
+Используется в: `App.js`, `LoginView.js`, `ForgetPasswordModal.js`, `ProfileModal.js`
 
 ---
 
-### chat
+### chats
 
-Файлы: `wailsjs/go/chat/Handler.js`, `Handler.d.ts`
+Файлы: `wailsjs/go/chats/Handler.js`, `Handler.d.ts`
 
 | Функция | Сигнатура TypeScript | Описание |
 |---|---|---|
-| `GetCurrentUser` | `(): Promise<User>` | Возвращает данные текущего авторизованного пользователя |
 | `GetUserChats` | `(arg1: Pagination): Promise<Chat[]>` | Возвращает список чатов пользователя; `null` означает без пагинации |
-| `GetChatMessages` | `(arg1: number, arg2: Pagination): Promise<Message[]>` | Возвращает сообщения чата с пагинацией (`limit`, `offset`) |
-| `SendMessage` | `(arg1: number, arg2: string): Promise<void>` | Отправляет сообщение в чат (chatId, текст) |
-| `StartListening` | `(): Promise<void>` | Запускает фоновое прослушивание событий на Go-стороне (WebSocket/SSE) |
+| `CreateChat` | `(arg1: CreateChatDTO): Promise<Chat>` | Создаёт новый чат и возвращает его объект |
+| `StartListening` | `(): Promise<void>` | Запускает фоновое прослушивание событий на Go-стороне (WebSocket) |
 | `StopListening` | `(): Promise<void>` | Останавливает прослушивание |
-| `ToggleTheme` | `(): Promise<ThemeType>` | Переключает тему и возвращает новое значение (также доступен в пакете `theme`) |
+| `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод |
+
+Используется в: `ChatView.js`, `CreateChatModal.js`
+
+---
+
+### messages
+
+Файлы: `wailsjs/go/messages/Handler.js`, `Handler.d.ts`
+
+| Функция | Сигнатура TypeScript | Описание |
+|---|---|---|
+| `GetChatMessages` | `(arg1: number, arg2: Pagination): Promise<Message[]>` | Возвращает сообщения чата с пагинацией (`limit`, `offset`) |
+| `SendMessage` | `(arg1: number, arg2: string, arg3: number\|null): Promise<void>` | Отправляет сообщение в чат (chatId, текст, replyToMessageID) |
+| `DeleteMessage` | `(arg1: number, arg2: boolean): Promise<void>` | Удаляет сообщение (messageID, forAll) |
+| `StartListening` | `(): Promise<void>` | Служебный метод |
+| `StopListening` | `(): Promise<void>` | Служебный метод |
 | `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод |
 
 Используется в: `ChatView.js`
 
 ---
 
-### create_chat
+### users
 
-Файлы: `wailsjs/go/create_chat/Handler.js`, `Handler.d.ts`
-
-| Функция | Сигнатура TypeScript | Описание |
-|---|---|---|
-| `CreateChat` | `(arg1: CreateChatDTO): Promise<Chat>` | Создаёт новый чат и возвращает его объект |
-| `StartListening` | `(): Promise<void>` | Служебный метод |
-| `StopListening` | `(): Promise<void>` | Служебный метод |
-| `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод |
-
-Используется в: `CreateChatModal.js`
-
----
-
-### forget_password
-
-Файлы: `wailsjs/go/forget_password/Handler.js`, `Handler.d.ts`
+Файлы: `wailsjs/go/users/Handler.js`, `Handler.d.ts`
 
 | Функция | Сигнатура TypeScript | Описание |
 |---|---|---|
-| `ForgetPassword` | `(arg1: string, arg2: ForgetPasswordDTO): Promise<void>` | Сбрасывает пароль: токен из письма + новый пароль |
-| `StartListening` | `(): Promise<void>` | Служебный метод |
-| `StopListening` | `(): Promise<void>` | Служебный метод |
-| `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод |
-
-Используется в: `ForgetPasswordModal.js`
-
----
-
-### search_users
-
-Файлы: `wailsjs/go/search_users/Handler.js`, `Handler.d.ts`
-
-| Функция | Сигнатура TypeScript | Описание |
-|---|---|---|
+| `GetCurrentUser` | `(): Promise<User>` | Возвращает данные текущего авторизованного пользователя |
 | `SearchUsers` | `(arg1: UsersFilters, arg2: Pagination): Promise<User[]>` | Поиск пользователей по фильтрам; `null` в `arg2` означает без пагинации |
-| `StartListening` | `(): Promise<void>` | Служебный метод |
-| `StopListening` | `(): Promise<void>` | Служебный метод |
-| `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод |
-
-Используется в: `SearchUsersModal.js`, `CreateChatModal.js`
-
----
-
-### profile
-
-Файлы: `wailsjs/go/profile/Handler.js`, `Handler.d.ts`
-
-| Функция | Сигнатура TypeScript | Описание |
-|---|---|---|
 | `UpdateUser` | `(arg1: UpdateUserDTO): Promise<User>` | Обновляет данные пользователя (сейчас только `username`), возвращает обновлённый объект |
-| `ChangePassword` | `(arg1: ChangePasswordDTO): Promise<void>` | Смена пароля: требует старый и новый пароль |
 | `StartListening` | `(): Promise<void>` | Служебный метод |
 | `StopListening` | `(): Promise<void>` | Служебный метод |
 | `SetContext` | `(arg1: context.Context): Promise<void>` | Служебный метод |
 
-Используется в: `ProfileModal.js`
+Используется в: `ChatView.js`, `SearchUsersModal.js`, `CreateChatModal.js`, `ProfileModal.js`
 
 ---
 
@@ -234,9 +205,9 @@ class Chat {
 |---|---|---|
 | `LoginDTO` | `login: string`, `password: string` | `auth.Login` |
 | `RegisterDTO` | `username: string`, `email: string`, `password: string` | `auth.Register` |
-| `ForgetPasswordDTO` | `newPassword: string` | `auth.ForgetPassword`, `forget_password.ForgetPassword` |
-| `CreateChatDTO` | `type: string`, `memberIDs?: number[]`, `title?: string`, `description?: string` | `create_chat.CreateChat` |
-| `UpdateUserDTO` | `username?: string` | `profile.UpdateUser` |
-| `ChangePasswordDTO` | `oldPassword: string`, `newPassword: string` | `profile.ChangePassword` |
-| `UsersFilters` | `username?: string` | `search_users.SearchUsers` |
-| `Pagination` | `limit?: number`, `offset?: number` | `chat.GetChatMessages`, `chat.GetUserChats` |
+| `ForgetPasswordDTO` | `newPassword: string` | `auth.ForgetPassword` |
+| `ChangePasswordDTO` | `oldPassword: string`, `newPassword: string` | `auth.ChangePassword` |
+| `CreateChatDTO` | `type: string`, `memberIDs?: number[]`, `title?: string`, `description?: string` | `chats.CreateChat` |
+| `UpdateUserDTO` | `username?: string` | `users.UpdateUser` |
+| `UsersFilters` | `username?: string` | `users.SearchUsers` |
+| `Pagination` | `limit?: number`, `offset?: number` | `chats.GetUserChats`, `messages.GetChatMessages` |

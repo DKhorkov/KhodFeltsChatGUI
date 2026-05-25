@@ -85,6 +85,20 @@ func (mr *MockUseCasesMockRecorder) CreateChat(ctx, chat any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChat", reflect.TypeOf((*MockUseCases)(nil).CreateChat), ctx, chat)
 }
 
+// DeleteMessage mocks base method.
+func (m *MockUseCases) DeleteMessage(ctx context.Context, dto domains.DeleteMessageDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMessage", ctx, dto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteMessage indicates an expected call of DeleteMessage.
+func (mr *MockUseCasesMockRecorder) DeleteMessage(ctx, dto any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessage", reflect.TypeOf((*MockUseCases)(nil).DeleteMessage), ctx, dto)
+}
+
 // ForgetPassword mocks base method.
 func (m *MockUseCases) ForgetPassword(ctx context.Context, forgetPasswordToken, newPassword string) error {
 	m.ctrl.T.Helper()
@@ -202,19 +216,19 @@ func (mr *MockUseCasesMockRecorder) Logout(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockUseCases)(nil).Logout), ctx)
 }
 
-// ReadMessage mocks base method.
-func (m *MockUseCases) ReadMessage(ctx context.Context) (*domains.Message, error) {
+// ReadEvent mocks base method.
+func (m *MockUseCases) ReadEvent(ctx context.Context) (*domains.WSEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadMessage", ctx)
-	ret0, _ := ret[0].(*domains.Message)
+	ret := m.ctrl.Call(m, "ReadEvent", ctx)
+	ret0, _ := ret[0].(*domains.WSEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ReadMessage indicates an expected call of ReadMessage.
-func (mr *MockUseCasesMockRecorder) ReadMessage(ctx any) *gomock.Call {
+// ReadEvent indicates an expected call of ReadEvent.
+func (mr *MockUseCasesMockRecorder) ReadEvent(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadMessage", reflect.TypeOf((*MockUseCases)(nil).ReadMessage), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEvent", reflect.TypeOf((*MockUseCases)(nil).ReadEvent), ctx)
 }
 
 // RefreshTokens mocks base method.

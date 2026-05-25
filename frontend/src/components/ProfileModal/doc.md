@@ -48,5 +48,6 @@
 
 ## Wails-биндинги
 
-- `profile/Handler`: `ChangePassword`, `UpdateUser`
+- `auth/Handler`: `ChangePassword`
+- `users/Handler`: `UpdateUser`
 - `settings/Handler`: `GetSettings`, `UpdateSettings`

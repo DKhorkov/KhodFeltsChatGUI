@@ -13,6 +13,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/errors"
 	authrepository "github.com/DKhorkov/kfcGUI/internal/repositories/auth"
 	chatsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/chats"
+	messagesrepository "github.com/DKhorkov/kfcGUI/internal/repositories/messages"
 	settingsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/settings"
 	tokensrepository "github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
 	usersrepository "github.com/DKhorkov/kfcGUI/internal/repositories/users"
@@ -50,6 +51,7 @@ func main() {
 	authRepository := authrepository.New(httpClient, cfg.HTTP.BaseURL)
 	usersRepository := usersrepository.New(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := chatsrepository.New(httpClient, cfg.HTTP.BaseURL)
+	messagesRepository := messagesrepository.New(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := tokensrepository.New()
 	settingsRepository := settingsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	websocketsRepository := wsrepository.New(cfg.HTTP.WebsocketURL, logger)
@@ -59,6 +61,7 @@ func main() {
 	useCases := usecases.New(
 		usersRepository,
 		chatsRepository,
+		messagesRepository,
 		authRepository,
 		tokensRepository,
 		settingsRepository,

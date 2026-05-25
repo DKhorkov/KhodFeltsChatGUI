@@ -50,8 +50,9 @@
 | Метод | Описание |
 |-------|----------|
 | `SendMessage(ctx, Message) error` | Отправка сообщения через WebSocket |
-| `ReadMessage(ctx) (*Message, error)` | Чтение сообщения из WebSocket |
+| `ReadEvent(ctx) (*WSEvent, error)` | Чтение WS-события из WebSocket (envelope с type + payload) |
 | `GetChatMessages(ctx, chatID, *Pagination) ([]Message, error)` | Получение сообщений чата |
+| `DeleteMessage(ctx, DeleteMessageDTO) error` | Удаление сообщения (для себя или для всех) |
 
 **Chats:**
 
@@ -113,7 +114,13 @@
 |-------|----------|
 | `GetUserChats(ctx, accessToken, *Pagination) ([]Chat, error)` | Получение чатов |
 | `CreateChat(ctx, accessToken, Chat) (*Chat, error)` | Создание чата |
+
+**`MessagesRepository`** — сообщения через HTTP API:
+
+| Метод | Описание |
+|-------|----------|
 | `GetChatMessages(ctx, accessToken, chatID, *Pagination) ([]Message, error)` | Получение сообщений |
+| `DeleteMessage(ctx, accessToken, DeleteMessageDTO) error` | Удаление сообщения |
 
 **`WebSocketsRepository`** — WebSocket-соединение:
 
@@ -121,7 +128,7 @@
 |-------|----------|
 | `Connect(ctx, accessToken) error` | Подключение |
 | `Close() error` | Закрытие соединения |
-| `ReadMessage(ctx) (*Message, error)` | Чтение сообщения |
+| `ReadEvent(ctx) (*WSEvent, error)` | Чтение WS-события (envelope с type + payload) |
 | `WriteMessage(ctx, Message) error` | Отправка сообщения |
 
 **`SettingsRepository`** — настройки через HTTP API:

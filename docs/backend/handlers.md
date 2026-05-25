@@ -44,7 +44,10 @@ func New(
 Отправляет письмо со ссылкой для сброса пароля. Валидирует формат email.
 
 #### `ForgetPassword(token string, in domains.ForgetPasswordDTO) error`
-Применяет новый пароль по токену из письма. Валидирует новый пароль.
+Применяет новый пароль по токену из письма. Проверяет непустоту токена и валидирует новый пароль.
+
+#### `ChangePassword(in domains.ChangePasswordDTO) error`
+Меняет пароль аутентифицированного пользователя. Валидирует оба пароля (старый и новый) по правилам пароля.
 
 #### `Authenticate() error`
 Проверяет, аутентифицирован ли пользователь (обновляет токены и получает текущего пользователя). Используется при запуске приложения для восстановления сессии.
@@ -57,9 +60,9 @@ func New(
 
 ---
 
-## chat.Handler
+## chats.Handler
 
-Файл: `internal/v2/handlers/chat/handler.go`
+Файл: `internal/v2/handlers/chats/handler.go`
 
 ### Конструктор
 
@@ -68,55 +71,13 @@ func New(
     useCases interfaces.UseCases,
     errorsMapper interfaces.ErrorsMapper,
     logger logging.Logger,
-    validationConfig config.ValidationConfig,
 ) *Handler
 ```
 
 ### Методы
-
-#### `GetCurrentUser() (*domains.User, error)`
-Возвращает текущего аутентифицированного пользователя (с обновлением токенов).
 
 #### `GetUserChats(pagination *domains.Pagination) ([]domains.Chat, error)`
 Возвращает список чатов текущего пользователя с поддержкой пагинации.
-
-#### `GetChatMessages(chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)`
-Возвращает историю сообщений указанного чата. Время сообщений приводится к локальному часовому поясу пользователя.
-
-#### `SendMessage(chatID uint64, text string) error`
-Отправляет сообщение в чат через WebSocket. Внутри получает текущего пользователя, формирует `domains.Message` и передаёт в UseCase.
-
-#### `ToggleTheme() (domains.ThemeType, error)`
-Переключает тему между светлой и тёмной и сохраняет выбор.
-
-### Фоновые горутины
-
-`StartListening()` запускает три горутины:
-
-| Горутина | Интервал | Описание |
-|---|---|---|
-| `readMessages` | постоянно | Читает входящие сообщения из WebSocket и эмитит событие `"new_message"` во фронтенд через `runtime.EventsEmit` |
-| `refreshTokens` | 1 минута | Периодически обновляет JWT-токены |
-| `updateChats` | 5 секунд | Периодически получает список чатов и эмитит событие `"chats_updated"` во фронтенд |
-
-`StopListening()` отменяет контекст горутин и ожидает их завершения через `sync.WaitGroup`.
-
----
-
-## create_chat.Handler
-
-Файл: `internal/v2/handlers/create_chat/handler.go`
-
-### Конструктор
-
-```go
-func New(
-    useCases interfaces.UseCases,
-    errorsMapper interfaces.ErrorsMapper,
-) *Handler
-```
-
-### Методы
 
 #### `CreateChat(in domains.CreateChatDTO) (*domains.Chat, error)`
 Создаёт новый чат. Перед вызовом UseCase:
@@ -124,13 +85,22 @@ func New(
 - преобразует `MemberIDs` в срез `[]domains.User{ID: id}`.
 
 ### Фоновые горутины
-Нет.
+
+`StartListening()` запускает три горутины:
+
+| Горутина | Интервал | Описание |
+|---|---|---|
+| `readEvents` | постоянно | Читает входящие WS-события и эмитит `"new_message"` или `"message_deleted"` во фронтенд через `runtime.EventsEmit` |
+| `refreshTokens` | 1 минута | Периодически обновляет JWT-токены |
+| `updateChats` | 5 секунд | Периодически получает список чатов и эмитит событие `"chats_updated"` во фронтенд |
+
+`StopListening()` отменяет контекст горутин и ожидает их завершения через `sync.WaitGroup`.
 
 ---
 
-## search_users.Handler
+## messages.Handler
 
-Файл: `internal/v2/handlers/search_users/handler.go`
+Файл: `internal/v2/handlers/messages/handler.go`
 
 ### Конструктор
 
@@ -138,60 +108,45 @@ func New(
 func New(useCases interfaces.UseCases) *Handler
 ```
 
-Не принимает `errorsMapper` — ошибки возвращаются как есть из UseCase (уже смапированы).
+Не принимает `errorsMapper` — ошибки возвращаются как есть из UseCase.
 
 ### Методы
+
+#### `GetChatMessages(chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)`
+Возвращает историю сообщений указанного чата.
+
+#### `SendMessage(chatID uint64, text string, replyToMessageID *uint64) error`
+Отправляет сообщение в чат через WebSocket. Внутри получает текущего пользователя, формирует `domains.Message` и передаёт в UseCase. Поддерживает ответ на сообщение через `replyToMessageID`.
+
+#### `DeleteMessage(messageID uint64, forAll bool) error`
+Удаление сообщения (для себя или для всех).
+
+### Фоновые горутины
+Нет.
+
+---
+
+## users.Handler
+
+Файл: `internal/v2/handlers/users/handler.go`
+
+### Конструктор
+
+```go
+func New(
+    useCases interfaces.UseCases,
+    errorsMapper interfaces.ErrorsMapper,
+    validationConfig config.ValidationConfig,
+) *Handler
+```
+
+### Методы
+
+#### `GetCurrentUser() (*domains.User, error)`
+Возвращает текущего аутентифицированного пользователя.
 
 #### `SearchUsers(filters *domains.UsersFilters, pagination *domains.Pagination) ([]domains.User, error)`
 Выполняет поиск пользователей по фильтрам. Текущий пользователь исключается из результатов на уровне UseCase.
-
-### Фоновые горутины
-Нет.
-
----
-
-## forget_password.Handler
-
-Файл: `internal/v2/handlers/forget_password/handler.go`
-
-### Конструктор
-
-```go
-func New(
-    useCases interfaces.UseCases,
-    errorsMapper interfaces.ErrorsMapper,
-    validationConfig config.ValidationConfig,
-) *Handler
-```
-
-### Методы
-
-#### `ForgetPassword(forgetPasswordToken string, in domains.ForgetPasswordDTO) error`
-Сбрасывает пароль по токену. Отличается от `auth.Handler.ForgetPassword` тем, что дополнительно проверяет непустоту токена перед валидацией пароля.
-
-### Фоновые горутины
-Нет.
-
----
-
-## profile.Handler
-
-Файл: `internal/v2/handlers/profile/handler.go`
-
-### Конструктор
-
-```go
-func New(
-    useCases interfaces.UseCases,
-    errorsMapper interfaces.ErrorsMapper,
-    validationConfig config.ValidationConfig,
-) *Handler
-```
-
-### Методы
-
-#### `ChangePassword(in domains.ChangePasswordDTO) error`
-Меняет пароль аутентифицированного пользователя. Валидирует оба пароля (старый и новый) по правилам пароля.
 
 #### `UpdateUser(in domains.UpdateUserDTO) (*domains.User, error)`
 Обновляет профиль пользователя. Если `in.Username != nil`, валидирует новый логин по правилам username.

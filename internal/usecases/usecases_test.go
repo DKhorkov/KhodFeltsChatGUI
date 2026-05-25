@@ -2,6 +2,7 @@ package usecases_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"reflect"
 	"testing"
@@ -191,6 +192,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -202,6 +204,7 @@ func TestUseCases_Authenticate(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -390,6 +393,7 @@ func TestUseCases_Login(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -401,6 +405,7 @@ func TestUseCases_Login(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -596,6 +601,7 @@ func TestUseCases_Logout(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -607,6 +613,7 @@ func TestUseCases_Logout(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -715,6 +722,7 @@ func TestUseCases_Register(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -726,6 +734,7 @@ func TestUseCases_Register(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -862,6 +871,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -873,6 +883,7 @@ func TestUseCases_GetUserChats(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -1043,6 +1054,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -1054,6 +1066,7 @@ func TestUseCases_UpdateUser(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -1365,6 +1378,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -1376,6 +1390,7 @@ func TestUseCases_SearchUsers(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -1411,7 +1426,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 		pagination *domains.Pagination
 		setupMocks func(
 			*mockrepositories.MockTokensRepository,
-			*mockrepositories.MockChatsRepository,
+			*mockrepositories.MockMessagesRepository,
 			*mocks.MockLogger,
 			*mockerrors.MockErrorsMapper,
 		)
@@ -1424,7 +1439,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
-				mockChats *mockrepositories.MockChatsRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
 				_ *mocks.MockLogger,
 				_ *mockerrors.MockErrorsMapper,
 			) {
@@ -1436,7 +1451,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 					}, nil)
 
 				utcTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
-				mockChats.EXPECT().
+				mockMessages.EXPECT().
 					GetChatMessages(gomock.Any(), "access_token", uint64(1), pagination).
 					Return([]domains.Message{
 						{
@@ -1465,7 +1480,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
-				_ *mockrepositories.MockChatsRepository,
+				_ *mockrepositories.MockMessagesRepository,
 				mockLogger *mocks.MockLogger,
 				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
@@ -1488,7 +1503,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
-				mockChats *mockrepositories.MockChatsRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
 				mockLogger *mocks.MockLogger,
 				mockErrorsMapper *mockerrors.MockErrorsMapper,
 			) {
@@ -1499,7 +1514,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 						RefreshToken: "refresh_token",
 					}, nil)
 
-				mockChats.EXPECT().
+				mockMessages.EXPECT().
 					GetChatMessages(gomock.Any(), "access_token", uint64(1), pagination).
 					Return(nil, errors.New("messages not found"))
 
@@ -1518,7 +1533,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			pagination: pagination,
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
-				mockChats *mockrepositories.MockChatsRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
 				_ *mocks.MockLogger,
 				_ *mockerrors.MockErrorsMapper,
 			) {
@@ -1529,7 +1544,7 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 						RefreshToken: "refresh_token",
 					}, nil)
 
-				mockChats.EXPECT().
+				mockMessages.EXPECT().
 					GetChatMessages(gomock.Any(), "access_token", uint64(1), pagination).
 					Return([]domains.Message{}, nil)
 			},
@@ -1549,17 +1564,19 @@ func TestUseCases_GetChatMessages(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
 
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockTokens, mockChats, mockLogger, mockErrorsMapper)
+				tt.setupMocks(mockTokens, mockMessages, mockLogger, mockErrorsMapper)
 			}
 
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -1808,6 +1825,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -1819,6 +1837,7 @@ func TestUseCases_SendMessage(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -1838,10 +1857,8 @@ func TestUseCases_SendMessage(t *testing.T) {
 	}
 }
 
-func TestUseCases_ReadMessage(t *testing.T) {
+func TestUseCases_ReadEvent(t *testing.T) {
 	t.Parallel()
-
-	now := time.Now()
 
 	tests := []struct {
 		name       string
@@ -1850,11 +1867,11 @@ func TestUseCases_ReadMessage(t *testing.T) {
 			*mockrepositories.MockWebSocketsRepository,
 			*mocks.MockLogger,
 			*mockerrors.MockErrorsMapper)
-		expectedMessage *domains.Message
-		expectedError   error
+		expectedEvent *domains.WSEvent
+		expectedError error
 	}{
 		{
-			name: "successful read message",
+			name: "successful read event",
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
@@ -1873,35 +1890,15 @@ func TestUseCases_ReadMessage(t *testing.T) {
 					Return(nil)
 
 				mockWS.EXPECT().
-					ReadMessage(gomock.Any()).
-					Return(&domains.Message{
-						ID:     1,
-						ChatID: 1,
-						Sender: domains.User{
-							ID:        1,
-							Username:  "john_doe",
-							Email:     "john@example.com",
-							CreatedAt: now,
-							UpdatedAt: now,
-						},
-						Text:      "Hello, world!",
-						CreatedAt: now,
-						UpdatedAt: now,
+					ReadEvent(gomock.Any()).
+					Return(&domains.WSEvent{
+						Type:    domains.WSEventNewMessage,
+						Payload: json.RawMessage(`{"id":1}`),
 					}, nil)
 			},
-			expectedMessage: &domains.Message{
-				ID:     1,
-				ChatID: 1,
-				Sender: domains.User{
-					ID:        1,
-					Username:  "john_doe",
-					Email:     "john@example.com",
-					CreatedAt: now,
-					UpdatedAt: now,
-				},
-				Text:      "Hello, world!",
-				CreatedAt: now,
-				UpdatedAt: now,
+			expectedEvent: &domains.WSEvent{
+				Type:    domains.WSEventNewMessage,
+				Payload: json.RawMessage(`{"id":1}`),
 			},
 			expectedError: nil,
 		},
@@ -1923,8 +1920,8 @@ func TestUseCases_ReadMessage(t *testing.T) {
 
 				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
-			expectedMessage: nil,
-			expectedError:   errors.New("tokens not found"),
+			expectedEvent: nil,
+			expectedError: errors.New("tokens not found"),
 		},
 		{
 			name: "failed to connect to websocket",
@@ -1951,11 +1948,11 @@ func TestUseCases_ReadMessage(t *testing.T) {
 
 				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
-			expectedMessage: nil,
-			expectedError:   errors.New("connection failed"),
+			expectedEvent: nil,
+			expectedError: errors.New("connection failed"),
 		},
 		{
-			name: "failed to read message",
+			name: "failed to read event",
 			setupMocks: func(
 				mockTokens *mockrepositories.MockTokensRepository,
 				mockWS *mockrepositories.MockWebSocketsRepository,
@@ -1974,47 +1971,17 @@ func TestUseCases_ReadMessage(t *testing.T) {
 					Return(nil)
 
 				mockWS.EXPECT().
-					ReadMessage(gomock.Any()).
+					ReadEvent(gomock.Any()).
 					Return(nil, errors.New("read failed"))
 
 				mockLogger.EXPECT().
-					ErrorContext(gomock.Any(), "failed to read message", gomock.Any()).
+					ErrorContext(gomock.Any(), "failed to read event", gomock.Any()).
 					Times(1)
 
 				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
 			},
-			expectedMessage: nil,
-			expectedError:   errors.New("read failed"),
-		},
-		{
-			name: "read empty message",
-			setupMocks: func(
-				mockTokens *mockrepositories.MockTokensRepository,
-				mockWS *mockrepositories.MockWebSocketsRepository,
-				_ *mocks.MockLogger,
-				_ *mockerrors.MockErrorsMapper,
-			) {
-				mockTokens.EXPECT().
-					Load(gomock.Any()).
-					Return(&domains.TokensDTO{
-						AccessToken:  "access_token",
-						RefreshToken: "refresh_token",
-					}, nil)
-
-				mockWS.EXPECT().
-					Connect(gomock.Any(), "access_token").
-					Return(nil)
-
-				mockWS.EXPECT().
-					ReadMessage(gomock.Any()).
-					Return(&domains.Message{
-						Text: "",
-					}, nil)
-			},
-			expectedMessage: &domains.Message{
-				Text: "",
-			},
-			expectedError: nil,
+			expectedEvent: nil,
+			expectedError: errors.New("read failed"),
 		},
 	}
 
@@ -2029,6 +1996,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -2040,6 +2008,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -2048,7 +2017,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				mockErrorsMapper,
 			)
 
-			message, err := uc.ReadMessage(context.Background())
+			event, err := uc.ReadEvent(context.Background())
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -2056,7 +2025,7 @@ func TestUseCases_ReadMessage(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.expectedMessage, message)
+			assert.Equal(t, tt.expectedEvent, event)
 		})
 	}
 }
@@ -2264,6 +2233,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -2275,6 +2245,7 @@ func TestUseCases_CreateChat(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -2510,6 +2481,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -2521,6 +2493,7 @@ func TestUseCases_GetCurrentUser(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -2955,6 +2928,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -2966,6 +2940,7 @@ func TestUseCases_RefreshTokens(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -3085,6 +3060,7 @@ func TestUseCases_GetTheme(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -3096,6 +3072,7 @@ func TestUseCases_GetTheme(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -3211,6 +3188,7 @@ func TestUseCases_GetSettings(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -3222,6 +3200,7 @@ func TestUseCases_GetSettings(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -3365,6 +3344,7 @@ func TestUseCases_UpdateSettings(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -3376,6 +3356,7 @@ func TestUseCases_UpdateSettings(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -3555,6 +3536,7 @@ func TestUseCases_SetTheme(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -3566,6 +3548,7 @@ func TestUseCases_SetTheme(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -3854,6 +3837,7 @@ func TestUseCases_SendVerifyEmailMessage(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -3865,6 +3849,7 @@ func TestUseCases_SendVerifyEmailMessage(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -4110,6 +4095,7 @@ func TestUseCases_SendForgetPasswordMessage(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -4121,6 +4107,7 @@ func TestUseCases_SendForgetPasswordMessage(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -4435,6 +4422,7 @@ func TestUseCases_ForgetPassword(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -4446,6 +4434,7 @@ func TestUseCases_ForgetPassword(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -4666,6 +4655,7 @@ func TestUseCases_ChangePassword(t *testing.T) {
 			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
 			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
 			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
 			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
 			mockLogger := mocks.NewMockLogger(ctrl)
 			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
@@ -4677,6 +4667,7 @@ func TestUseCases_ChangePassword(t *testing.T) {
 			uc := usecases.New(
 				mockUsers,
 				mockChats,
+				mockMessages,
 				mockAuth,
 				mockTokens,
 				mockSettings,
@@ -4691,6 +4682,144 @@ func TestUseCases_ChangePassword(t *testing.T) {
 			if tt.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUseCases_DeleteMessage(t *testing.T) {
+	t.Parallel()
+
+	dto := domains.DeleteMessageDTO{
+		MessageID: 1,
+		ForAll:    false,
+	}
+
+	tests := []struct {
+		name       string
+		dto        domains.DeleteMessageDTO
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockMessagesRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedError error
+	}{
+		{
+			name: "successful delete",
+			dto:  dto,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockMessages.EXPECT().
+					DeleteMessage(gomock.Any(), "access_token", dto).
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name: "failed to load tokens",
+			dto:  dto,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedError: errors.New("tokens not found"),
+		},
+		{
+			name: "failed to delete message",
+			dto:  dto,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockMessages.EXPECT().
+					DeleteMessage(gomock.Any(), "access_token", dto).
+					Return(errors.New("delete failed"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to delete message", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedError: errors.New("delete failed"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockMessages, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockMessages,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			err := uc.DeleteMessage(
+				context.Background(),
+				tt.dto,
+			)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}

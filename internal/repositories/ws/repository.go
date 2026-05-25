@@ -2,6 +2,7 @@ package ws
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -26,12 +27,12 @@ const (
 )
 
 type Repository struct {
-	baseURL      string
-	logger       logging.Logger
-	ws           *websocket.Conn
-	mu           sync.Mutex
-	messagesChan chan *domains.Message // Буферизированный канал для входящих сообщений
-	errChan      chan error            // Канал для критических ошибок чтения
+	baseURL    string
+	logger     logging.Logger
+	ws         *websocket.Conn
+	mu         sync.Mutex
+	eventsChan chan *domains.WSEvent // Буферизированный канал для входящих событий
+	errChan    chan error            // Канал для критических ошибок чтения
 }
 
 func New(baseURL string, logger logging.Logger) *Repository {
@@ -51,8 +52,8 @@ func (r *Repository) Connect(ctx context.Context, accessToken string) error {
 	}
 
 	// Создаем каналы
-	r.messagesChan = make(
-		chan *domains.Message,
+	r.eventsChan = make(
+		chan *domains.WSEvent,
 		readMessagesBufferSize,
 	) // Буфер, чтобы не блокировать чтение
 	r.errChan = make(chan error, readErrorsBufferSize)
@@ -92,7 +93,7 @@ func (r *Repository) Close() error {
 	return err
 }
 
-func (r *Repository) ReadMessage(ctx context.Context) (*domains.Message, error) {
+func (r *Repository) ReadEvent(ctx context.Context) (*domains.WSEvent, error) {
 	if r.ws == nil {
 		return nil, fmt.Errorf("%w: connection was not enstablished", customerrors.ErrWebsocket)
 	}
@@ -102,7 +103,7 @@ func (r *Repository) ReadMessage(ctx context.Context) (*domains.Message, error) 
 		return nil, ctx.Err()
 	case err := <-r.errChan:
 		return nil, err
-	case msg, ok := <-r.messagesChan:
+	case event, ok := <-r.eventsChan:
 		// Канал закрыт
 		if !ok {
 			// Проверяем, есть ли ошибка, если нет - отдаем дефолтную
@@ -114,7 +115,7 @@ func (r *Repository) ReadMessage(ctx context.Context) (*domains.Message, error) 
 			}
 		}
 
-		return msg, nil
+		return event, nil
 	}
 }
 
@@ -166,12 +167,12 @@ func (r *Repository) WriteMessage(ctx context.Context, message domains.Message) 
 }
 
 func (r *Repository) readLoop() {
-	defer close(r.messagesChan)
+	defer close(r.eventsChan)
 	defer close(r.errChan)
 
 	for {
-		var msg domains.Message
-		if err := r.ws.ReadJSON(&msg); err != nil {
+		_, rawBytes, err := r.ws.ReadMessage()
+		if err != nil {
 			if websocket.IsCloseError(
 				err,
 				websocket.CloseNormalClosure,
@@ -190,6 +191,13 @@ func (r *Repository) readLoop() {
 			return
 		}
 
-		r.messagesChan <- &msg
+		var event domains.WSEvent
+		if err = json.Unmarshal(rawBytes, &event); err != nil {
+			logging.LogError(r.logger, "failed to unmarshal ws event", err)
+
+			continue
+		}
+
+		r.eventsChan <- &event
 	}
 }

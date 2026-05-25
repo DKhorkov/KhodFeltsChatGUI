@@ -16,7 +16,7 @@
    - `ws` — WebSocket-репозиторий (используют `websocketURL`).
 5. Создаётся маппер ошибок (`errors.New()`).
 6. Создаётся единый `UseCases` со всеми репозиториями.
-7. Создаются 9 хендлеров: `auth`, `chat`, `create_chat`, `search_users`, `forget_password`, `profile`, `theme`, `settings`, `notification`.
+7. Создаются 7 хендлеров: `auth`, `chats`, `messages`, `users`, `theme`, `settings`, `notifications`.
 8. Создаётся `application.App` со списком хендлеров.
 9. Запускается Wails-приложение с параметрами окна (1200×800, min 800×600).
 

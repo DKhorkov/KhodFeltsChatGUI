@@ -1,5 +1,6 @@
 import {computed, inject, onMounted, ref} from 'vue'
-import {ChangePassword, UpdateUser} from '../../../wailsjs/go/profile/Handler'
+import {ChangePassword} from '../../../wailsjs/go/auth/Handler'
+import {UpdateUser} from '../../../wailsjs/go/users/Handler'
 import {GetSettings, UpdateSettings} from '../../../wailsjs/go/settings/Handler'
 
 const CONSENT_NEW_MESSAGE = 1

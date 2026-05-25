@@ -32,4 +32,4 @@
 
 ## Wails-биндинги
 
-`search_users/Handler`: `SearchUsers`
+`users/Handler`: `SearchUsers`

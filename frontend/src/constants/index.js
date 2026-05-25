@@ -21,6 +21,7 @@ export const TAB = Object.freeze({
 
 export const WAILS_EVENT = Object.freeze({
     NEW_MESSAGE: 'new_message',
+    MESSAGE_DELETED: 'message_deleted',
     CHATS_UPDATED: 'chats_updated',
     OPEN_CHAT: 'open_chat',
 })
@@ -28,3 +29,5 @@ export const WAILS_EVENT = Object.freeze({
 export const MESSAGES_PAGE_SIZE = 10
 export const NOTIFICATION_DURATION_MS = 3000
 export const SEARCH_DEBOUNCE_MS = 500
+export const EMOJI_CLOSE_DELAY_MS = 500
+export const HIGHLIGHT_DURATION_MS = 1500

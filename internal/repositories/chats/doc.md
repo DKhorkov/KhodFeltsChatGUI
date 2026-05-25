@@ -2,7 +2,7 @@
 
 ## Назначение
 
-HTTP-репозиторий для работы с чатами и сообщениями. Реализует интерфейс `interfaces.ChatsRepository`. Потокобезопасен: чтение через `RLock`, запись через `Lock` (`sync.RWMutex`).
+HTTP-репозиторий для работы с чатами. Реализует интерфейс `interfaces.ChatsRepository`. Потокобезопасен: чтение через `RLock`, запись через `Lock` (`sync.RWMutex`).
 
 ## Типы
 
@@ -16,7 +16,6 @@ HTTP-репозиторий для работы с чатами и сообще�
 |-------|------|----------|----------|
 | `GetUserChats(ctx, accessToken, pagination)` | GET | `/chats` | Список чатов пользователя с пагинацией (`limit`, `offset`) |
 | `CreateChat(ctx, accessToken, chat)` | POST | `/chats` | Создание чата, возвращает `*domains.Chat` |
-| `GetChatMessages(ctx, accessToken, chatID, pagination)` | GET | `/chats/{id}/messages` | Сообщения конкретного чата с пагинацией |
 
 ## Константы
 
@@ -28,5 +27,5 @@ HTTP-репозиторий для работы с чатами и сообще�
 
 - `internal/repositories/base` — базовый репозиторий (`CloseBody`)
 - `internal/interfaces` — `HTTPClient`
-- `internal/domains` — `Chat`, `Message`, `Pagination`
+- `internal/domains` — `Chat`, `Pagination`
 - `internal/common` — HTTP-заголовки

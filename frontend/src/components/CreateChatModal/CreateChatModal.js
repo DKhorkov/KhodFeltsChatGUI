@@ -1,6 +1,6 @@
 import {inject, ref} from 'vue'
-import {CreateChat} from '../../../wailsjs/go/create_chat/Handler'
-import {SearchUsers} from '../../../wailsjs/go/search_users/Handler'
+import {CreateChat} from '../../../wailsjs/go/chats/Handler'
+import {SearchUsers} from '../../../wailsjs/go/users/Handler'
 import {CHAT_TYPE, SEARCH_DEBOUNCE_MS} from '../../constants'
 import {debounce} from '../../utils/debounce'
 

@@ -11,6 +11,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	authrepository "github.com/DKhorkov/kfcGUI/internal/repositories/auth"
 	chatsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/chats"
+	messagesrepository "github.com/DKhorkov/kfcGUI/internal/repositories/messages"
 	settingsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/settings"
 	tokensrepository "github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
 	usersrepository "github.com/DKhorkov/kfcGUI/internal/repositories/users"
@@ -18,14 +19,12 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/usecases"
 	"github.com/DKhorkov/kfcGUI/internal/v2/application"
 	authhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/auth"
-	chathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chat"
-	createchathandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/create_chat"
-	forgetpasswordhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/forget_password"
-	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notification"
-	profilehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/profile"
-	searchusershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/search_users"
+	chatshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/chats"
+	messageshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/messages"
+	notificationhandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/notifications"
 	settingshandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/settings"
 	themehandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/theme"
+	usershandler "github.com/DKhorkov/kfcGUI/internal/v2/handlers/users"
 	"github.com/DKhorkov/libs/loadenv"
 	"github.com/DKhorkov/libs/logging"
 	"github.com/wailsapp/wails/v2"
@@ -55,6 +54,7 @@ func main() {
 	authRepository := authrepository.New(httpClient, cfg.HTTP.BaseURL)
 	usersRepository := usersrepository.New(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := chatsrepository.New(httpClient, cfg.HTTP.BaseURL)
+	messagesRepository := messagesrepository.New(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := tokensrepository.New()
 	settingsRepository := settingsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	websocketsRepository := wsrepository.New(cfg.HTTP.WebsocketURL, logger)
@@ -64,6 +64,7 @@ func main() {
 	useCases := usecases.New(
 		usersRepository,
 		chatsRepository,
+		messagesRepository,
 		authRepository,
 		tokensRepository,
 		settingsRepository,
@@ -79,24 +80,15 @@ func main() {
 		cfg.Validation,
 	)
 
-	chatHandler := chathandler.New(
+	chatsHandler := chatshandler.New(
 		useCases,
 		errorsMapper,
 		logger,
-		cfg.Validation,
 	)
 
-	createChatHandler := createchathandler.New(useCases, errorsMapper)
+	messagesHandler := messageshandler.New(useCases)
 
-	searchUsersHandler := searchusershandler.New(useCases)
-
-	forgetPasswordHandler := forgetpasswordhandler.New(
-		useCases,
-		errorsMapper,
-		cfg.Validation,
-	)
-
-	profileHandler := profilehandler.New(
+	usersHandler := usershandler.New(
 		useCases,
 		errorsMapper,
 		cfg.Validation,
@@ -113,12 +105,10 @@ func main() {
 		errorsMapper,
 		[]interfaces.Handler{
 			authHandler,
-			chatHandler,
-			createChatHandler,
-			searchUsersHandler,
-			forgetPasswordHandler,
+			chatsHandler,
+			messagesHandler,
+			usersHandler,
 			themeHandler,
-			profileHandler,
 			settingsHandler,
 			notificationHandler,
 		},

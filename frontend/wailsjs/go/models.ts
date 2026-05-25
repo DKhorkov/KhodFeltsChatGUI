@@ -24,6 +24,7 @@ export namespace domains {
 	    // Go type: time
 	    updatedAt: any;
 	    isRead: boolean;
+	    replyToMessage?: Message;
 	
 	    static createFrom(source: any = {}) {
 	        return new Message(source);
@@ -38,6 +39,7 @@ export namespace domains {
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	        this.updatedAt = this.convertValues(source["updatedAt"], null);
 	        this.isRead = source["isRead"];
+	        this.replyToMessage = this.convertValues(source["replyToMessage"], Message);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

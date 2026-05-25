@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -156,69 +155,4 @@ func (r *Repository) CreateChat(
 	}
 
 	return &createdChat, nil
-}
-
-func (r *Repository) GetChatMessages(
-	ctx context.Context,
-	accessToken string,
-	chatID uint64,
-	pagination *domains.Pagination,
-) ([]domains.Message, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	queryParams := url.Values{}
-
-	if pagination != nil {
-		if pagination.Limit != nil {
-			queryParams.Add(limitQueryParamName, strconv.FormatUint(*pagination.Limit, 10))
-		}
-
-		if pagination.Offset != nil {
-			queryParams.Add(offsetQueryParamName, strconv.FormatUint(*pagination.Offset, 10))
-		}
-	}
-
-	path := fmt.Sprintf("%s/chats/%d/messages", r.baseURL, chatID)
-
-	fullURL, err := url.Parse(path)
-	if err != nil {
-		return nil, err
-	}
-
-	fullURL.RawQuery = queryParams.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL.String(), http.NoBody)
-	if err != nil {
-		return nil, err
-	}
-
-	req.AddCookie(
-		&http.Cookie{
-			Name:  accessTokenCookieName,
-			Value: accessToken,
-		},
-	)
-
-	resp, err := r.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer r.CloseBody(ctx, resp.Body)
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(string(data))
-	}
-
-	var messages []domains.Message
-	if err = json.Unmarshal(data, &messages); err != nil {
-		return nil, err
-	}
-
-	return messages, nil
 }

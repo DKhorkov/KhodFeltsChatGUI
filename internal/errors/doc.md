@@ -58,6 +58,13 @@
 | `ErrWebPushSubscriptionNotFound` | `web-push subscription not found` |
 | `ErrWebPushSubscriptionExpired` | `web-push subscription expired` |
 
+### Сообщения (`messages.go`)
+
+| Переменная | Сообщение |
+|------------|-----------|
+| `ErrMessageNotFound` | `message not found` |
+| `ErrNotMessageAuthor` | `only message author can delete for all` |
+
 ### WebSocket (`ws.go`)
 
 | Переменная | Сообщение |

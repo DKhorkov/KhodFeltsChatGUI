@@ -628,3 +628,111 @@ func TestHandler_StopListening(t *testing.T) {
 	h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
 	h.StopListening()
 }
+
+func TestHandler_ChangePassword(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		in            domains.ChangePasswordDTO
+		setupMocks    func(*mockusecases.MockUseCases, *mockerrors.MockErrorsMapper)
+		expectedError error
+	}{
+		{
+			name: "successful change password",
+			in: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword1!",
+				NewPassword: "NewPassword1!",
+			},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
+				uc.EXPECT().
+					ChangePassword(gomock.Any(), domains.ChangePasswordDTO{OldPassword: "OldPassword1!", NewPassword: "NewPassword1!"}).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name: "invalid new password - too weak",
+			in:   domains.ChangePasswordDTO{OldPassword: "OldPassword1!", NewPassword: "weak"},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
+			},
+			expectedError: customerrors.ErrInvalidPassword,
+		},
+		{
+			name: "invalid old password - too weak",
+			in:   domains.ChangePasswordDTO{OldPassword: "weak", NewPassword: "NewPassword1!"},
+			setupMocks: func(_ *mockusecases.MockUseCases, em *mockerrors.MockErrorsMapper) {
+				em.EXPECT().
+					Map(customerrors.ErrInvalidPassword).
+					Return(customerrors.ErrInvalidPassword).
+					Times(1)
+			},
+			expectedError: customerrors.ErrInvalidPassword,
+		},
+		{
+			name: "use case error",
+			in: domains.ChangePasswordDTO{
+				OldPassword: "OldPassword1!",
+				NewPassword: "NewPassword1!",
+			},
+			setupMocks: func(uc *mockusecases.MockUseCases, _ *mockerrors.MockErrorsMapper) {
+				uc.EXPECT().
+					ChangePassword(gomock.Any(), gomock.Any()).
+					Return(errors.New("wrong old password")).
+					Times(1)
+			},
+			expectedError: errors.New("wrong old password"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases, mockMapper)
+			}
+
+			h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
+
+			err := h.ChangePassword(tt.in)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestHandler_ForgetPassword_EmptyToken(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	mockUseCases := mockusecases.NewMockUseCases(ctrl)
+	mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+	mockMapper.EXPECT().
+		Map(customerrors.ErrInvalidForgetPasswordToken).
+		Return(customerrors.ErrInvalidForgetPasswordToken).
+		Times(1)
+
+	h := authhandler.New(mockUseCases, mockMapper, testValidationConfig())
+
+	err := h.ForgetPassword("", domains.ForgetPasswordDTO{NewPassword: "NewPassword1!"})
+
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, customerrors.ErrInvalidForgetPasswordToken)
+}
