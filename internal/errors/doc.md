@@ -63,7 +63,7 @@
 | Переменная | Сообщение |
 |------------|-----------|
 | `ErrMessageNotFound` | `message not found` |
-| `ErrNotMessageAuthor` | `only message author can delete for all` |
+| `ErrNotMessageAuthor` | `only message author can perform this action` |
 
 ### WebSocket (`ws.go`)
 

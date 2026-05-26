@@ -370,6 +370,88 @@ func TestHandler_GetMessageByID(t *testing.T) {
 	}
 }
 
+func TestHandler_UpdateMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		messageID     uint64
+		text          string
+		setupMocks    func(*mockusecases.MockUseCases)
+		expectedError error
+	}{
+		{
+			name:      "successful update",
+			messageID: 42,
+			text:      "updated text",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					UpdateMessage(gomock.Any(), domains.UpdateMessageDTO{
+						MessageID: 42,
+						Text:      "updated text",
+					}).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:      "use case error",
+			messageID: 42,
+			text:      "updated text",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					UpdateMessage(gomock.Any(), domains.UpdateMessageDTO{
+						MessageID: 42,
+						Text:      "updated text",
+					}).
+					Return(errors.New("update failed")).
+					Times(1)
+			},
+			expectedError: errors.New("update failed"),
+		},
+		{
+			name:      "message not found",
+			messageID: 999,
+			text:      "text",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					UpdateMessage(gomock.Any(), domains.UpdateMessageDTO{
+						MessageID: 999,
+						Text:      "text",
+					}).
+					Return(customerrors.ErrMessageNotFound).
+					Times(1)
+			},
+			expectedError: customerrors.ErrMessageNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := messageshandler.New(mockUseCases)
+
+			err := h.UpdateMessage(tt.messageID, tt.text)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestHandler_SetContext(t *testing.T) {
 	t.Parallel()
 

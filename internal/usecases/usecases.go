@@ -289,6 +289,23 @@ func (u *UseCases) GetMessageByID(ctx context.Context, messageID uint64) (*domai
 	return message, nil
 }
 
+func (u *UseCases) UpdateMessage(ctx context.Context, dto domains.UpdateMessageDTO) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	if err = u.messages.UpdateMessage(ctx, tokens.AccessToken, dto); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update message", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) DeleteMessage(ctx context.Context, dto domains.DeleteMessageDTO) error {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {

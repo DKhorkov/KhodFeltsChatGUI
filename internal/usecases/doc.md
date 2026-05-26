@@ -49,6 +49,7 @@
 | `SendMessage` | `(ctx, domains.Message) error` | Подключается к WebSocket (если не подключен) и отправляет сообщение |
 | `ReadEvent` | `(ctx) (*domains.WSEvent, error)` | Подключается к WebSocket и читает WS-событие (envelope) |
 | `DeleteMessage` | `(ctx, domains.DeleteMessageDTO) error` | Удаление сообщения через HTTP API |
+| `UpdateMessage` | `(ctx, domains.UpdateMessageDTO) error` | Редактирование сообщения: загружает токены, вызывает `messages.UpdateMessage`, маппит ошибки |
 
 ### Пользователи
 

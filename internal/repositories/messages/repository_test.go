@@ -616,6 +616,169 @@ func TestRepository_GetMessageByID(t *testing.T) {
 	}
 }
 
+func TestRepository_UpdateMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		accessToken   string
+		dto           domains.UpdateMessageDTO
+		setupMocks    func(*mockhttp.MockHTTPClient)
+		expectedError error
+	}{
+		{
+			name:        "successful update",
+			accessToken: validToken,
+			dto: domains.UpdateMessageDTO{
+				MessageID: 1,
+				Text:      "updated text",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						if req.Method != http.MethodPut {
+							return nil, errors.New("invalid method")
+						}
+
+						expectedURL := "/messages/1"
+						if req.URL.Path != expectedURL {
+							return nil, errors.New("invalid URL path")
+						}
+
+						body, err := io.ReadAll(req.Body)
+						if err != nil {
+							return nil, err
+						}
+
+						var dto domains.UpdateMessageDTO
+						if err = json.Unmarshal(body, &dto); err != nil {
+							return nil, err
+						}
+
+						if dto.Text != "updated text" {
+							return nil, errors.New("invalid text")
+						}
+
+						cookie, err := req.Cookie(accessTokenCookieName)
+						if err != nil || cookie.Value != validToken {
+							return nil, errors.New("invalid cookie")
+						}
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader(nil)),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:        "unauthorized",
+			accessToken: "invalid_token",
+			dto: domains.UpdateMessageDTO{
+				MessageID: 1,
+				Text:      "text",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`unauthorized`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`unauthorized`),
+		},
+		{
+			name:        "message not found",
+			accessToken: validToken,
+			dto: domains.UpdateMessageDTO{
+				MessageID: 999,
+				Text:      "text",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`message not found`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`message not found`),
+		},
+		{
+			name:        "http client error",
+			accessToken: validToken,
+			dto: domains.UpdateMessageDTO{
+				MessageID: 1,
+				Text:      "text",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("timeout")).
+					Times(1)
+			},
+			expectedError: errors.New("timeout"),
+		},
+		{
+			name:        "internal server error",
+			accessToken: validToken,
+			dto: domains.UpdateMessageDTO{
+				MessageID: 1,
+				Text:      "text",
+			},
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`internal server error`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New(`internal server error`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := New(mockClient, "http://api.example.com")
+
+			err := repo.UpdateMessage(
+				context.Background(),
+				tt.accessToken,
+				tt.dto,
+			)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestRepository_DeleteMessage(t *testing.T) {
 	t.Parallel()
 
