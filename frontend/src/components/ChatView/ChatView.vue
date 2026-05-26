@@ -89,7 +89,14 @@
         </div>
 
         <div class="conversation__composer">
-          <div v-if="replyToMessage" class="conversation__reply-bar">
+          <div v-if="editingMessage" class="conversation__edit-bar">
+            <div class="conversation__edit-bar-content">
+              <span class="conversation__edit-bar-label">Редактирование</span>
+              <span class="conversation__edit-bar-text">{{ editingMessage.text }}</span>
+            </div>
+            <button class="conversation__edit-bar-close" @click="cancelEdit" title="Отменить редактирование">&times;</button>
+          </div>
+          <div v-else-if="replyToMessage" class="conversation__reply-bar">
             <div class="conversation__reply-bar-content">
               <span class="conversation__reply-bar-sender">
                 {{ replyToMessage.sender.id === currentUser?.id ? 'Вы' : replyToMessage.sender.username }}
@@ -127,7 +134,7 @@
               </div>
             </div>
             <button @click="sendMessage" :disabled="!newMessage.trim()">
-              Отправить
+              {{ editingMessage ? 'Сохранить' : 'Отправить' }}
             </button>
           </div>
         </div>
@@ -191,6 +198,11 @@
         :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
     >
       <button class="context-menu__item" @click="replyToContextMessage">Ответить</button>
+      <button
+          v-if="contextMenu.message?.sender.id === currentUser?.id"
+          class="context-menu__item"
+          @click="editContextMessage"
+      >Редактировать</button>
       <button class="context-menu__item" @click="copyContextMessage">Копировать текст</button>
       <div v-if="contextMenu.message?.sender.id === currentUser?.id" class="context-menu__delete-group">
         <button

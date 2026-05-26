@@ -60,6 +60,21 @@ func (h *Handler) SendMessage(chatID uint64, text string, replyToMessageID *uint
 	return h.useCases.SendMessage(ctx, message)
 }
 
+func (h *Handler) GetMessageByID(messageID uint64) (*domains.Message, error) {
+	ctx := context.Background()
+
+	return h.useCases.GetMessageByID(ctx, messageID)
+}
+
+func (h *Handler) UpdateMessage(messageID uint64, text string) error {
+	ctx := context.Background()
+
+	return h.useCases.UpdateMessage(ctx, domains.UpdateMessageDTO{
+		MessageID: messageID,
+		Text:      text,
+	})
+}
+
 func (h *Handler) DeleteMessage(messageID uint64, forAll bool) error {
 	ctx := context.Background()
 

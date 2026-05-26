@@ -51,7 +51,7 @@ var (
 
 	// Messages.
 	errMessageNotFound  = errors.New("Сообщение не найдено")
-	errNotMessageAuthor = errors.New("Только автор сообщения может удалить его для всех")
+	errNotMessageAuthor = errors.New("Только автор сообщения может выполнить это действие")
 
 	// Settings.
 	errSettingsNotFound            = errors.New("Не удалось получить настройки")

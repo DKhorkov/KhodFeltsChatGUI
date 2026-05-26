@@ -105,6 +105,98 @@ func (r *Repository) GetChatMessages(
 	return messages, nil
 }
 
+func (r *Repository) GetMessageByID(
+	ctx context.Context,
+	accessToken string,
+	messageID uint64,
+) (*domains.Message, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	path := fmt.Sprintf("%s/messages/%d", r.baseURL, messageID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, path, http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer r.CloseBody(ctx, resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(string(data))
+	}
+
+	var message domains.Message
+	if err = json.Unmarshal(data, &message); err != nil {
+		return nil, err
+	}
+
+	return &message, nil
+}
+
+func (r *Repository) UpdateMessage(
+	ctx context.Context,
+	accessToken string,
+	dto domains.UpdateMessageDTO,
+) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	body, err := json.Marshal(dto)
+	if err != nil {
+		return err
+	}
+
+	path := fmt.Sprintf("%s/messages/%d", r.baseURL, dto.MessageID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer r.CloseBody(ctx, resp.Body)
+
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
+	}
+
+	return nil
+}
+
 func (r *Repository) DeleteMessage(
 	ctx context.Context,
 	accessToken string,

@@ -51,6 +51,7 @@
 |-------|----------|
 | `SendMessage(ctx, Message) error` | Отправка сообщения через WebSocket |
 | `ReadEvent(ctx) (*WSEvent, error)` | Чтение WS-события из WebSocket (envelope с type + payload) |
+| `GetMessageByID(ctx, messageID uint64) (*Message, error)` | Получение сообщения по ID |
 | `GetChatMessages(ctx, chatID, *Pagination) ([]Message, error)` | Получение сообщений чата |
 | `DeleteMessage(ctx, DeleteMessageDTO) error` | Удаление сообщения (для себя или для всех) |
 
@@ -120,6 +121,7 @@
 | Метод | Описание |
 |-------|----------|
 | `GetChatMessages(ctx, accessToken, chatID, *Pagination) ([]Message, error)` | Получение сообщений |
+| `GetMessageByID(ctx, accessToken, messageID) (*Message, error)` | Получение сообщения по ID |
 | `DeleteMessage(ctx, accessToken, DeleteMessageDTO) error` | Удаление сообщения |
 
 **`WebSocketsRepository`** — WebSocket-соединение:

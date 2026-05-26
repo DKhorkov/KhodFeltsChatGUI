@@ -7,7 +7,9 @@ import {
 import {
     DeleteMessage,
     GetChatMessages,
-    SendMessage
+    GetMessageByID,
+    SendMessage,
+    UpdateMessage
 } from '../../../wailsjs/go/messages/Handler'
 import {GetCurrentUser} from '../../../wailsjs/go/users/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
@@ -52,6 +54,7 @@ export default {
         const webPushConsents = ref(0)
         const replyToMessage = ref(null)
         const highlightedMessageId = ref(null)
+        const editingMessage = ref(null)
         const contextMenu = ref({ visible: false, x: 0, y: 0, message: null, deleteExpanded: false })
 
         let isLoadingMore = false
@@ -128,6 +131,7 @@ export default {
             selectedChat.value = null
             messages.value = []
             replyToMessage.value = null
+            editingMessage.value = null
             contextMenu.value.visible = false
         }
 
@@ -150,6 +154,22 @@ export default {
 
         const sendMessage = async () => {
             if (!newMessage.value.trim() || !selectedChat.value) return
+
+            if (editingMessage.value) {
+                const msg = editingMessage.value
+                const text = newMessage.value
+                cancelEdit()
+
+                try {
+                    await UpdateMessage(msg.id, text)
+                } catch (err) {
+                    showError(err)
+                    newMessage.value = text
+                    editingMessage.value = msg
+                }
+
+                return
+            }
 
             const text = newMessage.value
             const reply = replyToMessage.value
@@ -297,8 +317,41 @@ export default {
             loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
         }
 
+        const handleMessageEdited = async (payload) => {
+            if (selectedChat.value?.id === payload.chatId) {
+                try {
+                    const updated = await GetMessageByID(payload.messageId)
+                    const idx = messages.value.findIndex(m => m.id === payload.messageId)
+                    if (idx >= 0) {
+                        messages.value[idx].text = updated.text
+                        messages.value[idx].updatedAt = updated.updatedAt
+                    }
+                } catch (err) {
+                    console.error('handleMessageEdited error:', err)
+                }
+            }
+
+            loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
+        }
+
         const cancelReply = () => {
             replyToMessage.value = null
+        }
+
+        const cancelEdit = () => {
+            editingMessage.value = null
+            newMessage.value = ''
+        }
+
+        const editContextMessage = () => {
+            const msg = contextMenu.value.message
+            contextMenu.value.visible = false
+            if (!msg) return
+
+            replyToMessage.value = null
+            editingMessage.value = msg
+            newMessage.value = msg.text
+            if (textareaRef.value) textareaRef.value.focus()
         }
 
         const scrollToMessage = async (messageId) => {
@@ -402,6 +455,7 @@ export default {
 
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
             window.runtime.EventsOn(WAILS_EVENT.MESSAGE_DELETED, handleMessageDeleted)
+            window.runtime.EventsOn(WAILS_EVENT.MESSAGE_EDITED, handleMessageEdited)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
             window.runtime.EventsOn(WAILS_EVENT.OPEN_CHAT, (chatId) => {
                 openChatById(chatId).catch(err => console.error('Ошибка открытия чата из уведомления:', err))
@@ -416,6 +470,7 @@ export default {
             StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.MESSAGE_DELETED)
+            window.runtime.EventsOff(WAILS_EVENT.MESSAGE_EDITED)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
             window.runtime.EventsOff(WAILS_EVENT.OPEN_CHAT)
 
@@ -474,9 +529,12 @@ export default {
             isDarkTheme,
             reloadSettings,
             replyToMessage,
+            editingMessage,
             highlightedMessageId,
             contextMenu,
             cancelReply,
+            cancelEdit,
+            editContextMessage,
             scrollToMessage,
             openContextMenu,
             replyToContextMessage,

@@ -17,7 +17,9 @@ HTTP-репозиторий для работы с сообщениями. Ре�
 | Метод | HTTP | Эндпоинт | Описание |
 |-------|------|----------|----------|
 | `GetChatMessages(ctx, accessToken, chatID, pagination)` | GET | `/chats/{id}/messages` | Сообщения конкретного чата с пагинацией (`limit`, `offset`) |
+| `GetMessageByID(ctx, accessToken, messageID)` | GET | `/messages/{id}` | Получение одного сообщения по ID. Ожидает 200 OK |
 | `DeleteMessage(ctx, accessToken, dto)` | DELETE | `/messages/{id}` | Удаление сообщения. Body JSON: `{"forAll": bool}`. Ожидает 204 NoContent |
+| `UpdateMessage(ctx, accessToken, dto)` | PUT | `/messages/{id}` | Редактирование сообщения. Body JSON с новым текстом. Ожидает 204 NoContent. Использует write lock (`r.mu.Lock()`) |
 
 ## Константы
 
@@ -29,5 +31,5 @@ HTTP-репозиторий для работы с сообщениями. Ре�
 
 - `internal/repositories/base` — базовый репозиторий (`CloseBody`)
 - `internal/interfaces` — `HTTPClient`
-- `internal/domains` — `Message`, `Pagination`, `DeleteMessageDTO`
+- `internal/domains` — `Message`, `Pagination`, `DeleteMessageDTO`, `UpdateMessageDTO`
 - `internal/common` — HTTP-заголовки (`ContentTypeHeaderName`, `ApplicationJSONContentType`)

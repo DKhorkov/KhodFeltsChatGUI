@@ -69,3 +69,32 @@ func (mr *MockMessagesRepositoryMockRecorder) GetChatMessages(ctx, accessToken, 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockMessagesRepository)(nil).GetChatMessages), ctx, accessToken, chatID, pagination)
 }
+
+// GetMessageByID mocks base method.
+func (m *MockMessagesRepository) GetMessageByID(ctx context.Context, accessToken string, messageID uint64) (*domains.Message, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessageByID", ctx, accessToken, messageID)
+	ret0, _ := ret[0].(*domains.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessageByID indicates an expected call of GetMessageByID.
+func (mr *MockMessagesRepositoryMockRecorder) GetMessageByID(ctx, accessToken, messageID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageByID", reflect.TypeOf((*MockMessagesRepository)(nil).GetMessageByID), ctx, accessToken, messageID)
+}
+
+// UpdateMessage mocks base method.
+func (m *MockMessagesRepository) UpdateMessage(ctx context.Context, accessToken string, dto domains.UpdateMessageDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMessage", ctx, accessToken, dto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMessage indicates an expected call of UpdateMessage.
+func (mr *MockMessagesRepositoryMockRecorder) UpdateMessage(ctx, accessToken, dto any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMessage", reflect.TypeOf((*MockMessagesRepository)(nil).UpdateMessage), ctx, accessToken, dto)
+}

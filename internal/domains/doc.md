@@ -65,9 +65,10 @@
 
 | Тип | Описание |
 |-----|----------|
-| `WSEventType` | Тип WS-события (`string`). Значения: `WSEventNewMessage` (`"new_message"`), `WSEventMessageDeleted` (`"message_deleted"`) |
+| `WSEventType` | Тип WS-события (`string`). Значения: `WSEventNewMessage` (`"new_message"`), `WSEventMessageDeleted` (`"message_deleted"`), `WSEventMessageEdited` (`"message_edited"`) |
 | `WSEvent` | WS-событие: `Type WSEventType`, `Payload json.RawMessage` |
 | `MessageDeletedPayload` | Полезная нагрузка удаления: `MessageID uint64`, `ChatID uint64` |
+| `MessageEditedPayload` | Полезная нагрузка редактирования: `MessageID uint64`, `ChatID uint64` |
 
 ### Пагинация (`pagination.go`)
 

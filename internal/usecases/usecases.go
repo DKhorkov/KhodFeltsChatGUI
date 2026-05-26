@@ -268,6 +268,44 @@ func (u *UseCases) ReadEvent(ctx context.Context) (*domains.WSEvent, error) {
 	return event, nil
 }
 
+func (u *UseCases) GetMessageByID(ctx context.Context, messageID uint64) (*domains.Message, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	message, err := u.messages.GetMessageByID(ctx, tokens.AccessToken, messageID)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to get message by id", err)
+
+		return nil, u.errorsMapper.Map(err)
+	}
+
+	message.CreatedAt = message.CreatedAt.In(common.Timezone)
+	message.UpdatedAt = message.UpdatedAt.In(common.Timezone)
+
+	return message, nil
+}
+
+func (u *UseCases) UpdateMessage(ctx context.Context, dto domains.UpdateMessageDTO) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	if err = u.messages.UpdateMessage(ctx, tokens.AccessToken, dto); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update message", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) DeleteMessage(ctx context.Context, dto domains.DeleteMessageDTO) error {
 	tokens, err := u.tokens.Load(ctx)
 	if err != nil {

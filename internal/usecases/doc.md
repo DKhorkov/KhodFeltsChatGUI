@@ -44,10 +44,12 @@
 |-------|-----------|----------|
 | `CreateChat` | `(ctx, domains.Chat) (*domains.Chat, error)` | Создает новый чат |
 | `GetUserChats` | `(ctx, *domains.Pagination) ([]domains.Chat, error)` | Получает чаты текущего пользователя с пагинацией |
+| `GetMessageByID` | `(ctx, messageID uint64) (*domains.Message, error)` | Получает сообщение по ID; конвертирует время в локальную таймзону |
 | `GetChatMessages` | `(ctx, chatID uint64, *domains.Pagination) ([]domains.Message, error)` | Получает сообщения чата; конвертирует время в локальную таймзону |
 | `SendMessage` | `(ctx, domains.Message) error` | Подключается к WebSocket (если не подключен) и отправляет сообщение |
 | `ReadEvent` | `(ctx) (*domains.WSEvent, error)` | Подключается к WebSocket и читает WS-событие (envelope) |
 | `DeleteMessage` | `(ctx, domains.DeleteMessageDTO) error` | Удаление сообщения через HTTP API |
+| `UpdateMessage` | `(ctx, domains.UpdateMessageDTO) error` | Редактирование сообщения: загружает токены, вызывает `messages.UpdateMessage`, маппит ошибки |
 
 ### Пользователи
 

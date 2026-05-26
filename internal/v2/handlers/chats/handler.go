@@ -22,6 +22,7 @@ const (
 	chatsUpdatedEventName   = "chats_updated"
 	newMessageEventName     = "new_message"
 	messageDeletedEventName = "message_deleted"
+	messageEditedEventName  = "message_edited"
 )
 
 type Handler struct {
@@ -171,6 +172,20 @@ func (h *Handler) readEvents() {
 				}
 
 				runtime.EventsEmit(h.wailsCtx, messageDeletedEventName, dto)
+			case domains.WSEventMessageEdited:
+				var dto domains.MessageEditedPayload
+				if err = json.Unmarshal(event.Payload, &dto); err != nil {
+					logging.LogErrorContext(
+						h.goroutinesCtx,
+						h.logger,
+						"Не удалось распарсить payload редактирования из WS-события",
+						err,
+					)
+
+					continue
+				}
+
+				runtime.EventsEmit(h.wailsCtx, messageEditedEventName, dto)
 			default:
 				logging.LogInfoContext(
 					h.goroutinesCtx,
