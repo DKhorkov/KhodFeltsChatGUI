@@ -4826,3 +4826,156 @@ func TestUseCases_DeleteMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestUseCases_GetMessageByID(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now().UTC()
+
+	tests := []struct {
+		name       string
+		messageID  uint64
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockMessagesRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedMessage *domains.Message
+		expectedError   error
+	}{
+		{
+			name:      "successful get message",
+			messageID: 1,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockMessages.EXPECT().
+					GetMessageByID(gomock.Any(), "access_token", uint64(1)).
+					Return(&domains.Message{
+						ID:        1,
+						ChatID:    100,
+						Text:      "Hello!",
+						CreatedAt: now,
+						UpdatedAt: now,
+					}, nil)
+			},
+			expectedMessage: &domains.Message{
+				ID:        1,
+				ChatID:    100,
+				Text:      "Hello!",
+				CreatedAt: now.In(common.Timezone),
+				UpdatedAt: now.In(common.Timezone),
+			},
+			expectedError: nil,
+		},
+		{
+			name:      "failed to load tokens",
+			messageID: 1,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   errors.New("tokens not found"),
+		},
+		{
+			name:      "failed to get message",
+			messageID: 1,
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockMessages.EXPECT().
+					GetMessageByID(gomock.Any(), "access_token", uint64(1)).
+					Return(nil, errors.New("not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to get message by id", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   errors.New("not found"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockMessages, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockMessages,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			message, err := uc.GetMessageByID(
+				context.Background(),
+				tt.messageID,
+			)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, message)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedMessage, message)
+			}
+		})
+	}
+}

@@ -44,6 +44,7 @@
 | `sendMessage()` | Отправляет сообщение через `SendMessage()`, помечает все прочитанными. UI обновляется по WS-событию `new_message` от сервера |
 | `handleNewMessage(msg)` | Обработчик Wails-события `new_message`: добавляет в открытый чат или показывает уведомление |
 | `handleMessageDeleted(payload)` | Обработчик Wails-события `message_deleted`: удаляет сообщение из UI. Логирует предупреждение если ID не найден |
+| `handleMessageEdited(payload)` | Обработчик Wails-события `message_edited`: получает обновлённое сообщение через `GetMessageByID()` и обновляет текст и `updatedAt` в UI |
 | `handleChatsUpdated(chats)` | Обработчик Wails-события `chats_updated` |
 | `deleteContextMessage(forAll)` | Удаляет сообщение через `DeleteMessage()`. UI обновляется по WS-событию `message_deleted` от сервера |
 | `replyToContextMessage()` | Устанавливает `replyToMessage` для ответа на сообщение из контекстного меню |
@@ -61,7 +62,7 @@
 ## Wails-биндинги
 
 - `chats/Handler`: `GetUserChats`, `StartListening`, `StopListening`
-- `messages/Handler`: `GetChatMessages`, `SendMessage`, `DeleteMessage`
+- `messages/Handler`: `GetChatMessages`, `GetMessageByID`, `SendMessage`, `DeleteMessage`
 - `users/Handler`: `GetCurrentUser`
 - `theme/Handler`: `GetTheme`, `ToggleTheme`
 - `settings/Handler`: `GetSettings`
@@ -71,9 +72,10 @@
 
 - `NEW_MESSAGE` — новое сообщение через WebSocket (единственный источник UI-обновлений при отправке)
 - `MESSAGE_DELETED` — удаление сообщения через WebSocket (единственный источник UI-обновлений при удалении)
+- `MESSAGE_EDITED` — редактирование сообщения через WebSocket (единственный источник UI-обновлений при редактировании)
 - `CHATS_UPDATED` — обновление списка чатов (каждые 5 сек с бэкенда)
 - `OPEN_CHAT` — открытие чата по клику на системное уведомление
 
 ## Архитектурный принцип
 
-Клиент не обновляет UI самостоятельно при отправке/удалении сообщений. Команды отправляются на сервер, сервер рассылает WS-события всем участникам чата (включая отправителя), слушатели событий обновляют UI (single source of truth).
+Клиент не обновляет UI самостоятельно при отправке/удалении/редактировании сообщений. Команды отправляются на сервер, сервер рассылает WS-события всем участникам чата (включая отправителя), слушатели событий обновляют UI (single source of truth).

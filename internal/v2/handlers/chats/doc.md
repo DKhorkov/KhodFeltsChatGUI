@@ -13,6 +13,7 @@
 | `chatsUpdatedEventName` | `"chats_updated"` | Имя Wails-события обновления чатов. |
 | `newMessageEventName` | `"new_message"` | Имя Wails-события нового сообщения. |
 | `messageDeletedEventName` | `"message_deleted"` | Имя Wails-события удаления сообщения. |
+| `messageEditedEventName` | `"message_edited"` | Имя Wails-события редактирования сообщения. |
 
 ## Типы
 
@@ -35,7 +36,7 @@
 
 | Сигнатура | Описание |
 |-----------|----------|
-| `(h *Handler) readEvents()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`. |
+| `(h *Handler) readEvents()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`, `message_edited` → эмит `message_edited`. |
 | `(h *Handler) refreshTokens()` | Горутина периодического обновления токенов (раз в минуту). |
 | `(h *Handler) updateChats()` | Горутина периодического обновления списка чатов (раз в 5 секунд). Эмитит событие `chats_updated`. |
 
@@ -51,7 +52,7 @@
 
 ## Зависимости
 
-- `github.com/DKhorkov/kfcGUI/internal/domains` — `Chat`, `CreateChatDTO`, `Pagination`, `WSEvent`, `MessageDeletedPayload`
+- `github.com/DKhorkov/kfcGUI/internal/domains` — `Chat`, `CreateChatDTO`, `Pagination`, `WSEvent`, `MessageDeletedPayload`, `MessageEditedPayload`
 - `github.com/DKhorkov/kfcGUI/internal/errors` — `ErrWebsocketClosed`, `ErrInvalidChat`
 - `github.com/DKhorkov/kfcGUI/internal/interfaces` — `UseCases`, `ErrorsMapper`
 - `github.com/DKhorkov/libs/logging` — логирование

@@ -62,6 +62,11 @@ type MessagesRepository interface {
 		chatID uint64,
 		pagination *domains.Pagination,
 	) ([]domains.Message, error)
+	GetMessageByID(
+		ctx context.Context,
+		accessToken string,
+		messageID uint64,
+	) (*domains.Message, error)
 	DeleteMessage(
 		ctx context.Context,
 		accessToken string,

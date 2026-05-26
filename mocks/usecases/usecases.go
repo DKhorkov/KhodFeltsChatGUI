@@ -128,6 +128,21 @@ func (mr *MockUseCasesMockRecorder) GetChatMessages(ctx, chatID, pagination any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatMessages", reflect.TypeOf((*MockUseCases)(nil).GetChatMessages), ctx, chatID, pagination)
 }
 
+// GetMessageByID mocks base method.
+func (m *MockUseCases) GetMessageByID(ctx context.Context, messageID uint64) (*domains.Message, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessageByID", ctx, messageID)
+	ret0, _ := ret[0].(*domains.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessageByID indicates an expected call of GetMessageByID.
+func (mr *MockUseCasesMockRecorder) GetMessageByID(ctx, messageID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageByID", reflect.TypeOf((*MockUseCases)(nil).GetMessageByID), ctx, messageID)
+}
+
 // GetCurrentUser mocks base method.
 func (m *MockUseCases) GetCurrentUser(ctx context.Context) (*domains.User, error) {
 	m.ctrl.T.Helper()

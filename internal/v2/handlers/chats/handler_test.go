@@ -374,6 +374,71 @@ func TestHandler_ReadEvents(t *testing.T) {
 			},
 		},
 		{
+			name: "ReadEvent returns MessageEdited with valid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							payload, _ := json.Marshal(domains.MessageEditedPayload{
+								MessageID: 42,
+								ChatID:    1,
+							})
+
+							return &domains.WSEvent{
+								Type:    domains.WSEventMessageEdited,
+								Payload: payload,
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns MessageEdited with invalid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return &domains.WSEvent{
+								Type:    domains.WSEventMessageEdited,
+								Payload: json.RawMessage(`not a json`),
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
 			name: "ReadEvent returns unknown event type then exits",
 			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
 				var callCount atomic.Int32

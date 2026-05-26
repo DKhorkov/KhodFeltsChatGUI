@@ -7,6 +7,7 @@ import {
 import {
     DeleteMessage,
     GetChatMessages,
+    GetMessageByID,
     SendMessage
 } from '../../../wailsjs/go/messages/Handler'
 import {GetCurrentUser} from '../../../wailsjs/go/users/Handler'
@@ -297,6 +298,23 @@ export default {
             loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
         }
 
+        const handleMessageEdited = async (payload) => {
+            if (selectedChat.value?.id !== payload.chatId) return
+
+            try {
+                const updated = await GetMessageByID(payload.messageId)
+                const idx = messages.value.findIndex(m => m.id === payload.messageId)
+                if (idx >= 0) {
+                    messages.value[idx].text = updated.text
+                    messages.value[idx].updatedAt = updated.updatedAt
+                }
+            } catch (err) {
+                console.error('handleMessageEdited error:', err)
+            }
+
+            loadChats().catch(err => console.error("Фоновое обновление чатов не удалось:", err))
+        }
+
         const cancelReply = () => {
             replyToMessage.value = null
         }
@@ -402,6 +420,7 @@ export default {
 
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
             window.runtime.EventsOn(WAILS_EVENT.MESSAGE_DELETED, handleMessageDeleted)
+            window.runtime.EventsOn(WAILS_EVENT.MESSAGE_EDITED, handleMessageEdited)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
             window.runtime.EventsOn(WAILS_EVENT.OPEN_CHAT, (chatId) => {
                 openChatById(chatId).catch(err => console.error('Ошибка открытия чата из уведомления:', err))
@@ -416,6 +435,7 @@ export default {
             StopListening().catch(err => console.error("Ошибка остановки слушателя:", err))
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.MESSAGE_DELETED)
+            window.runtime.EventsOff(WAILS_EVENT.MESSAGE_EDITED)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
             window.runtime.EventsOff(WAILS_EVENT.OPEN_CHAT)
 

@@ -425,6 +425,197 @@ func TestRepository_GetChatMessages(t *testing.T) {
 	}
 }
 
+func TestRepository_GetMessageByID(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now().Round(0) // Strip monotonic clock reading for JSON round-trip comparison
+
+	tests := []struct {
+		name            string
+		accessToken     string
+		messageID       uint64
+		setupMocks      func(*mockhttp.MockHTTPClient)
+		expectedMessage *domains.Message
+		expectedError   error
+	}{
+		{
+			name:        "successful get message",
+			accessToken: validToken,
+			messageID:   42,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				message := domains.Message{
+					ID:     42,
+					ChatID: 1,
+					Sender: domains.User{
+						ID:             100,
+						Username:       "john_doe",
+						Email:          "john@example.com",
+						EmailConfirmed: true,
+						CreatedAt:      now,
+						UpdatedAt:      now,
+					},
+					Text:      "Hello!",
+					CreatedAt: now,
+					UpdatedAt: now,
+				}
+				messageData, _ := json.Marshal(message)
+
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						expectedURL := "/messages/42"
+						if req.URL.Path != expectedURL {
+							return nil, errors.New("invalid URL path")
+						}
+
+						if req.Method != http.MethodGet {
+							return nil, errors.New("invalid method")
+						}
+
+						cookie, err := req.Cookie(accessTokenCookieName)
+						if err != nil || cookie.Value != validToken {
+							return nil, errors.New("invalid cookie")
+						}
+
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewReader(messageData)),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedMessage: &domains.Message{
+				ID:     42,
+				ChatID: 1,
+				Sender: domains.User{
+					ID:             100,
+					Username:       "john_doe",
+					Email:          "john@example.com",
+					EmailConfirmed: true,
+					CreatedAt:      now,
+					UpdatedAt:      now,
+				},
+				Text:      "Hello!",
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			expectedError: nil,
+		},
+		{
+			name:        "message not found",
+			accessToken: validToken,
+			messageID:   999,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusNotFound,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`message not found`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   errors.New(`message not found`),
+		},
+		{
+			name:        "unauthorized",
+			accessToken: "invalid_token",
+			messageID:   42,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusUnauthorized,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`unauthorized`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   errors.New(`unauthorized`),
+		},
+		{
+			name:        "http client error",
+			accessToken: validToken,
+			messageID:   42,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("timeout")).
+					Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   errors.New("timeout"),
+		},
+		{
+			name:        "invalid json response",
+			accessToken: validToken,
+			messageID:   42,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewReader([]byte(`{invalid json}`))),
+					}, nil).
+					Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   &json.SyntaxError{},
+		},
+		{
+			name:        "internal server error",
+			accessToken: validToken,
+			messageID:   42,
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body: io.NopCloser(
+							bytes.NewReader([]byte(`internal server error`)),
+						),
+					}, nil).
+					Times(1)
+			},
+			expectedMessage: nil,
+			expectedError:   errors.New(`internal server error`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := New(mockClient, "http://api.example.com")
+
+			message, err := repo.GetMessageByID(
+				context.Background(),
+				tt.accessToken,
+				tt.messageID,
+			)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, message)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedMessage, message)
+			}
+		})
+	}
+}
+
 func TestRepository_DeleteMessage(t *testing.T) {
 	t.Parallel()
 

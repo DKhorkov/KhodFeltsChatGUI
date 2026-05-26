@@ -55,6 +55,21 @@ func (mr *MockMessagesRepositoryMockRecorder) DeleteMessage(ctx, accessToken, dt
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessage", reflect.TypeOf((*MockMessagesRepository)(nil).DeleteMessage), ctx, accessToken, dto)
 }
 
+// GetMessageByID mocks base method.
+func (m *MockMessagesRepository) GetMessageByID(ctx context.Context, accessToken string, messageID uint64) (*domains.Message, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessageByID", ctx, accessToken, messageID)
+	ret0, _ := ret[0].(*domains.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessageByID indicates an expected call of GetMessageByID.
+func (mr *MockMessagesRepositoryMockRecorder) GetMessageByID(ctx, accessToken, messageID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageByID", reflect.TypeOf((*MockMessagesRepository)(nil).GetMessageByID), ctx, accessToken, messageID)
+}
+
 // GetChatMessages mocks base method.
 func (m *MockMessagesRepository) GetChatMessages(ctx context.Context, accessToken string, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error) {
 	m.ctrl.T.Helper()
