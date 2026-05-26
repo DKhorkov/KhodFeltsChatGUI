@@ -198,12 +198,12 @@
         :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
     >
       <button class="context-menu__item" @click="replyToContextMessage">Ответить</button>
-      <button class="context-menu__item" @click="copyContextMessage">Копировать текст</button>
       <button
           v-if="contextMenu.message?.sender.id === currentUser?.id"
           class="context-menu__item"
           @click="editContextMessage"
       >Редактировать</button>
+      <button class="context-menu__item" @click="copyContextMessage">Копировать текст</button>
       <div v-if="contextMenu.message?.sender.id === currentUser?.id" class="context-menu__delete-group">
         <button
             v-if="!contextMenu.deleteExpanded"
