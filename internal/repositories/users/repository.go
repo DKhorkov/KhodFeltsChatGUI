@@ -267,7 +267,12 @@ func (r *Repository) DeleteAvatar(
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, r.baseURL+"/users/me/avatar", http.NoBody)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		r.baseURL+"/users/me/avatar",
+		http.NoBody,
+	)
 	if err != nil {
 		return err
 	}

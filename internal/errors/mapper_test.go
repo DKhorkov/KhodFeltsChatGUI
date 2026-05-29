@@ -70,8 +70,10 @@ func TestMapper_Map(t *testing.T) {
 			expected: errLoginFailed,
 		},
 		{
-			name:     "Invalid image format",
-			actual:   errors.New("invalid image format: supported formats are JPEG, PNG, WebP, GIF"),
+			name: "Invalid image format",
+			actual: errors.New(
+				"invalid image format: supported formats are JPEG, PNG, WebP, GIF",
+			),
 			expected: errInvalidImageFormat,
 		},
 		{

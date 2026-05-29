@@ -54,9 +54,11 @@ var (
 	errNotMessageAuthor = errors.New("Только автор сообщения может выполнить это действие")
 
 	// File Storage.
-	errInvalidImageFormat = errors.New("Неподдерживаемый формат изображения. Допустимые форматы: JPEG, PNG, WebP, GIF")
-	errFileTooLarge       = errors.New("Файл слишком большой")
-	errFileNotFound       = errors.New("Файл не найден")
+	errInvalidImageFormat = errors.New(
+		"Неподдерживаемый формат изображения. Допустимые форматы: JPEG, PNG, WebP, GIF",
+	)
+	errFileTooLarge = errors.New("Файл слишком большой")
+	errFileNotFound = errors.New("Файл не найден")
 
 	// Settings.
 	errSettingsNotFound            = errors.New("Не удалось получить настройки")

@@ -653,7 +653,11 @@ func TestRepository_UpdateAvatar(t *testing.T) {
 
 						return &http.Response{
 							StatusCode: http.StatusOK,
-							Body:       io.NopCloser(bytes.NewReader([]byte("https://kfc.webtm.ru/api/files/download/uuid.jpg"))),
+							Body: io.NopCloser(
+								bytes.NewReader(
+									[]byte("https://kfc.webtm.ru/api/files/download/uuid.jpg"),
+								),
+							),
 						}, nil
 					}).
 					Times(1)
