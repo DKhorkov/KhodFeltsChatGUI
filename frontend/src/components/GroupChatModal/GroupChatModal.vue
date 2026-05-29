@@ -27,7 +27,17 @@
               class="user-item user-item--clickable"
               @click="openMemberProfile(member)"
           >
-            <div class="user-item__avatar">
+            <img
+                v-if="member.avatarPath"
+                class="user-item__avatar user-item__avatar--img"
+                :src="member.avatarPath"
+                :alt="member.username"
+                @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+            />
+            <div
+                class="user-item__avatar"
+                :style="member.avatarPath ? {display: 'none'} : {}"
+            >
               {{ member.username.charAt(0).toUpperCase() }}
             </div>
             <div class="user-item__info">

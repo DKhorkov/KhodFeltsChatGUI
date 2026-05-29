@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,6 +23,9 @@ const (
 
 	limitQueryParamName  = "limit"
 	offsetQueryParamName = "offset"
+
+	avatarFormFileKey = "avatar"
+	avatarFileName    = "avatar.jpg"
 )
 
 type Repository struct {
@@ -197,4 +201,98 @@ func (r *Repository) SearchUsers(
 	}
 
 	return users, nil
+}
+
+func (r *Repository) UpdateAvatar(
+	ctx context.Context,
+	accessToken string,
+	fileData []byte,
+) (string, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var body bytes.Buffer
+
+	writer := multipart.NewWriter(&body)
+
+	part, err := writer.CreateFormFile(avatarFormFileKey, avatarFileName)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err = part.Write(fileData); err != nil {
+		return "", err
+	}
+
+	if err = writer.Close(); err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, r.baseURL+"/users/me/avatar", &body)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set(common.ContentTypeHeaderName, writer.FormDataContentType())
+
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer r.CloseBody(ctx, resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New(string(data))
+	}
+
+	return string(data), nil
+}
+
+func (r *Repository) DeleteAvatar(
+	ctx context.Context,
+	accessToken string,
+) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, r.baseURL+"/users/me/avatar", http.NoBody)
+	if err != nil {
+		return err
+	}
+
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer r.CloseBody(ctx, resp.Body)
+
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
+	}
+
+	return nil
 }

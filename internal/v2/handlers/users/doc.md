@@ -19,6 +19,8 @@
 | `(h *Handler) GetCurrentUser() (*domains.User, error)` | Возвращает текущего пользователя. |
 | `(h *Handler) SearchUsers(filters *domains.UsersFilters, pagination *domains.Pagination) ([]domains.User, error)` | Поиск пользователей по фильтрам с пагинацией. |
 | `(h *Handler) UpdateUser(in domains.UpdateUserDTO) (*domains.User, error)` | Обновление профиля. Валидирует username (если задан) по `UsernameRegExps`. |
+| `(h *Handler) UpdateAvatar(fileData []byte) (string, error)` | Загрузка/обновление аватара. Принимает байты файла, возвращает URL аватара. |
+| `(h *Handler) DeleteAvatar() error` | Удаление аватара текущего пользователя. |
 | `(h *Handler) StartListening()` | Заглушка (не реализовано). |
 | `(h *Handler) StopListening()` | Заглушка (не реализовано). |
 

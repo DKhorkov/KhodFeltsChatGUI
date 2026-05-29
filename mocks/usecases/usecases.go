@@ -85,6 +85,20 @@ func (mr *MockUseCasesMockRecorder) CreateChat(ctx, chat any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChat", reflect.TypeOf((*MockUseCases)(nil).CreateChat), ctx, chat)
 }
 
+// DeleteAvatar mocks base method.
+func (m *MockUseCases) DeleteAvatar(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAvatar", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAvatar indicates an expected call of DeleteAvatar.
+func (mr *MockUseCasesMockRecorder) DeleteAvatar(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAvatar", reflect.TypeOf((*MockUseCases)(nil).DeleteAvatar), ctx)
+}
+
 // DeleteMessage mocks base method.
 func (m *MockUseCases) DeleteMessage(ctx context.Context, dto domains.DeleteMessageDTO) error {
 	m.ctrl.T.Helper()
@@ -345,6 +359,21 @@ func (m *MockUseCases) SetTheme(ctx context.Context, theme domains.ThemeType) er
 func (mr *MockUseCasesMockRecorder) SetTheme(ctx, theme any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTheme", reflect.TypeOf((*MockUseCases)(nil).SetTheme), ctx, theme)
+}
+
+// UpdateAvatar mocks base method.
+func (m *MockUseCases) UpdateAvatar(ctx context.Context, fileData []byte) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAvatar", ctx, fileData)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAvatar indicates an expected call of UpdateAvatar.
+func (mr *MockUseCasesMockRecorder) UpdateAvatar(ctx, fileData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUseCases)(nil).UpdateAvatar), ctx, fileData)
 }
 
 // UpdateMessage mocks base method.

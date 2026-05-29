@@ -623,3 +623,180 @@ func TestRepository_SearchUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_UpdateAvatar(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		accessToken   string
+		fileData      []byte
+		setupMocks    func(*mockhttp.MockHTTPClient)
+		expectedURL   string
+		expectedError error
+	}{
+		{
+			name:        "successful avatar upload",
+			accessToken: "valid_access_token",
+			fileData:    []byte("fake image data"),
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						assert.Equal(t, http.MethodPut, req.Method)
+						assert.Equal(t, "/users/me/avatar", req.URL.Path)
+						assert.Contains(t, req.Header.Get("Content-Type"), "multipart/form-data")
+
+						cookie, err := req.Cookie(accessTokenCookieName)
+						assert.NoError(t, err)
+						assert.Equal(t, "valid_access_token", cookie.Value)
+
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewReader([]byte("https://kfc.webtm.ru/api/files/download/uuid.jpg"))),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedURL:   "https://kfc.webtm.ru/api/files/download/uuid.jpg",
+			expectedError: nil,
+		},
+		{
+			name:        "bad request - invalid format",
+			accessToken: "valid_access_token",
+			fileData:    []byte("not an image"),
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusBadRequest,
+						Body:       io.NopCloser(bytes.NewReader([]byte("invalid image format"))),
+					}, nil).
+					Times(1)
+			},
+			expectedURL:   "",
+			expectedError: errors.New("invalid image format"),
+		},
+		{
+			name:        "http client error",
+			accessToken: "valid_access_token",
+			fileData:    []byte("data"),
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedURL:   "",
+			expectedError: errors.New("connection refused"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := New(mockClient, "http://api.example.com")
+
+			avatarURL, err := repo.UpdateAvatar(context.Background(), tt.accessToken, tt.fileData)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.expectedURL, avatarURL)
+		})
+	}
+}
+
+func TestRepository_DeleteAvatar(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		accessToken   string
+		setupMocks    func(*mockhttp.MockHTTPClient)
+		expectedError error
+	}{
+		{
+			name:        "successful avatar delete",
+			accessToken: "valid_access_token",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					DoAndReturn(func(req *http.Request) (*http.Response, error) {
+						assert.Equal(t, http.MethodDelete, req.Method)
+						assert.Equal(t, "/users/me/avatar", req.URL.Path)
+
+						cookie, err := req.Cookie(accessTokenCookieName)
+						assert.NoError(t, err)
+						assert.Equal(t, "valid_access_token", cookie.Value)
+
+						return &http.Response{
+							StatusCode: http.StatusNoContent,
+							Body:       io.NopCloser(bytes.NewReader(nil)),
+						}, nil
+					}).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:        "server error",
+			accessToken: "valid_access_token",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(&http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Body:       io.NopCloser(bytes.NewReader([]byte("internal server error"))),
+					}, nil).
+					Times(1)
+			},
+			expectedError: errors.New("internal server error"),
+		},
+		{
+			name:        "http client error",
+			accessToken: "valid_access_token",
+			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
+				mockClient.EXPECT().
+					Do(gomock.Any()).
+					Return(nil, errors.New("connection refused")).
+					Times(1)
+			},
+			expectedError: errors.New("connection refused"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockClient := mockhttp.NewMockHTTPClient(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockClient)
+			}
+
+			repo := New(mockClient, "http://api.example.com")
+
+			err := repo.DeleteAvatar(context.Background(), tt.accessToken)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

@@ -24,7 +24,17 @@
             class="user-item user-item--clickable"
             @click="selectedUser = user"
         >
-          <div class="user-item__avatar">
+          <img
+              v-if="user.avatarPath"
+              class="user-item__avatar user-item__avatar--img"
+              :src="user.avatarPath"
+              :alt="user.username"
+              @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+          />
+          <div
+              class="user-item__avatar"
+              :style="user.avatarPath ? {display: 'none'} : {}"
+          >
             {{ user.username.charAt(0).toUpperCase() }}
           </div>
           <div class="user-item__info">
@@ -44,7 +54,17 @@
     <div class="modal-content profile-modal" @click.stop v-else>
       <button class="modal-content__close" @click="selectedUser = null" title="Назад">&times;</button>
       <div class="profile-modal__header">
-        <div class="profile-modal__avatar">
+        <img
+            v-if="selectedUser.avatarPath"
+            class="profile-modal__avatar profile-modal__avatar--img"
+            :src="selectedUser.avatarPath"
+            :alt="selectedUser.username"
+            @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+        />
+        <div
+            class="profile-modal__avatar"
+            :style="selectedUser.avatarPath ? {display: 'none'} : {}"
+        >
           {{ selectedUser.username.charAt(0).toUpperCase() }}
         </div>
         <div class="profile-modal__title">

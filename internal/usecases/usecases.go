@@ -515,6 +515,41 @@ func (u *UseCases) GetSettings(ctx context.Context) (*domains.Settings, error) {
 	return settings, nil
 }
 
+func (u *UseCases) UpdateAvatar(ctx context.Context, fileData []byte) (string, error) {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return "", u.errorsMapper.Map(err)
+	}
+
+	avatarURL, err := u.users.UpdateAvatar(ctx, tokens.AccessToken, fileData)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to update avatar", err)
+
+		return "", u.errorsMapper.Map(err)
+	}
+
+	return avatarURL, nil
+}
+
+func (u *UseCases) DeleteAvatar(ctx context.Context) error {
+	tokens, err := u.tokens.Load(ctx)
+	if err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	if err = u.users.DeleteAvatar(ctx, tokens.AccessToken); err != nil {
+		logging.LogErrorContext(ctx, u.logger, "failed to delete avatar", err)
+
+		return u.errorsMapper.Map(err)
+	}
+
+	return nil
+}
+
 func (u *UseCases) UpdateSettings(
 	ctx context.Context,
 	settings domains.Settings,

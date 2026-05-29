@@ -1090,6 +1090,282 @@ func TestUseCases_UpdateUser(t *testing.T) {
 	}
 }
 
+func TestUseCases_UpdateAvatar(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		fileData   []byte
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedURL   string
+		expectedError error
+	}{
+		{
+			name:     "successful avatar upload",
+			fileData: []byte("fake image data"),
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					UpdateAvatar(gomock.Any(), "access_token", []byte("fake image data")).
+					Return("https://kfc.webtm.ru/api/files/download/uuid.jpg", nil)
+			},
+			expectedURL:   "https://kfc.webtm.ru/api/files/download/uuid.jpg",
+			expectedError: nil,
+		},
+		{
+			name:     "failed to load tokens",
+			fileData: []byte("data"),
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedURL:   "",
+			expectedError: errors.New("test"),
+		},
+		{
+			name:     "failed to update avatar",
+			fileData: []byte("data"),
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("invalid image format")
+				mappedErr := errors.New("invalid image format")
+
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					UpdateAvatar(gomock.Any(), "access_token", gomock.Any()).
+					Return("", originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to update avatar", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedURL:   "",
+			expectedError: errors.New("invalid image format"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockUsers, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockMessages,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			url, err := uc.UpdateAvatar(ctx, tt.fileData)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+				assert.Empty(t, url)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedURL, url)
+			}
+		})
+	}
+}
+
+func TestUseCases_DeleteAvatar(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockUsersRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedError error
+	}{
+		{
+			name: "successful avatar delete",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					DeleteAvatar(gomock.Any(), "access_token").
+					Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name: "failed to load tokens",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("test")).Times(1)
+			},
+			expectedError: errors.New("test"),
+		},
+		{
+			name: "failed to delete avatar",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockUsers *mockrepositories.MockUsersRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				originalErr := errors.New("user not found")
+				mappedErr := errors.New("user not found")
+
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{
+						AccessToken:  "access_token",
+						RefreshToken: "refresh_token",
+					}, nil)
+
+				mockUsers.EXPECT().
+					DeleteAvatar(gomock.Any(), "access_token").
+					Return(originalErr)
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to delete avatar", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().
+					Map(originalErr).
+					Return(mappedErr)
+			},
+			expectedError: errors.New("user not found"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+			mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+			mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+			mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+			mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+			mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
+			mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+			mockLogger := mocks.NewMockLogger(ctrl)
+			mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockUsers, mockLogger, mockErrorsMapper)
+			}
+
+			uc := usecases.New(
+				mockUsers,
+				mockChats,
+				mockMessages,
+				mockAuth,
+				mockTokens,
+				mockSettings,
+				mockWS,
+				mockLogger,
+				mockErrorsMapper,
+			)
+
+			ctx := context.Background()
+			err := uc.DeleteAvatar(ctx)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestUseCases_SearchUsers(t *testing.T) {
 	t.Parallel()
 

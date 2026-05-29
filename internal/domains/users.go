@@ -10,6 +10,7 @@ type User struct {
 	Password       string    `json:"password"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
+	AvatarPath     *string   `json:"avatarPath"`
 }
 
 type UpdateUserDTO struct {

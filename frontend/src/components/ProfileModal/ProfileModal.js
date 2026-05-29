@@ -1,6 +1,6 @@
-import {computed, inject, onMounted, ref} from 'vue'
+import {computed, inject, onMounted, onUnmounted, ref} from 'vue'
 import {ChangePassword} from '../../../wailsjs/go/auth/Handler'
-import {UpdateUser} from '../../../wailsjs/go/users/Handler'
+import {UpdateUser, UpdateAvatar, DeleteAvatar} from '../../../wailsjs/go/users/Handler'
 import {GetSettings, UpdateSettings} from '../../../wailsjs/go/settings/Handler'
 
 const CONSENT_NEW_MESSAGE = 1
@@ -30,6 +30,9 @@ export default {
         const oldPassword = ref('')
         const newPassword = ref('')
         const confirmPassword = ref('')
+
+        const isAvatarMenuOpen = ref(false)
+        const avatarFileInput = ref(null)
 
         const isNotificationsOpen = ref(false)
         const emailConsents = ref(0)
@@ -129,8 +132,55 @@ export default {
             }
         }
 
+        const toggleAvatarMenu = () => {
+            isAvatarMenuOpen.value = !isAvatarMenuOpen.value
+        }
+
+        const closeAvatarMenu = () => {
+            isAvatarMenuOpen.value = false
+        }
+
+        const triggerFileInput = () => {
+            isAvatarMenuOpen.value = false
+            if (avatarFileInput.value) avatarFileInput.value.click()
+        }
+
+        const uploadAvatar = async () => {
+            const file = avatarFileInput.value?.files?.[0]
+            if (!file) return
+
+            try {
+                const arrayBuffer = await file.arrayBuffer()
+                const byteArray = Array.from(new Uint8Array(arrayBuffer))
+                const avatarURL = await UpdateAvatar(byteArray)
+                emit('user-updated', {...props.user, avatarPath: avatarURL})
+                showInfo('Аватар успешно обновлён')
+            } catch (err) {
+                showError(err)
+            }
+
+            if (avatarFileInput.value) avatarFileInput.value.value = ''
+        }
+
+        const deleteAvatar = async () => {
+            isAvatarMenuOpen.value = false
+
+            try {
+                await DeleteAvatar()
+                emit('user-updated', {...props.user, avatarPath: null})
+                showInfo('Аватар удалён')
+            } catch (err) {
+                showError(err)
+            }
+        }
+
         onMounted(() => {
             loadSettings()
+            document.addEventListener('click', closeAvatarMenu)
+        })
+
+        onUnmounted(() => {
+            document.removeEventListener('click', closeAvatarMenu)
         })
 
         return {
@@ -148,6 +198,12 @@ export default {
             webPushNewMessageConsent,
             toggleEmailConsent,
             toggleWebPushConsent,
+            isAvatarMenuOpen,
+            avatarFileInput,
+            toggleAvatarMenu,
+            triggerFileInput,
+            uploadAvatar,
+            deleteAvatar,
         }
     },
 }

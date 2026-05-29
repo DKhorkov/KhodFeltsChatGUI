@@ -65,6 +65,14 @@
 | `ErrMessageNotFound` | `message not found` |
 | `ErrNotMessageAuthor` | `only message author can perform this action` |
 
+### Файловое хранилище (`file_storage.go`)
+
+| Переменная | Сообщение |
+|------------|-----------|
+| `ErrFileNotFound` | `file not found` |
+| `ErrInvalidImageFormat` | `invalid image format: supported formats are JPEG, PNG, WebP, GIF` |
+| `ErrFileTooLarge` | `file too large` |
+
 ### WebSocket (`ws.go`)
 
 | Переменная | Сообщение |

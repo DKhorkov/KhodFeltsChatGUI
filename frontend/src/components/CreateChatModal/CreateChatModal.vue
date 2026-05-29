@@ -48,7 +48,17 @@
               :value="user.id"
               v-model="selectedUserIds"
           />
-          <div class="user-item__avatar">
+          <img
+              v-if="user.avatarPath"
+              class="user-item__avatar user-item__avatar--img"
+              :src="user.avatarPath"
+              :alt="user.username"
+              @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+          />
+          <div
+              class="user-item__avatar"
+              :style="user.avatarPath ? {display: 'none'} : {}"
+          >
             {{ user.username.charAt(0).toUpperCase() }}
           </div>
           <div class="user-item__info">

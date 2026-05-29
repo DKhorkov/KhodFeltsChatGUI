@@ -42,6 +42,8 @@ type UsersRepository interface {
 		filters *domains.UsersFilters,
 		pagination *domains.Pagination,
 	) ([]domains.User, error)
+	UpdateAvatar(ctx context.Context, accessToken string, fileData []byte) (string, error)
+	DeleteAvatar(ctx context.Context, accessToken string) error
 }
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/chats_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,MessagesRepository,WebSocketsRepository,SettingsRepository

@@ -41,6 +41,20 @@ func (m *MockUsersRepository) EXPECT() *MockUsersRepositoryMockRecorder {
 	return m.recorder
 }
 
+// DeleteAvatar mocks base method.
+func (m *MockUsersRepository) DeleteAvatar(ctx context.Context, accessToken string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAvatar", ctx, accessToken)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAvatar indicates an expected call of DeleteAvatar.
+func (mr *MockUsersRepositoryMockRecorder) DeleteAvatar(ctx, accessToken any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAvatar", reflect.TypeOf((*MockUsersRepository)(nil).DeleteAvatar), ctx, accessToken)
+}
+
 // GetCurrentUser mocks base method.
 func (m *MockUsersRepository) GetCurrentUser(ctx context.Context, accessToken string) (*domains.User, error) {
 	m.ctrl.T.Helper()
@@ -69,6 +83,21 @@ func (m *MockUsersRepository) SearchUsers(ctx context.Context, filters *domains.
 func (mr *MockUsersRepositoryMockRecorder) SearchUsers(ctx, filters, pagination any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUsers", reflect.TypeOf((*MockUsersRepository)(nil).SearchUsers), ctx, filters, pagination)
+}
+
+// UpdateAvatar mocks base method.
+func (m *MockUsersRepository) UpdateAvatar(ctx context.Context, accessToken string, fileData []byte) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAvatar", ctx, accessToken, fileData)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAvatar indicates an expected call of UpdateAvatar.
+func (mr *MockUsersRepositoryMockRecorder) UpdateAvatar(ctx, accessToken, fileData any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUsersRepository)(nil).UpdateAvatar), ctx, accessToken, fileData)
 }
 
 // UpdateUser mocks base method.

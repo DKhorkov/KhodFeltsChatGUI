@@ -43,6 +43,8 @@ type UseCases interface {
 		filters *domains.UsersFilters,
 		pagination *domains.Pagination,
 	) ([]domains.User, error)
+	UpdateAvatar(ctx context.Context, fileData []byte) (string, error)
+	DeleteAvatar(ctx context.Context) error
 
 	// Settings
 	GetTheme(ctx context.Context) domains.ThemeType

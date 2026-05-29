@@ -347,6 +347,15 @@ body {
     flex-shrink: 0;
 }
 
+.user-item__avatar--img {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+}
+
 .user-item__info {
     flex: 1;
     min-width: 0;
@@ -388,6 +397,12 @@ body {
     margin-bottom: var(--space-2xl);
 }
 
+.profile-modal__avatar-wrapper {
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
 .profile-modal__avatar {
     width: 56px;
     height: 56px;
@@ -400,6 +415,53 @@ body {
     font-weight: 600;
     font-size: var(--font-xl);
     flex-shrink: 0;
+}
+
+.profile-modal__avatar--img {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.avatar-context-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-xs) 0;
+    min-width: 160px;
+    margin-top: var(--space-xs);
+}
+
+.avatar-context-menu__item {
+    display: block;
+    width: 100%;
+    padding: var(--space-sm) var(--space-lg);
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: var(--font-md);
+    color: var(--text-primary);
+    transition: background var(--transition-base);
+}
+
+.avatar-context-menu__item:hover {
+    background: var(--bg-hover);
+}
+
+.avatar-context-menu__item--danger {
+    color: var(--danger);
+}
+
+.avatar-context-menu__item--danger:hover {
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .profile-modal__title h2 {

@@ -381,3 +381,123 @@ func TestHandler_StopListening(t *testing.T) {
 	h := usershandler.New(mockUseCases, mockMapper, testValidationConfig())
 	h.StopListening()
 }
+
+func TestHandler_UpdateAvatar(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		fileData      []byte
+		setupMocks    func(*mockusecases.MockUseCases)
+		expectedURL   string
+		expectedError error
+	}{
+		{
+			name:     "successful avatar upload",
+			fileData: []byte("fake image data"),
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					UpdateAvatar(gomock.Any(), []byte("fake image data")).
+					Return("https://kfc.webtm.ru/api/files/download/uuid.jpg", nil).
+					Times(1)
+			},
+			expectedURL:   "https://kfc.webtm.ru/api/files/download/uuid.jpg",
+			expectedError: nil,
+		},
+		{
+			name:     "use case error",
+			fileData: []byte("data"),
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					UpdateAvatar(gomock.Any(), gomock.Any()).
+					Return("", errors.New("invalid image format")).
+					Times(1)
+			},
+			expectedURL:   "",
+			expectedError: errors.New("invalid image format"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := usershandler.New(mockUseCases, mockMapper, testValidationConfig())
+
+			url, err := h.UpdateAvatar(tt.fileData)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Empty(t, url)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedURL, url)
+			}
+		})
+	}
+}
+
+func TestHandler_DeleteAvatar(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		setupMocks    func(*mockusecases.MockUseCases)
+		expectedError error
+	}{
+		{
+			name: "successful avatar delete",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					DeleteAvatar(gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name: "use case error",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					DeleteAvatar(gomock.Any()).
+					Return(errors.New("user not found")).
+					Times(1)
+			},
+			expectedError: errors.New("user not found"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			mockMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := usershandler.New(mockUseCases, mockMapper, testValidationConfig())
+
+			err := h.DeleteAvatar()
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

@@ -22,6 +22,14 @@ export function StopListening() {
   return window['go']['users']['Handler']['StopListening']();
 }
 
+export function UpdateAvatar(arg1) {
+  return window['go']['users']['Handler']['UpdateAvatar'](arg1);
+}
+
+export function DeleteAvatar() {
+  return window['go']['users']['Handler']['DeleteAvatar']();
+}
+
 export function UpdateUser(arg1) {
   return window['go']['users']['Handler']['UpdateUser'](arg1);
 }

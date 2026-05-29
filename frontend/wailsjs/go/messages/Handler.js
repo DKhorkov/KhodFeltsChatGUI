@@ -10,6 +10,10 @@ export function GetChatMessages(arg1, arg2) {
   return window['go']['messages']['Handler']['GetChatMessages'](arg1, arg2);
 }
 
+export function GetMessageByID(arg1) {
+  return window['go']['messages']['Handler']['GetMessageByID'](arg1);
+}
+
 export function SendMessage(arg1, arg2, arg3) {
   return window['go']['messages']['Handler']['SendMessage'](arg1, arg2, arg3);
 }
@@ -24,4 +28,8 @@ export function StartListening() {
 
 export function StopListening() {
   return window['go']['messages']['Handler']['StopListening']();
+}
+
+export function UpdateMessage(arg1, arg2) {
+  return window['go']['messages']['Handler']['UpdateMessage'](arg1, arg2);
 }

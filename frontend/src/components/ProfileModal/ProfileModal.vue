@@ -8,9 +8,30 @@
     <div class="modal-content profile-modal" @click.stop>
       <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <div class="profile-modal__header">
-        <div class="profile-modal__avatar">
-          {{ user.username.charAt(0).toUpperCase() }}
+        <div class="profile-modal__avatar-wrapper" @click.stop="toggleAvatarMenu">
+          <img
+              v-if="user.avatarPath"
+              class="profile-modal__avatar profile-modal__avatar--img"
+              :src="user.avatarPath"
+              :alt="user.username"
+              @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+          />
+          <div
+              class="profile-modal__avatar"
+              :style="user.avatarPath ? {display: 'none'} : {}"
+          >
+            {{ user.username.charAt(0).toUpperCase() }}
+          </div>
+          <div class="avatar-context-menu" v-if="isAvatarMenuOpen">
+            <button class="avatar-context-menu__item" @click.stop="triggerFileInput">Изменить фото</button>
+            <button
+                v-if="user.avatarPath"
+                class="avatar-context-menu__item avatar-context-menu__item--danger"
+                @click.stop="deleteAvatar"
+            >Удалить фото</button>
+          </div>
         </div>
+        <input type="file" ref="avatarFileInput" accept="image/*" style="display: none;" @change="uploadAvatar" />
         <div class="profile-modal__title">
           <h2>{{ user.username }}</h2>
           <span class="profile-modal__email">{{ user.email }}</span>
