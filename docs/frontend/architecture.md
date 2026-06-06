@@ -41,10 +41,32 @@ src/components/ComponentName/
 ```js
 const app = createApp(App)
 
-// Глобальная директива v-focus: при монтировании элемента вызывает el.focus()
-// Используется в модальных окнах для автоматического перехвата фокуса и обработки Escape
+// Глобальная директива v-focus:
+// - mounted: сохраняет текущий activeElement в el._previousFocus и переводит
+//   фокус на el. Если activeElement был body или null (например, после того
+//   как умерла фокусированная <button> из dropdown'а), фолбэк — ближайший
+//   родительский .modal-overlay[tabindex].
+// - unmounted: возвращает фокус на el._previousFocus, чтобы Escape продолжал
+//   работать на родительской модалке/области чата.
 app.directive('focus', {
-    mounted: (el) => el.focus(),
+    mounted: (el) => {
+        const prev = document.activeElement
+        if (prev && prev !== document.body && prev !== el && document.contains(prev)) {
+            el._previousFocus = prev
+        } else {
+            el._previousFocus = el.parentElement
+                ? el.parentElement.closest('.modal-overlay[tabindex]')
+                : null
+        }
+        el.focus()
+    },
+    unmounted: (el) => {
+        const prev = el._previousFocus
+        if (prev && typeof prev.focus === 'function' && document.contains(prev)) {
+            prev.focus()
+        }
+        el._previousFocus = null
+    },
 })
 
 app.mount('#app')
