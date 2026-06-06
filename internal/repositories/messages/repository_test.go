@@ -428,7 +428,9 @@ func TestRepository_GetChatMessages(t *testing.T) {
 func TestRepository_GetMessageByID(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now().Round(0) // Strip monotonic clock reading for JSON round-trip comparison
+	// UTC + Round(0) — после JSON round-trip loc становится time.UTC, нужно совпадение
+	// с expected, иначе reflect.DeepEqual в testify падает на разнице loc (Local vs UTC).
+	now := time.Now().UTC().Round(0)
 
 	tests := []struct {
 		name            string
