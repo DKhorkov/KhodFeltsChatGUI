@@ -30,6 +30,7 @@
 | `isDarkTheme` | `boolean` | Состояние темы |
 | `isEmojiPickerVisible` | `boolean` | Видимость панели эмодзи |
 | `selectedMember` | `User\|null` | Участник для просмотра профиля |
+| `avatarZoomSrc` | `string\|null` | URL аватара для увеличенного просмотра |
 | `selectedGroupChat` | `Chat\|null` | Групповой чат для GroupChatModal |
 | `webPushConsents` | `number` | Битовая маска согласий на уведомления |
 | `editingMessage` | `Message\|null` | Сообщение, которое редактируется в данный момент |
@@ -54,6 +55,8 @@
 | `openContextMenu(event, message)` | Открывает контекстное меню с позиционированием (зажимает к viewport) |
 | `getLastMessagePreview(chat)` | Формирует превью последнего сообщения для списка чатов |
 | `getChatTitle(chat)` | Возвращает название чата или имя собеседника |
+| `getChatAvatarPath(chat)` | Возвращает URL аватара собеседника (для приватных чатов) или null |
+| `openAvatarZoom(src)` | Открывает оверлей увеличенного просмотра аватара |
 | `toggleTheme()` | Переключает тему через `ToggleTheme()` |
 | `insertEmoji(emoji)` | Вставляет эмодзи в позицию курсора |
 

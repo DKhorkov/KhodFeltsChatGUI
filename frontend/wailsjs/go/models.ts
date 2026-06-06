@@ -70,6 +70,7 @@ export namespace domains {
 	    createdAt: any;
 	    // Go type: time
 	    updatedAt: any;
+	    avatarPath?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new User(source);
@@ -84,6 +85,7 @@ export namespace domains {
 	        this.password = source["password"];
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	        this.avatarPath = source["avatarPath"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

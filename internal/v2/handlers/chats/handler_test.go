@@ -475,6 +475,7 @@ func TestHandler_ReadEvents(t *testing.T) {
 					ReadEvent(gomock.Any()).
 					DoAndReturn(func(ctx context.Context) (*domains.WSEvent, error) {
 						<-ctx.Done()
+
 						return nil, customerrors.ErrWebsocketClosed
 					}).
 					AnyTimes()

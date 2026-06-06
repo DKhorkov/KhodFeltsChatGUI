@@ -53,6 +53,13 @@ var (
 	errMessageNotFound  = errors.New("Сообщение не найдено")
 	errNotMessageAuthor = errors.New("Только автор сообщения может выполнить это действие")
 
+	// File Storage.
+	errInvalidImageFormat = errors.New(
+		"Неподдерживаемый формат изображения. Допустимые форматы: JPEG, PNG, WebP, GIF",
+	)
+	errFileTooLarge = errors.New("Файл слишком большой")
+	errFileNotFound = errors.New("Файл не найден")
+
 	// Settings.
 	errSettingsNotFound            = errors.New("Не удалось получить настройки")
 	errWebPushSubscriptionNotFound = errors.New("Подписка на push-уведомления не найдена")
@@ -104,6 +111,11 @@ var rawMapping = map[string]error{
 	// Messages
 	ErrNotMessageAuthor.Error(): errNotMessageAuthor,
 	ErrMessageNotFound.Error():  errMessageNotFound,
+
+	// File Storage
+	ErrInvalidImageFormat.Error(): errInvalidImageFormat,
+	ErrFileTooLarge.Error():       errFileTooLarge,
+	ErrFileNotFound.Error():       errFileNotFound,
 
 	// Settings
 	ErrSettingsNotFound.Error():            errSettingsNotFound,

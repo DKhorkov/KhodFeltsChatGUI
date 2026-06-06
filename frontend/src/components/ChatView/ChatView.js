@@ -50,6 +50,7 @@ export default {
             }, EMOJI_CLOSE_DELAY_MS)
         }
         const selectedMember = ref(null)
+        const avatarZoomSrc = ref(null)
         const selectedGroupChat = ref(null)
         const webPushConsents = ref(0)
         const replyToMessage = ref(null)
@@ -235,6 +236,16 @@ export default {
             if (otherMember) return otherMember.username
 
             return `Чат #${chat.id}`
+        }
+
+        const getChatAvatarPath = (chat) => {
+            if (chat.type !== CHAT_TYPE.PRIVATE) return null
+            const otherMember = getOtherMember(chat)
+            return otherMember?.avatarPath || null
+        }
+
+        const openAvatarZoom = (src) => {
+            if (src) avatarZoomSrc.value = src
         }
 
         const getLastMessagePreview = (chat) => {
@@ -516,9 +527,12 @@ export default {
             selectChat,
             sendMessage,
             getChatTitle,
+            getChatAvatarPath,
             getLastMessagePreview,
             getOtherMember,
             openMemberProfile,
+            openAvatarZoom,
+            avatarZoomSrc,
             getSenderName,
             formatTime,
             formatDate,

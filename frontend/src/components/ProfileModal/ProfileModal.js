@@ -1,12 +1,16 @@
 import {computed, inject, onMounted, ref} from 'vue'
 import {ChangePassword} from '../../../wailsjs/go/auth/Handler'
-import {UpdateUser} from '../../../wailsjs/go/users/Handler'
+import {UpdateUser, UpdateAvatar, DeleteAvatar} from '../../../wailsjs/go/users/Handler'
 import {GetSettings, UpdateSettings} from '../../../wailsjs/go/settings/Handler'
+import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal.vue'
 
 const CONSENT_NEW_MESSAGE = 1
 
 export default {
     name: 'ProfileModal',
+    components: {
+        ConfirmDeleteModal,
+    },
     props: {
         user: {
             type: Object,
@@ -30,6 +34,11 @@ export default {
         const oldPassword = ref('')
         const newPassword = ref('')
         const confirmPassword = ref('')
+
+        const isAvatarMenuOpen = ref(false)
+        const isAvatarZoomOpen = ref(false)
+        const isConfirmDeleteAvatarOpen = ref(false)
+        const avatarFileInput = ref(null)
 
         const isNotificationsOpen = ref(false)
         const emailConsents = ref(0)
@@ -129,6 +138,80 @@ export default {
             }
         }
 
+        const toggleAvatarMenu = () => {
+            isAvatarMenuOpen.value = !isAvatarMenuOpen.value
+        }
+
+        const closeAvatarMenu = () => {
+            isAvatarMenuOpen.value = false
+        }
+
+        const openAvatarZoom = () => {
+            if (!props.user.avatarPath) return
+            isAvatarMenuOpen.value = false
+            isAvatarZoomOpen.value = true
+        }
+
+        const closeAvatarZoom = () => {
+            isAvatarZoomOpen.value = false
+        }
+
+        const onEscape = () => {
+            if (isConfirmDeleteAvatarOpen.value) {
+                // Escape ловит сама ConfirmDeleteModal — ничего не делаем здесь,
+                // чтобы случайно не закрыть профильную модалку.
+                return
+            }
+            if (isAvatarZoomOpen.value) {
+                closeAvatarZoom()
+                return
+            }
+            if (isAvatarMenuOpen.value) {
+                closeAvatarMenu()
+                return
+            }
+            emit('close')
+        }
+
+        const triggerFileInput = () => {
+            isAvatarMenuOpen.value = false
+            if (avatarFileInput.value) avatarFileInput.value.click()
+        }
+
+        const uploadAvatar = async () => {
+            const file = avatarFileInput.value?.files?.[0]
+            if (!file) return
+
+            try {
+                const arrayBuffer = await file.arrayBuffer()
+                const byteArray = Array.from(new Uint8Array(arrayBuffer))
+                const avatarURL = await UpdateAvatar(byteArray)
+                emit('user-updated', {...props.user, avatarPath: avatarURL})
+                showInfo('Аватар успешно обновлён')
+            } catch (err) {
+                showError(err)
+            }
+
+            if (avatarFileInput.value) avatarFileInput.value.value = ''
+        }
+
+        const askDeleteAvatar = () => {
+            isAvatarMenuOpen.value = false
+            isConfirmDeleteAvatarOpen.value = true
+        }
+
+        const confirmDeleteAvatar = async () => {
+            isConfirmDeleteAvatarOpen.value = false
+
+            try {
+                await DeleteAvatar()
+                emit('user-updated', {...props.user, avatarPath: null})
+                showInfo('Аватар удалён')
+            } catch (err) {
+                showError(err)
+            }
+        }
+
         onMounted(() => {
             loadSettings()
         })
@@ -148,6 +231,19 @@ export default {
             webPushNewMessageConsent,
             toggleEmailConsent,
             toggleWebPushConsent,
+            isAvatarMenuOpen,
+            isAvatarZoomOpen,
+            isConfirmDeleteAvatarOpen,
+            avatarFileInput,
+            toggleAvatarMenu,
+            closeAvatarMenu,
+            openAvatarZoom,
+            closeAvatarZoom,
+            onEscape,
+            triggerFileInput,
+            uploadAvatar,
+            askDeleteAvatar,
+            confirmDeleteAvatar,
         }
     },
 }

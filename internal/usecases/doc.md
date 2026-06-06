@@ -57,6 +57,8 @@
 |-------|-----------|----------|
 | `UpdateUser` | `(ctx, domains.UpdateUserDTO) (*domains.User, error)` | Обновляет данные пользователя |
 | `SearchUsers` | `(ctx, *domains.UsersFilters, *domains.Pagination) ([]domains.User, error)` | Ищет пользователей, исключая текущего из результатов |
+| `UpdateAvatar` | `(ctx, []byte) (string, error)` | Загружает/обновляет аватар текущего пользователя; возвращает URL |
+| `DeleteAvatar` | `(ctx) error` | Удаляет аватар текущего пользователя |
 
 ### Настройки
 

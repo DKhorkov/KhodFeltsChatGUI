@@ -66,6 +66,23 @@ func (h *Handler) UpdateUser(in domains.UpdateUserDTO) (*domains.User, error) {
 	return updatedUser, nil
 }
 
+func (h *Handler) UpdateAvatar(fileData []byte) (string, error) {
+	ctx := context.Background()
+
+	avatarURL, err := h.useCases.UpdateAvatar(ctx, fileData)
+	if err != nil {
+		return "", err
+	}
+
+	return avatarURL, nil
+}
+
+func (h *Handler) DeleteAvatar() error {
+	ctx := context.Background()
+
+	return h.useCases.DeleteAvatar(ctx)
+}
+
 func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
 func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

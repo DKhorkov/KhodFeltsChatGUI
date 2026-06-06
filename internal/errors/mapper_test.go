@@ -69,6 +69,23 @@ func TestMapper_Map(t *testing.T) {
 			actual:   errors.New("something went wrong: login failed"),
 			expected: errLoginFailed,
 		},
+		{
+			name: "Invalid image format",
+			actual: errors.New(
+				"invalid image format: supported formats are JPEG, PNG, WebP, GIF",
+			),
+			expected: errInvalidImageFormat,
+		},
+		{
+			name:     "File too large",
+			actual:   errors.New("file too large"),
+			expected: errFileTooLarge,
+		},
+		{
+			name:     "File not found",
+			actual:   errors.New("file not found"),
+			expected: errFileNotFound,
+		},
 	}
 
 	for _, test := range tests {

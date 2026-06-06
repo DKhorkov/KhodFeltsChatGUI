@@ -4,7 +4,17 @@
     <div class="toolbar">
       <div class="toolbar__spacer"></div>
       <button @click="$emit('show-profile')" class="toolbar__profile-btn" v-if="currentUser" title="Профиль">
-        <div class="toolbar__profile-avatar">
+        <img
+            v-if="currentUser.avatarPath"
+            class="toolbar__profile-avatar toolbar__profile-avatar--img"
+            :src="currentUser.avatarPath"
+            :alt="currentUser.username"
+            @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+        />
+        <div
+            class="toolbar__profile-avatar"
+            :style="currentUser.avatarPath ? {display: 'none'} : {}"
+        >
           {{ currentUser.username.charAt(0).toUpperCase() }}
         </div>
         <span class="toolbar__profile-name">{{ currentUser.username }}</span>
@@ -29,9 +39,18 @@
               :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
               @click="selectChat(chat)"
           >
+            <img
+                v-if="getChatAvatarPath(chat)"
+                class="chat-item__avatar chat-item__avatar--img chat-item__avatar--clickable"
+                :src="getChatAvatarPath(chat)"
+                :alt="getChatTitle(chat)"
+                @click.stop="openMemberProfile(chat)"
+                @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+            />
             <div
                 class="chat-item__avatar"
                 :class="{ 'chat-item__avatar--clickable': true }"
+                :style="getChatAvatarPath(chat) ? {display: 'none'} : {}"
                 @click.stop="openMemberProfile(chat)"
             >
               {{ getChatTitle(chat).charAt(0).toUpperCase() }}
@@ -156,7 +175,18 @@
       <div class="modal-content profile-modal" @click.stop>
         <button class="modal-content__close" @click="closeMemberProfile" title="Закрыть">&times;</button>
         <div class="profile-modal__header">
-          <div class="profile-modal__avatar">
+          <img
+              v-if="selectedMember.avatarPath"
+              class="profile-modal__avatar profile-modal__avatar--img profile-modal__avatar--clickable"
+              :src="selectedMember.avatarPath"
+              :alt="selectedMember.username"
+              @click="openAvatarZoom(selectedMember.avatarPath)"
+              @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+          />
+          <div
+              class="profile-modal__avatar"
+              :style="selectedMember.avatarPath ? {display: 'none'} : {}"
+          >
             {{ selectedMember.username.charAt(0).toUpperCase() }}
           </div>
           <div class="profile-modal__title">
@@ -190,6 +220,19 @@
         @close="selectedGroupChat = null"
         @open-member-profile="openGroupMemberProfile"
     />
+
+    <!-- Увеличенный просмотр аватара -->
+    <div
+        v-if="avatarZoomSrc"
+        class="avatar-zoom-overlay"
+        @click.self="avatarZoomSrc = null"
+        @keydown.escape.stop="avatarZoomSrc = null"
+        tabindex="-1"
+        v-focus
+    >
+      <button class="avatar-zoom-overlay__close" @click.stop="avatarZoomSrc = null" aria-label="Закрыть">&times;</button>
+      <img class="avatar-zoom-overlay__img" :src="avatarZoomSrc" alt="Аватар" @click.stop />
+    </div>
 
     <!-- Контекстное меню сообщения -->
     <div

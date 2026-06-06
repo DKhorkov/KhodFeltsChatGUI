@@ -10,7 +10,7 @@
 
 | Тип | Описание |
 |-----|----------|
-| `User` | Пользователь: `ID`, `Username`, `Email`, `EmailConfirmed`, `Password`, `CreatedAt`, `UpdatedAt` |
+| `User` | Пользователь: `ID`, `Username`, `Email`, `EmailConfirmed`, `Password`, `CreatedAt`, `UpdatedAt`, `AvatarPath *string` (URL аватара, nullable) |
 | `UpdateUserDTO` | DTO обновления пользователя: `Username *string` |
 | `UsersFilters` | Фильтры поиска пользователей: `Username *string` |
 

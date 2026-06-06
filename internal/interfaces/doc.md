@@ -68,6 +68,8 @@
 |-------|----------|
 | `UpdateUser(ctx, UpdateUserDTO) (*User, error)` | Обновление профиля |
 | `SearchUsers(ctx, *UsersFilters, *Pagination) ([]User, error)` | Поиск пользователей |
+| `UpdateAvatar(ctx, []byte) (string, error)` | Загрузка/обновление аватара |
+| `DeleteAvatar(ctx) error` | Удаление аватара |
 
 **Settings:**
 
@@ -108,6 +110,8 @@
 | `GetCurrentUser(ctx, accessToken) (*User, error)` | Получение текущего пользователя |
 | `UpdateUser(ctx, accessToken, UpdateUserDTO) (*User, error)` | Обновление пользователя |
 | `SearchUsers(ctx, *UsersFilters, *Pagination) ([]User, error)` | Поиск пользователей |
+| `UpdateAvatar(ctx, accessToken, []byte) (string, error)` | Загрузка/обновление аватара (multipart) |
+| `DeleteAvatar(ctx, accessToken) error` | Удаление аватара |
 
 **`ChatsRepository`** — чаты через HTTP API:
 

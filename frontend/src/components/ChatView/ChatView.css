@@ -650,3 +650,32 @@
     background-color: var(--bg-surface);
     font-size: var(--font-lg);
 }
+
+/* ═══════════════════════════════════════
+   Аватары-картинки
+   ═══════════════════════════════════════ */
+.toolbar__profile-avatar--img {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.chat-item__avatar--img {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+}
+
+.profile-modal__avatar--img {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
