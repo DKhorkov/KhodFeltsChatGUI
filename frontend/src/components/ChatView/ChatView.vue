@@ -225,9 +225,10 @@
     <div
         v-if="avatarZoomSrc"
         class="avatar-zoom-overlay"
-        @click="avatarZoomSrc = null"
-        @keydown.escape="avatarZoomSrc = null"
+        @click.self="avatarZoomSrc = null"
+        @keydown.escape.stop="avatarZoomSrc = null"
         tabindex="-1"
+        v-focus
     >
       <button class="avatar-zoom-overlay__close" @click.stop="avatarZoomSrc = null" aria-label="Закрыть">&times;</button>
       <img class="avatar-zoom-overlay__img" :src="avatarZoomSrc" alt="Аватар" @click.stop />

@@ -184,6 +184,9 @@
         v-if="isAvatarZoomOpen"
         class="avatar-zoom-overlay"
         @click.stop="closeAvatarZoom"
+        @keydown.escape.stop="closeAvatarZoom"
+        tabindex="-1"
+        v-focus
     >
       <button class="avatar-zoom-overlay__close" @click.stop="closeAvatarZoom" aria-label="Закрыть">&times;</button>
       <img class="avatar-zoom-overlay__img" :src="user.avatarPath" alt="Аватар" @click.stop />
