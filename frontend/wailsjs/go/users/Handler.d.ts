@@ -3,6 +3,8 @@
 import {domains} from '../models';
 import {context} from '../models';
 
+export function DeleteAvatar():Promise<void>;
+
 export function GetCurrentUser():Promise<domains.User>;
 
 export function SearchUsers(arg1:domains.UsersFilters,arg2:domains.Pagination):Promise<Array<domains.User>>;
@@ -14,7 +16,5 @@ export function StartListening():Promise<void>;
 export function StopListening():Promise<void>;
 
 export function UpdateAvatar(arg1:Array<number>):Promise<string>;
-
-export function DeleteAvatar():Promise<void>;
 
 export function UpdateUser(arg1:domains.UpdateUserDTO):Promise<domains.User>;
