@@ -1,12 +1,16 @@
-import {computed, inject, onMounted, onUnmounted, ref} from 'vue'
+import {computed, inject, onMounted, ref} from 'vue'
 import {ChangePassword} from '../../../wailsjs/go/auth/Handler'
 import {UpdateUser, UpdateAvatar, DeleteAvatar} from '../../../wailsjs/go/users/Handler'
 import {GetSettings, UpdateSettings} from '../../../wailsjs/go/settings/Handler'
+import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal.vue'
 
 const CONSENT_NEW_MESSAGE = 1
 
 export default {
     name: 'ProfileModal',
+    components: {
+        ConfirmDeleteModal,
+    },
     props: {
         user: {
             type: Object,
@@ -32,6 +36,8 @@ export default {
         const confirmPassword = ref('')
 
         const isAvatarMenuOpen = ref(false)
+        const isAvatarZoomOpen = ref(false)
+        const isConfirmDeleteAvatarOpen = ref(false)
         const avatarFileInput = ref(null)
 
         const isNotificationsOpen = ref(false)
@@ -140,6 +146,33 @@ export default {
             isAvatarMenuOpen.value = false
         }
 
+        const openAvatarZoom = () => {
+            if (!props.user.avatarPath) return
+            isAvatarMenuOpen.value = false
+            isAvatarZoomOpen.value = true
+        }
+
+        const closeAvatarZoom = () => {
+            isAvatarZoomOpen.value = false
+        }
+
+        const onEscape = () => {
+            if (isConfirmDeleteAvatarOpen.value) {
+                // Escape ловит сама ConfirmDeleteModal — ничего не делаем здесь,
+                // чтобы случайно не закрыть профильную модалку.
+                return
+            }
+            if (isAvatarZoomOpen.value) {
+                closeAvatarZoom()
+                return
+            }
+            if (isAvatarMenuOpen.value) {
+                closeAvatarMenu()
+                return
+            }
+            emit('close')
+        }
+
         const triggerFileInput = () => {
             isAvatarMenuOpen.value = false
             if (avatarFileInput.value) avatarFileInput.value.click()
@@ -162,8 +195,13 @@ export default {
             if (avatarFileInput.value) avatarFileInput.value.value = ''
         }
 
-        const deleteAvatar = async () => {
+        const askDeleteAvatar = () => {
             isAvatarMenuOpen.value = false
+            isConfirmDeleteAvatarOpen.value = true
+        }
+
+        const confirmDeleteAvatar = async () => {
+            isConfirmDeleteAvatarOpen.value = false
 
             try {
                 await DeleteAvatar()
@@ -176,11 +214,6 @@ export default {
 
         onMounted(() => {
             loadSettings()
-            document.addEventListener('click', closeAvatarMenu)
-        })
-
-        onUnmounted(() => {
-            document.removeEventListener('click', closeAvatarMenu)
         })
 
         return {
@@ -199,11 +232,18 @@ export default {
             toggleEmailConsent,
             toggleWebPushConsent,
             isAvatarMenuOpen,
+            isAvatarZoomOpen,
+            isConfirmDeleteAvatarOpen,
             avatarFileInput,
             toggleAvatarMenu,
+            closeAvatarMenu,
+            openAvatarZoom,
+            closeAvatarZoom,
+            onEscape,
             triggerFileInput,
             uploadAvatar,
-            deleteAvatar,
+            askDeleteAvatar,
+            confirmDeleteAvatar,
         }
     },
 }

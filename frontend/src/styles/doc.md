@@ -35,5 +35,7 @@
 - Кнопок (`.btn-primary`, `.btn-danger`, `.btn-close`)
 - Форм (`.form-group`, `.form-input`, `.form-label`)
 - Профильных модалок (`.profile-modal`)
+- Контекстного меню аватара (`.avatar-context-menu`, `.avatar-context-menu__item`)
+- Кликабельного аватара и оверлея увеличения (`.profile-modal__avatar--clickable`, `.avatar-zoom-overlay`) — общий для ProfileModal и ChatView
 - Уведомлений (`.notification-toast`)
 - Загрузочного экрана (`.loading-screen`)

@@ -1,11 +1,11 @@
 <template>
   <div class="modal-overlay"
-       @click="$emit('close')"
-       @keydown.escape="$emit('close')"
+       @click.self="$emit('close')"
+       @keydown.escape="onEscape"
        tabindex="-1"
        v-focus
   >
-    <div class="modal-content profile-modal" @click.stop>
+    <div class="modal-content profile-modal" @click.stop="closeAvatarMenu">
       <button class="modal-content__close" @click="$emit('close')" title="Закрыть">&times;</button>
       <div class="profile-modal__header">
         <div class="profile-modal__avatar-wrapper" @click.stop="toggleAvatarMenu">
@@ -23,11 +23,16 @@
             {{ user.username.charAt(0).toUpperCase() }}
           </div>
           <div class="avatar-context-menu" v-if="isAvatarMenuOpen">
+            <button
+                v-if="user.avatarPath"
+                class="avatar-context-menu__item"
+                @click.stop="openAvatarZoom"
+            >Открыть фото</button>
             <button class="avatar-context-menu__item" @click.stop="triggerFileInput">Изменить фото</button>
             <button
                 v-if="user.avatarPath"
                 class="avatar-context-menu__item avatar-context-menu__item--danger"
-                @click.stop="deleteAvatar"
+                @click.stop="askDeleteAvatar"
             >Удалить фото</button>
           </div>
         </div>
@@ -174,6 +179,22 @@
         <button class="btn--danger" @click="$emit('logout')">Выйти из аккаунта</button>
       </div>
     </div>
+
+    <div
+        v-if="isAvatarZoomOpen"
+        class="avatar-zoom-overlay"
+        @click.stop="closeAvatarZoom"
+    >
+      <button class="avatar-zoom-overlay__close" @click.stop="closeAvatarZoom" aria-label="Закрыть">&times;</button>
+      <img class="avatar-zoom-overlay__img" :src="user.avatarPath" alt="Аватар" @click.stop />
+    </div>
+
+    <ConfirmDeleteModal
+        v-if="isConfirmDeleteAvatarOpen"
+        message="Вы уверены, что хотите удалить фото профиля?"
+        @confirm="confirmDeleteAvatar"
+        @cancel="isConfirmDeleteAvatarOpen = false"
+    />
   </div>
 </template>
 

@@ -35,6 +35,8 @@
 | `isNotificationsOpen` | Открыта ли секция настроек уведомлений |
 | `emailConsents`, `webPushConsents` | Битовые маски согласий на уведомления |
 | `isAvatarMenuOpen` | Открыто ли контекстное меню аватара |
+| `isAvatarZoomOpen` | Открыт ли оверлей увеличения аватара |
+| `isConfirmDeleteAvatarOpen` | Открыта ли модалка подтверждения удаления аватара |
 | `avatarFileInput` | Ref на скрытый `<input type="file">` для загрузки аватара |
 
 ## Ключевые функции
@@ -47,10 +49,19 @@
 | `changePassword()` | Валидирует и вызывает `ChangePassword(dto)` |
 | `updateUser()` | Вызывает `UpdateUser(dto)`, эмитит `user-updated` |
 | `toggleAvatarMenu()` | Показывает/скрывает контекстное меню аватара |
+| `closeAvatarMenu()` | Закрывает контекстное меню. Привязан к `@click.stop` на `modal-content`, чтобы клик в любое место внутри модалки закрывал меню |
+| `openAvatarZoom()` | Открывает оверлей с увеличенным аватаром (только если `avatarPath` != null) |
+| `closeAvatarZoom()` | Закрывает оверлей увеличения |
+| `onEscape()` | Обработчик Escape: сначала закрывает зум, затем меню, затем модалку |
 | `triggerFileInput()` | Открывает диалог выбора файла для загрузки аватара |
 | `uploadAvatar()` | Читает выбранный файл, вызывает `UpdateAvatar(byteArray)`, эмитит `user-updated` |
-| `deleteAvatar()` | Вызывает `DeleteAvatar()`, эмитит `user-updated` с `avatarPath: null` |
+| `askDeleteAvatar()` | Открывает модалку подтверждения удаления (`ConfirmDeleteModal`) |
+| `confirmDeleteAvatar()` | Вызывает `DeleteAvatar()` после подтверждения, эмитит `user-updated` с `avatarPath: null` |
 | `formatDate(dateStr)` | Форматирует дату в `ru-RU` |
+
+## Подкомпоненты
+
+- [`ConfirmDeleteModal`](../ConfirmDeleteModal/doc.md) — модалка подтверждения удаления аватара
 
 ## Wails-биндинги
 
