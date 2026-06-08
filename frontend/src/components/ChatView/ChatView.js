@@ -57,6 +57,9 @@ export default {
         const highlightedMessageId = ref(null)
         const editingMessage = ref(null)
         const contextMenu = ref({ visible: false, x: 0, y: 0, message: null, deleteExpanded: false })
+        const unreadCount = ref(0)
+        const isAtBottom = ref(true)
+        let lastMessageObserver = null
 
         let isLoadingMore = false
         let hasMoreMessages = true
@@ -134,6 +137,7 @@ export default {
             replyToMessage.value = null
             editingMessage.value = null
             contextMenu.value.visible = false
+            resetScrollDownState()
         }
 
         const selectChat = async (chat) => {
@@ -197,9 +201,17 @@ export default {
                 }
 
                 if (selectedChat.value?.id === message.chatId) {
+                    const isOwn = message.sender.id === currentUser.value?.id
+                    const wasAtBottom = isAtBottom.value
+
                     messages.value.push({...message, isRead: false})
                     await nextTick()
-                    scrollToBottom()
+
+                    if (isOwn || wasAtBottom) {
+                        scrollToBottom()
+                    } else {
+                        unreadCount.value += 1
+                    }
                 } else {
                     emit('new-message-notification', {
                         sender: message.sender.username,
@@ -221,6 +233,23 @@ export default {
         const scrollToBottom = () => {
             if (messagesListRef.value) {
                 messagesListRef.value.scrollTop = messagesListRef.value.scrollHeight
+            }
+        }
+
+        const onScrollDownClick = () => {
+            if (messagesListRef.value) {
+                messagesListRef.value.scrollTo({
+                    top: messagesListRef.value.scrollHeight,
+                    behavior: 'smooth',
+                })
+            }
+        }
+
+        const resetScrollDownState = () => {
+            unreadCount.value = 0
+            isAtBottom.value = true
+            if (lastMessageObserver) {
+                lastMessageObserver.disconnect()
             }
         }
 
@@ -491,7 +520,13 @@ export default {
         })
 
         watch(messagesListRef, (el, _, onCleanup) => {
-            if (!el) return
+            if (!el) {
+                if (lastMessageObserver) {
+                    lastMessageObserver.disconnect()
+                    lastMessageObserver = null
+                }
+                return
+            }
 
             scrollHandler = async () => {
                 if (el.scrollTop <= 10 && !isLoadingMore && hasMoreMessages && selectedChat.value) {
@@ -503,8 +538,32 @@ export default {
             }
 
             el.addEventListener('scroll', scrollHandler)
-            onCleanup(() => el.removeEventListener('scroll', scrollHandler))
+
+            lastMessageObserver = new IntersectionObserver((entries) => {
+                const last = entries[entries.length - 1]
+                isAtBottom.value = last.isIntersecting
+                if (isAtBottom.value) {
+                    unreadCount.value = 0
+                }
+            }, { root: el, threshold: 0.1 })
+
+            onCleanup(() => {
+                el.removeEventListener('scroll', scrollHandler)
+                if (lastMessageObserver) {
+                    lastMessageObserver.disconnect()
+                    lastMessageObserver = null
+                }
+            })
         })
+
+        watch(messages, async () => {
+            await nextTick()
+            if (!lastMessageObserver || !messagesListRef.value) return
+            const bubbles = messagesListRef.value.querySelectorAll('.message-bubble')
+            const last = bubbles[bubbles.length - 1]
+            lastMessageObserver.disconnect()
+            if (last) lastMessageObserver.observe(last)
+        }, { flush: 'post', deep: false })
 
         return {
             chats,
@@ -554,6 +613,9 @@ export default {
             replyToContextMessage,
             copyContextMessage,
             deleteContextMessage,
+            isAtBottom,
+            unreadCount,
+            onScrollDownClick,
         }
     }
 }
