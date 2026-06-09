@@ -34,6 +34,8 @@
 | `selectedGroupChat` | `Chat\|null` | Групповой чат для GroupChatModal |
 | `webPushConsents` | `number` | Битовая маска согласий на уведомления |
 | `editingMessage` | `Message\|null` | Сообщение, которое редактируется в данный момент |
+| `unreadMessageIds` | `Set<number>` | Реактивный Set ID сообщений, прилетевших с момента отскролла вверх. Хранится как Set (а не число), чтобы при `MESSAGE_DELETED` корректно вычесть удалённое сообщение из бейджа. Шаблон биндится на `.size` напрямую |
+| `isAtBottom` | `boolean` | Видно ли последнее сообщение чата (`IntersectionObserver` на последнем `.message-bubble`, threshold 0.1) |
 
 ## Ключевые функции
 
@@ -44,8 +46,8 @@
 | `loadMoreMessages()` | Пагинация вверх при прокрутке к верхней границе |
 | `selectChat(chat)` | Устанавливает активный чат, загружает сообщения |
 | `sendMessage()` | Отправляет сообщение через `SendMessage()` или редактирует через `UpdateMessage()` (если `editingMessage` установлен), помечает все прочитанными. UI обновляется по WS-событию от сервера |
-| `handleNewMessage(msg)` | Обработчик Wails-события `new_message`: добавляет в открытый чат или показывает уведомление |
-| `handleMessageDeleted(payload)` | Обработчик Wails-события `message_deleted`: удаляет сообщение из UI. Логирует предупреждение если ID не найден |
+| `handleNewMessage(msg)` | Обработчик Wails-события `new_message`. В открытом чате: снимок `wasAtBottom` ДО `messages.push`. Если своё сообщение или `wasAtBottom` — `scrollToBottom()` (мгновенно, follow mode); иначе — `unreadMessageIds.add(msg.id)` без скролла. В неактивном чате — emit `new-message-notification` + системное уведомление |
+| `handleMessageDeleted(payload)` | Обработчик Wails-события `message_deleted`: удаляет сообщение из UI и вычитает его из `unreadMessageIds` (если оно там было). Логирует предупреждение если ID не найден |
 | `handleMessageEdited(payload)` | Обработчик Wails-события `message_edited`: получает обновлённое сообщение через `GetMessageByID()` и обновляет текст и `updatedAt` в UI |
 | `handleChatsUpdated(chats)` | Обработчик Wails-события `chats_updated` |
 | `deleteContextMessage(forAll)` | Удаляет сообщение через `DeleteMessage()`. UI обновляется по WS-событию `message_deleted` от сервера |
@@ -59,6 +61,8 @@
 | `openAvatarZoom(src)` | Открывает оверлей увеличенного просмотра аватара |
 | `toggleTheme()` | Переключает тему через `ToggleTheme()` |
 | `insertEmoji(emoji)` | Вставляет эмодзи в позицию курсора |
+| `onScrollDownClick()` | Smooth scroll к низу через `scrollTo({ behavior: 'smooth' })`. Сброс счётчика и скрытие кнопки происходят через IntersectionObserver, когда последнее сообщение становится видимым |
+| `resetScrollDownState()` | Очищает `unreadMessageIds`, `isAtBottom = true`, `observer.disconnect()`. Вызывается в `closeChat()` |
 
 ## Дочерние компоненты
 
@@ -88,6 +92,16 @@
 - При редактировании в composer появляется edit bar (аналогичен reply bar, с orange/warning акцентом)
 - Кнопка отправки показывает "Сохранить" в режиме редактирования
 - CSS-классы: `.conversation__edit-bar`, `.conversation__edit-bar-content`, `.conversation__edit-bar-label`, `.conversation__edit-bar-text`, `.conversation__edit-bar-close`
+
+## UI: кнопка «к последнему сообщению»
+
+- Появляется, когда последнее сообщение чата вне видимой области (`IntersectionObserver` на последнем `.message-bubble`, threshold 0.1).
+- Полупрозрачная круглая кнопка 44px в правом нижнем углу области сообщений (позиционирована относительно `.conversation__composer` через `bottom: 100%` + `margin-bottom`).
+- При входящем чужом сообщении в открытом чате и `isAtBottom === false` — автоскролл не выполняется, инкрементируется `unreadCount`. Бейдж: число до 99, дальше «99+». Своё сообщение и follow mode (`wasAtBottom`) — мгновенный `scrollToBottom()`.
+- Клик: smooth scroll к низу через `scrollTo({ behavior: 'smooth' })`. Existing `scrollToBottom()` (мгновенный) сохраняется для открытия чата, отправки своего сообщения и follow-mode.
+- Observer создаётся в `watch(messagesListRef, ...)` (с cleanup). Переподписка на новый последний bubble — через `watch(() => messages.value.length, ..., { flush: 'post' })`. Источник — длина массива (а не сам `messages`), чтобы триггер срабатывал на `push`/`splice` (новое или удалённое сообщение), но не на мутации полей внутри элементов (`messages[idx].text = ...` в `handleMessageEdited`).
+- Сброс состояния в `closeChat()` через `resetScrollDownState()`.
+- CSS-классы: `.conversation__scroll-down`, `.conversation__scroll-down-icon`, `.conversation__scroll-down-badge`.
 
 ## Архитектурный принцип
 

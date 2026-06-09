@@ -108,6 +108,20 @@
         </div>
 
         <div class="conversation__composer">
+          <button
+              v-if="!isAtBottom"
+              type="button"
+              class="conversation__scroll-down"
+              @click="onScrollDownClick"
+              aria-label="К последнему сообщению"
+          >
+            <svg class="conversation__scroll-down-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+            <span v-if="unreadMessageIds.size > 0" class="conversation__scroll-down-badge">
+              {{ unreadMessageIds.size > 99 ? '99+' : unreadMessageIds.size }}
+            </span>
+          </button>
           <div v-if="editingMessage" class="conversation__edit-bar">
             <div class="conversation__edit-bar-content">
               <span class="conversation__edit-bar-label">Редактирование</span>
