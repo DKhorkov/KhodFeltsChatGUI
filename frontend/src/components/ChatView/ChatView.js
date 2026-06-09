@@ -556,14 +556,14 @@ export default {
             })
         })
 
-        watch(messages, async () => {
+        watch(() => messages.value.length, async () => {
             await nextTick()
             if (!lastMessageObserver || !messagesListRef.value) return
             const bubbles = messagesListRef.value.querySelectorAll('.message-bubble')
             const last = bubbles[bubbles.length - 1]
             lastMessageObserver.disconnect()
             if (last) lastMessageObserver.observe(last)
-        }, { flush: 'post', deep: false })
+        }, { flush: 'post' })
 
         return {
             chats,

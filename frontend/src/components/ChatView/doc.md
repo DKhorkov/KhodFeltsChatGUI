@@ -99,7 +99,7 @@
 - Полупрозрачная круглая кнопка 44px в правом нижнем углу области сообщений (позиционирована относительно `.conversation__composer` через `bottom: 100%` + `margin-bottom`).
 - При входящем чужом сообщении в открытом чате и `isAtBottom === false` — автоскролл не выполняется, инкрементируется `unreadCount`. Бейдж: число до 99, дальше «99+». Своё сообщение и follow mode (`wasAtBottom`) — мгновенный `scrollToBottom()`.
 - Клик: smooth scroll к низу через `scrollTo({ behavior: 'smooth' })`. Existing `scrollToBottom()` (мгновенный) сохраняется для открытия чата, отправки своего сообщения и follow-mode.
-- Observer создаётся в `watch(messagesListRef, ...)` (с cleanup). Переподписка на новый последний bubble — через `watch(messages, ..., { flush: 'post', deep: false })`. `deep: false` исключает срабатывания при `messages[idx].text = ...` в `handleMessageEdited`.
+- Observer создаётся в `watch(messagesListRef, ...)` (с cleanup). Переподписка на новый последний bubble — через `watch(() => messages.value.length, ..., { flush: 'post' })`. Источник — длина массива (а не сам `messages`), чтобы триггер срабатывал на `push`/`splice` (новое или удалённое сообщение), но не на мутации полей внутри элементов (`messages[idx].text = ...` в `handleMessageEdited`).
 - Сброс состояния в `closeChat()` через `resetScrollDownState()`.
 - CSS-классы: `.conversation__scroll-down`, `.conversation__scroll-down-icon`, `.conversation__scroll-down-badge`.
 
