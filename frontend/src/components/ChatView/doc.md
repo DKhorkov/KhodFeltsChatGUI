@@ -34,7 +34,7 @@
 | `selectedGroupChat` | `Chat\|null` | Групповой чат для GroupChatModal |
 | `webPushConsents` | `number` | Битовая маска согласий на уведомления |
 | `editingMessage` | `Message\|null` | Сообщение, которое редактируется в данный момент |
-| `unreadCount` | `number` | Счётчик новых сообщений с момента отскролла вверх (для бейджа на кнопке возврата к низу) |
+| `unreadMessageIds` | `Set<number>` | Реактивный Set ID сообщений, прилетевших с момента отскролла вверх. Хранится как Set (а не число), чтобы при `MESSAGE_DELETED` корректно вычесть удалённое сообщение из бейджа. Шаблон биндится на `.size` напрямую |
 | `isAtBottom` | `boolean` | Видно ли последнее сообщение чата (`IntersectionObserver` на последнем `.message-bubble`, threshold 0.1) |
 
 ## Ключевые функции
@@ -46,8 +46,8 @@
 | `loadMoreMessages()` | Пагинация вверх при прокрутке к верхней границе |
 | `selectChat(chat)` | Устанавливает активный чат, загружает сообщения |
 | `sendMessage()` | Отправляет сообщение через `SendMessage()` или редактирует через `UpdateMessage()` (если `editingMessage` установлен), помечает все прочитанными. UI обновляется по WS-событию от сервера |
-| `handleNewMessage(msg)` | Обработчик Wails-события `new_message`. В открытом чате: снимок `wasAtBottom` ДО `messages.push`. Если своё сообщение или `wasAtBottom` — `scrollToBottom()` (мгновенно, follow mode); иначе — `unreadCount++` без скролла. В неактивном чате — emit `new-message-notification` + системное уведомление |
-| `handleMessageDeleted(payload)` | Обработчик Wails-события `message_deleted`: удаляет сообщение из UI. Логирует предупреждение если ID не найден |
+| `handleNewMessage(msg)` | Обработчик Wails-события `new_message`. В открытом чате: снимок `wasAtBottom` ДО `messages.push`. Если своё сообщение или `wasAtBottom` — `scrollToBottom()` (мгновенно, follow mode); иначе — `unreadMessageIds.add(msg.id)` без скролла. В неактивном чате — emit `new-message-notification` + системное уведомление |
+| `handleMessageDeleted(payload)` | Обработчик Wails-события `message_deleted`: удаляет сообщение из UI и вычитает его из `unreadMessageIds` (если оно там было). Логирует предупреждение если ID не найден |
 | `handleMessageEdited(payload)` | Обработчик Wails-события `message_edited`: получает обновлённое сообщение через `GetMessageByID()` и обновляет текст и `updatedAt` в UI |
 | `handleChatsUpdated(chats)` | Обработчик Wails-события `chats_updated` |
 | `deleteContextMessage(forAll)` | Удаляет сообщение через `DeleteMessage()`. UI обновляется по WS-событию `message_deleted` от сервера |
@@ -62,7 +62,7 @@
 | `toggleTheme()` | Переключает тему через `ToggleTheme()` |
 | `insertEmoji(emoji)` | Вставляет эмодзи в позицию курсора |
 | `onScrollDownClick()` | Smooth scroll к низу через `scrollTo({ behavior: 'smooth' })`. Сброс счётчика и скрытие кнопки происходят через IntersectionObserver, когда последнее сообщение становится видимым |
-| `resetScrollDownState()` | Сброс `unreadCount = 0`, `isAtBottom = true`, `observer.disconnect()`. Вызывается в `closeChat()` |
+| `resetScrollDownState()` | Очищает `unreadMessageIds`, `isAtBottom = true`, `observer.disconnect()`. Вызывается в `closeChat()` |
 
 ## Дочерние компоненты
 

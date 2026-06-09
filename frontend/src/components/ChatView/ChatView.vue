@@ -118,8 +118,8 @@
             <svg class="conversation__scroll-down-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
-            <span v-if="unreadCount > 0" class="conversation__scroll-down-badge">
-              {{ unreadCount > 99 ? '99+' : unreadCount }}
+            <span v-if="unreadMessageIds.size > 0" class="conversation__scroll-down-badge">
+              {{ unreadMessageIds.size > 99 ? '99+' : unreadMessageIds.size }}
             </span>
           </button>
           <div v-if="editingMessage" class="conversation__edit-bar">

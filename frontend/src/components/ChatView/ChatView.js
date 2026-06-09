@@ -57,7 +57,9 @@ export default {
         const highlightedMessageId = ref(null)
         const editingMessage = ref(null)
         const contextMenu = ref({ visible: false, x: 0, y: 0, message: null, deleteExpanded: false })
-        const unreadCount = ref(0)
+        // unreadMessageIds — реактивный Set ID сообщений, прилетевших пока пользователь был отскроллен вверх.
+        // Храним именно ID (а не число), чтобы при удалении сообщения «у всех» корректно вычесть его из badge.
+        const unreadMessageIds = ref(new Set())
         const isAtBottom = ref(true)
         let lastMessageObserver = null
 
@@ -210,7 +212,7 @@ export default {
                     if (isOwn || wasAtBottom) {
                         scrollToBottom()
                     } else {
-                        unreadCount.value += 1
+                        unreadMessageIds.value.add(message.id)
                     }
                 } else {
                     emit('new-message-notification', {
@@ -246,7 +248,7 @@ export default {
         }
 
         const resetScrollDownState = () => {
-            unreadCount.value = 0
+            unreadMessageIds.value.clear()
             isAtBottom.value = true
             if (lastMessageObserver) {
                 lastMessageObserver.disconnect()
@@ -349,6 +351,7 @@ export default {
                 const idx = messages.value.findIndex(m => m.id === payload.messageId)
                 if (idx >= 0) {
                     messages.value.splice(idx, 1)
+                    unreadMessageIds.value.delete(payload.messageId)
                 } else {
                     console.warn('message_deleted: сообщение не найдено в текущем списке', payload.messageId)
                 }
@@ -543,7 +546,7 @@ export default {
                 const last = entries[entries.length - 1]
                 isAtBottom.value = last.isIntersecting
                 if (isAtBottom.value) {
-                    unreadCount.value = 0
+                    unreadMessageIds.value.clear()
                 }
             }, { root: el, threshold: 0.1 })
 
@@ -614,7 +617,7 @@ export default {
             copyContextMessage,
             deleteContextMessage,
             isAtBottom,
-            unreadCount,
+            unreadMessageIds,
             onScrollDownClick,
         }
     }
