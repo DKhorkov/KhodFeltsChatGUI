@@ -32,7 +32,7 @@
 
 ### `internal/domains/chat.go`
 
-Добавить поле `UnreadCount`. `IsRead` оставить — фронт использует для bold-заголовка непрочитанного чата.
+Добавить поле `UnreadCount`. Поле `IsRead` (бинарный флаг) удалить — его семантика полностью покрывается `UnreadCount > 0`.
 
 ```go
 type Chat struct {
@@ -42,16 +42,13 @@ type Chat struct {
     Type        ChatType  `json:"type"`
     CreatedAt   time.Time `json:"createdAt"`
     UpdatedAt   time.Time `json:"updatedAt"`
-    IsRead      bool      `json:"isRead"`
-    UnreadCount uint64    `json:"unreadCount"` // новое
+    UnreadCount uint64    `json:"unreadCount"`
     Members     []User    `json:"members,omitempty"`
     Messages    []Message `json:"messages,omitempty"`
 }
 ```
 
-Семантический инвариант (гарантирует бэк): `IsRead == (UnreadCount == 0)`. На клиенте мы не пересчитываем — целиком доверяем бэку.
-
-`chat_test.go` — добавить `UnreadCount` в существующие фикстуры (тесты валидации). Сам инвариант на стороне GUI тестировать не надо — это контракт API.
+`chat_test.go` — добавить `UnreadCount` в существующие фикстуры. Места во фронте и в `internal/v1/windows/chat/window.go`, где раньше использовался `chat.IsRead`, переключаются на `chat.unreadCount > 0` (для bold-заголовка, классов и индикаторов).
 
 ### `internal/repositories/chats/repository.go`
 
@@ -223,8 +220,8 @@ if (!isThisChatActive && consentGiven) {
 
 ## Совместимость
 
-- `Chat.UnreadCount` — добавление поля, GUI начинает читать то, что бэк уже отдаёт. Старые версии GUI (без этого поля в struct) тихо проигнорируют его в JSON.
-- `IsRead` оставляем — старые места в коде, использующие его, продолжают работать. Внутренний инвариант с `UnreadCount` обеспечивает бэк.
+- `Chat.UnreadCount` — добавление поля, GUI начинает читать то, что бэк уже отдаёт.
+- `Chat.IsRead` — удаление поля. Все потребители (`v1/windows/chat`, `frontend/src/components/ChatView`) переключаются на `unreadCount > 0`. Бэк всё ещё отдаёт `isRead` в JSON, но GUI его игнорирует.
 - Новый Wails-метод `SetUnreadBadge` — чисто аддитивный, ничего не ломает.
 
 ## Тестирование

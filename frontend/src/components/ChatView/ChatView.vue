@@ -63,7 +63,9 @@
                 {{ getLastMessagePreview(chat) }}
               </div>
             </div>
-            <div v-if="chat.unreadCount > 0" class="chat-item__unread-dot"></div>
+            <div v-if="chat.unreadCount > 0" class="chat-item__unread-badge">
+              {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
+            </div>
           </div>
         </div>
       </aside>

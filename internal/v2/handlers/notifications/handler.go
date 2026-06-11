@@ -80,18 +80,7 @@ func (h *Handler) ShowNotification(title, body string, chatID int) error {
 // сообщений. При total <= 0 заголовок сбрасывается на исходный. Числа > 99
 // отображаются как "99+".
 func (h *Handler) SetUnreadBadge(total int) {
-	wailsruntime.WindowSetTitle(h.wailsCtx, formatBadgeTitle(total, h.appTitle))
-}
-
-func formatBadgeTitle(total int, appTitle string) string {
-	switch {
-	case total <= 0:
-		return appTitle
-	case total > maxBadgeNumber:
-		return fmt.Sprintf("(%d+) %s", maxBadgeNumber, appTitle)
-	default:
-		return fmt.Sprintf("(%d) %s", total, appTitle)
-	}
+	wailsruntime.WindowSetTitle(h.wailsCtx, h.formatBadgeTitle(total))
 }
 
 func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
@@ -103,4 +92,15 @@ func (h *Handler) focusWindow() {
 	wailsruntime.WindowShow(h.wailsCtx)
 	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, true)
 	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, false)
+}
+
+func (h *Handler) formatBadgeTitle(total int) string {
+	switch {
+	case total <= 0:
+		return h.appTitle
+	case total > maxBadgeNumber:
+		return fmt.Sprintf("(%d+) %s", maxBadgeNumber, h.appTitle)
+	default:
+		return fmt.Sprintf("(%d) %s", total, h.appTitle)
+	}
 }

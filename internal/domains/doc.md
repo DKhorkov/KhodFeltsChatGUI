@@ -31,7 +31,7 @@
 | Тип | Описание |
 |-----|----------|
 | `ChatType` | Тип чата (`string`). Значения: `ChatTypePrivate` (`"private"`), `ChatTypeGroup` (`"group"`) |
-| `Chat` | Чат: `ID`, `Title`, `Description`, `Type`, `CreatedAt`, `UpdatedAt`, `IsRead`, `UnreadCount uint64` (число непрочитанных сообщений; инвариант: `IsRead == (UnreadCount == 0)` гарантирован бэкендом), `Members`, `Messages` |
+| `Chat` | Чат: `ID`, `Title`, `Description`, `Type`, `CreatedAt`, `UpdatedAt`, `UnreadCount uint64` (число непрочитанных сообщений; для определения «есть непрочитанные» — `UnreadCount > 0`), `Members`, `Messages` |
 | `CreateChatDTO` | DTO создания чата: `Title`, `Description`, `Type`, `MemberIDs` |
 
 **Переменные:**
