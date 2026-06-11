@@ -44,16 +44,18 @@ func TestRepository_GetUserChats(t *testing.T) {
 			setupMocks: func(mockClient *mockhttp.MockHTTPClient) {
 				chats := []domains.Chat{
 					{
-						ID:        1,
-						Title:     pointers.New("Chat 1"),
-						CreatedAt: now,
-						UpdatedAt: now,
+						ID:          1,
+						Title:       pointers.New("Chat 1"),
+						CreatedAt:   now,
+						UpdatedAt:   now,
+						UnreadCount: 3,
 					},
 					{
-						ID:        2,
-						Title:     pointers.New("Chat 2"),
-						CreatedAt: now,
-						UpdatedAt: now,
+						ID:          2,
+						Title:       pointers.New("Chat 2"),
+						CreatedAt:   now,
+						UpdatedAt:   now,
+						UnreadCount: 0,
 					},
 				}
 				chatsData, _ := json.Marshal(chats)
@@ -84,16 +86,18 @@ func TestRepository_GetUserChats(t *testing.T) {
 			},
 			expectedChats: []domains.Chat{
 				{
-					ID:        1,
-					Title:     pointers.New("Chat 1"),
-					CreatedAt: now,
-					UpdatedAt: now,
+					ID:          1,
+					Title:       pointers.New("Chat 1"),
+					CreatedAt:   now,
+					UpdatedAt:   now,
+					UnreadCount: 3,
 				},
 				{
-					ID:        2,
-					Title:     pointers.New("Chat 2"),
-					CreatedAt: now,
-					UpdatedAt: now,
+					ID:          2,
+					Title:       pointers.New("Chat 2"),
+					CreatedAt:   now,
+					UpdatedAt:   now,
+					UnreadCount: 0,
 				},
 			},
 			expectedError: nil,

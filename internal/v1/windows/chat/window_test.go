@@ -475,7 +475,6 @@ func TestWindow_Integration(t *testing.T) {
 				{
 					ID:        1,
 					Type:      domains.ChatTypePrivate,
-					IsRead:    true,
 					CreatedAt: now,
 					UpdatedAt: now,
 					Members: []domains.User{

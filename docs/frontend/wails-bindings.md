@@ -193,7 +193,7 @@ class Chat {
     type: string        // 'private' | 'group'
     createdAt: any
     updatedAt: any
-    isRead: boolean
+    unreadCount: number
     members?: User[]
     messages?: Message[]
 }

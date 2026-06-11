@@ -145,7 +145,7 @@ export default {
         const selectChat = async (chat) => {
             selectedChat.value = chat
             await loadMessages(chat.id)
-            chat.isRead = true
+            chat.unreadCount = 0
         }
 
         const openChatById = async (chatId) => {

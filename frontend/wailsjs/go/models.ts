@@ -115,7 +115,7 @@ export namespace domains {
 	    createdAt: any;
 	    // Go type: time
 	    updatedAt: any;
-	    isRead: boolean;
+	    unreadCount: number;
 	    members?: User[];
 	    messages?: Message[];
 	
@@ -131,7 +131,7 @@ export namespace domains {
 	        this.type = source["type"];
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	        this.updatedAt = this.convertValues(source["updatedAt"], null);
-	        this.isRead = source["isRead"];
+	        this.unreadCount = source["unreadCount"];
 	        this.members = this.convertValues(source["members"], User);
 	        this.messages = this.convertValues(source["messages"], Message);
 	    }

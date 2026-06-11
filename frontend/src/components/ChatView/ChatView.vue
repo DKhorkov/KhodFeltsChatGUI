@@ -36,7 +36,7 @@
           <div
               v-for="chat in chats"
               :key="chat.id"
-              :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': !chat.isRead }]"
+              :class="['chat-item', { 'chat-item--active': selectedChat?.id === chat.id, 'chat-item--unread': chat.unreadCount > 0 }]"
               @click="selectChat(chat)"
           >
             <img
@@ -56,14 +56,14 @@
               {{ getChatTitle(chat).charAt(0).toUpperCase() }}
             </div>
             <div class="chat-item__info">
-              <div class="chat-item__title" :class="{ 'chat-item__title--bold': !chat.isRead }">
+              <div class="chat-item__title" :class="{ 'chat-item__title--bold': chat.unreadCount > 0 }">
                 {{ getChatTitle(chat) }}
               </div>
               <div v-if="getLastMessagePreview(chat)" class="chat-item__last-message">
                 {{ getLastMessagePreview(chat) }}
               </div>
             </div>
-            <div v-if="!chat.isRead" class="chat-item__unread-dot"></div>
+            <div v-if="chat.unreadCount > 0" class="chat-item__unread-dot"></div>
           </div>
         </div>
       </aside>
