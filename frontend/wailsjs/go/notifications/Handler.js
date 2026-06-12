@@ -6,6 +6,10 @@ export function SetContext(arg1) {
   return window['go']['notifications']['Handler']['SetContext'](arg1);
 }
 
+export function SetUnreadBadge(arg1) {
+  return window['go']['notifications']['Handler']['SetUnreadBadge'](arg1);
+}
+
 export function ShowNotification(arg1, arg2, arg3) {
   return window['go']['notifications']['Handler']['ShowNotification'](arg1, arg2, arg3);
 }
