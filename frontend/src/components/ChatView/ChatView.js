@@ -14,7 +14,7 @@ import {
 import {GetCurrentUser} from '../../../wailsjs/go/users/Handler'
 import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {GetSettings} from '../../../wailsjs/go/settings/Handler'
-import {ShowNotification} from '../../../wailsjs/go/notifications/Handler'
+import {SetUnreadBadge, ShowNotification} from '../../../wailsjs/go/notifications/Handler'
 import {CHAT_TYPE, EMOJI_CLOSE_DELAY_MS, HIGHLIGHT_DURATION_MS, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
 
 const CONSENT_NEW_MESSAGE = 1
@@ -85,9 +85,15 @@ export default {
             }
         }
 
+        const updateUnreadBadge = (chatsList) => {
+            const total = chatsList.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+            SetUnreadBadge(total).catch(err => console.error('Не удалось обновить бейдж:', err))
+        }
+
         const loadChats = async () => {
             try {
                 chats.value = await GetUserChats(null)
+                updateUnreadBadge(chats.value)
             } catch (err) {
                 console.error("Ошибка загрузки чатов:", err)
             }
@@ -145,7 +151,7 @@ export default {
         const selectChat = async (chat) => {
             selectedChat.value = chat
             await loadMessages(chat.id)
-            chat.isRead = true
+            chat.unreadCount = 0
         }
 
         const openChatById = async (chatId) => {
@@ -197,7 +203,9 @@ export default {
 
         const handleNewMessage = async (message) => {
             try {
-                if (!isWindowFocused && (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0) {
+                const isThisChatActive = isWindowFocused && selectedChat.value?.id === message.chatId
+                const consentGiven = (webPushConsents.value & CONSENT_NEW_MESSAGE) !== 0
+                if (!isThisChatActive && consentGiven) {
                     ShowNotification(message.sender.username, message.text, message.chatId)
                         .catch(err => console.error('Ошибка системного уведомления:', err))
                 }
@@ -230,6 +238,7 @@ export default {
 
         const handleChatsUpdated = (updatedChats) => {
             chats.value = updatedChats
+            updateUnreadBadge(updatedChats)
         }
 
         const scrollToBottom = () => {

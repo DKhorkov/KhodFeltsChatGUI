@@ -4,6 +4,8 @@ import {context} from '../models';
 
 export function SetContext(arg1:context.Context):Promise<void>;
 
+export function SetUnreadBadge(arg1:number):Promise<void>;
+
 export function ShowNotification(arg1:string,arg2:string,arg3:number):Promise<void>;
 
 export function StartListening():Promise<void>;

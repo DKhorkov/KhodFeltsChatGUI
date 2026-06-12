@@ -10,13 +10,13 @@ import (
 func TestHandler_StartListening(t *testing.T) {
 	t.Parallel()
 
-	h := notificationhandler.New(logging.New(logging.Levels.DEBUG, ""))
+	h := notificationhandler.New(logging.New(logging.Levels.DEBUG, ""), "KFC Chat")
 	h.StartListening()
 }
 
 func TestHandler_StopListening(t *testing.T) {
 	t.Parallel()
 
-	h := notificationhandler.New(logging.New(logging.Levels.DEBUG, ""))
+	h := notificationhandler.New(logging.New(logging.Levels.DEBUG, ""), "KFC Chat")
 	h.StopListening()
 }

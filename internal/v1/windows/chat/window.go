@@ -506,7 +506,7 @@ func (w *Window) buildChatsList() {
 
 			chatTitleLabel.SetText(chatTitle)
 
-			if !chat.IsRead {
+			if chat.UnreadCount > 0 {
 				chatTitleLabel.TextStyle = fyne.TextStyle{Bold: true}
 
 				newChatIndicatorLabel.Show()
@@ -589,8 +589,7 @@ func (w *Window) markChatAsRead(id uint64) {
 
 	for i := range w.chats {
 		if w.chats[i].ID == id {
-			// TODO нужно будет обращаться к ручке MarkChatRead помимо отметки о прочитанности в UI
-			w.chats[i].IsRead = true
+			w.chats[i].UnreadCount = 0
 
 			break
 		}

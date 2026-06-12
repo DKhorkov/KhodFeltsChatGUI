@@ -2,21 +2,28 @@ package notifications
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DKhorkov/libs/logging"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const openChatEventName = "open_chat"
+const (
+	openChatEventName = "open_chat"
+
+	maxBadgeNumber = 99
+)
 
 type Handler struct {
 	logger   logging.Logger
+	appTitle string
 	wailsCtx context.Context
 }
 
-func New(logger logging.Logger) *Handler {
+func New(logger logging.Logger, appTitle string) *Handler {
 	return &Handler{
-		logger: logger,
+		logger:   logger,
+		appTitle: appTitle,
 	}
 }
 
@@ -69,6 +76,13 @@ func (h *Handler) ShowNotification(title, body string, chatID int) error {
 	return nil
 }
 
+// SetUnreadBadge обновляет заголовок окна, добавляя префикс с числом непрочитанных
+// сообщений. При total <= 0 заголовок сбрасывается на исходный. Числа > 99
+// отображаются как "99+".
+func (h *Handler) SetUnreadBadge(total int) {
+	wailsruntime.WindowSetTitle(h.wailsCtx, h.formatBadgeTitle(total))
+}
+
 func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
 func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
@@ -78,4 +92,15 @@ func (h *Handler) focusWindow() {
 	wailsruntime.WindowShow(h.wailsCtx)
 	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, true)
 	wailsruntime.WindowSetAlwaysOnTop(h.wailsCtx, false)
+}
+
+func (h *Handler) formatBadgeTitle(total int) string {
+	switch {
+	case total <= 0:
+		return h.appTitle
+	case total > maxBadgeNumber:
+		return fmt.Sprintf("(%d+) %s", maxBadgeNumber, h.appTitle)
+	default:
+		return fmt.Sprintf("(%d) %s", total, h.appTitle)
+	}
 }

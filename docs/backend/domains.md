@@ -51,7 +51,7 @@ type Chat struct {
     Type        ChatType  `json:"type"`
     CreatedAt   time.Time `json:"createdAt"`
     UpdatedAt   time.Time `json:"updatedAt"`
-    IsRead      bool      `json:"isRead"`
+    UnreadCount uint64    `json:"unreadCount"`
     Members     []User    `json:"members,omitempty"`
     Messages    []Message `json:"messages,omitempty"`
 }

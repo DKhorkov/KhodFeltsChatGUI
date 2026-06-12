@@ -10,6 +10,7 @@ import ProfileModal from './components/ProfileModal/ProfileModal.vue'
 
 import {Authenticate, Logout} from '../wailsjs/go/auth/Handler'
 import {GetTheme} from '../wailsjs/go/theme/Handler'
+import {SetUnreadBadge} from '../wailsjs/go/notifications/Handler'
 import {NOTIFICATION_DURATION_MS, THEME, VIEW} from './constants'
 
 export default {
@@ -88,6 +89,7 @@ export default {
                 console.error("Ошибка logout:", err)
             }
 
+            SetUnreadBadge(0).catch(err => console.error('Не удалось сбросить бейдж:', err))
             currentView.value = VIEW.LOGIN
         }
 

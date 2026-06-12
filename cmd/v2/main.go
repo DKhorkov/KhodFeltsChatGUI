@@ -35,6 +35,8 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+const appTitle = "KFC Chat"
+
 func main() {
 	// Инициализируем переменные окружения для дальнейшего считывания в конфиге:
 	loadenv.Init()
@@ -96,7 +98,7 @@ func main() {
 
 	themeHandler := themehandler.New(useCases)
 	settingsHandler := settingshandler.New(useCases)
-	notificationHandler := notificationhandler.New(logger)
+	notificationHandler := notificationhandler.New(logger, appTitle)
 
 	// 8. Создаем главное приложение
 	app := application.New(
