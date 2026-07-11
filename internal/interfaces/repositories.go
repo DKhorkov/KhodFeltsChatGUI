@@ -79,6 +79,17 @@ type MessagesRepository interface {
 		accessToken string,
 		dto domains.DeleteMessageDTO,
 	) error
+	ListReactions(ctx context.Context, accessToken string) ([]domains.Reaction, error)
+	AddMessageReaction(
+		ctx context.Context,
+		accessToken string,
+		dto domains.MessageReactionDTO,
+	) error
+	RemoveMessageReaction(
+		ctx context.Context,
+		accessToken string,
+		dto domains.MessageReactionDTO,
+	) error
 }
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/websockets_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,SettingsRepository

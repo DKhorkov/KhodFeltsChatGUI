@@ -41,6 +41,20 @@ func (m *MockMessagesRepository) EXPECT() *MockMessagesRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AddMessageReaction mocks base method.
+func (m *MockMessagesRepository) AddMessageReaction(ctx context.Context, accessToken string, dto domains.MessageReactionDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddMessageReaction", ctx, accessToken, dto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddMessageReaction indicates an expected call of AddMessageReaction.
+func (mr *MockMessagesRepositoryMockRecorder) AddMessageReaction(ctx, accessToken, dto any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMessageReaction", reflect.TypeOf((*MockMessagesRepository)(nil).AddMessageReaction), ctx, accessToken, dto)
+}
+
 // DeleteMessage mocks base method.
 func (m *MockMessagesRepository) DeleteMessage(ctx context.Context, accessToken string, dto domains.DeleteMessageDTO) error {
 	m.ctrl.T.Helper()
@@ -83,6 +97,35 @@ func (m *MockMessagesRepository) GetMessageByID(ctx context.Context, accessToken
 func (mr *MockMessagesRepositoryMockRecorder) GetMessageByID(ctx, accessToken, messageID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageByID", reflect.TypeOf((*MockMessagesRepository)(nil).GetMessageByID), ctx, accessToken, messageID)
+}
+
+// ListReactions mocks base method.
+func (m *MockMessagesRepository) ListReactions(ctx context.Context, accessToken string) ([]domains.Reaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListReactions", ctx, accessToken)
+	ret0, _ := ret[0].([]domains.Reaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListReactions indicates an expected call of ListReactions.
+func (mr *MockMessagesRepositoryMockRecorder) ListReactions(ctx, accessToken any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListReactions", reflect.TypeOf((*MockMessagesRepository)(nil).ListReactions), ctx, accessToken)
+}
+
+// RemoveMessageReaction mocks base method.
+func (m *MockMessagesRepository) RemoveMessageReaction(ctx context.Context, accessToken string, dto domains.MessageReactionDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveMessageReaction", ctx, accessToken, dto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveMessageReaction indicates an expected call of RemoveMessageReaction.
+func (mr *MockMessagesRepositoryMockRecorder) RemoveMessageReaction(ctx, accessToken, dto any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveMessageReaction", reflect.TypeOf((*MockMessagesRepository)(nil).RemoveMessageReaction), ctx, accessToken, dto)
 }
 
 // UpdateMessage mocks base method.

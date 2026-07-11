@@ -19,10 +19,12 @@ const (
 	refreshTokensInterval = 1 * time.Minute
 	updateChatsInterval   = 5 * time.Second
 
-	chatsUpdatedEventName   = "chats_updated"
-	newMessageEventName     = "new_message"
-	messageDeletedEventName = "message_deleted"
-	messageEditedEventName  = "message_edited"
+	chatsUpdatedEventName    = "chats_updated"
+	newMessageEventName      = "new_message"
+	messageDeletedEventName  = "message_deleted"
+	messageEditedEventName   = "message_edited"
+	reactionAddedEventName   = "reaction_added"
+	reactionRemovedEventName = "reaction_removed"
 )
 
 type Handler struct {
@@ -186,6 +188,34 @@ func (h *Handler) readEvents() {
 				}
 
 				runtime.EventsEmit(h.wailsCtx, messageEditedEventName, dto)
+			case domains.WSEventReactionAdded:
+				var dto domains.ReactionAddedPayload
+				if err = json.Unmarshal(event.Payload, &dto); err != nil {
+					logging.LogErrorContext(
+						h.goroutinesCtx,
+						h.logger,
+						"Не удалось распарсить payload reaction_added из WS-события",
+						err,
+					)
+
+					continue
+				}
+
+				runtime.EventsEmit(h.wailsCtx, reactionAddedEventName, dto)
+			case domains.WSEventReactionRemoved:
+				var dto domains.ReactionRemovedPayload
+				if err = json.Unmarshal(event.Payload, &dto); err != nil {
+					logging.LogErrorContext(
+						h.goroutinesCtx,
+						h.logger,
+						"Не удалось распарсить payload reaction_removed из WS-события",
+						err,
+					)
+
+					continue
+				}
+
+				runtime.EventsEmit(h.wailsCtx, reactionRemovedEventName, dto)
 			default:
 				logging.LogInfoContext(
 					h.goroutinesCtx,

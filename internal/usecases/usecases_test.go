@@ -5393,3 +5393,334 @@ func TestUseCases_GetMessageByID(t *testing.T) {
 		})
 	}
 }
+
+func newUseCasesForTest(t *testing.T) (
+	*usecases.UseCases,
+	*mockrepositories.MockTokensRepository,
+	*mockrepositories.MockMessagesRepository,
+	*mocks.MockLogger,
+	*mockerrors.MockErrorsMapper,
+) {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+
+	mockTokens := mockrepositories.NewMockTokensRepository(ctrl)
+	mockSettings := mockrepositories.NewMockSettingsRepository(ctrl)
+	mockUsers := mockrepositories.NewMockUsersRepository(ctrl)
+	mockAuth := mockrepositories.NewMockAuthRepository(ctrl)
+	mockChats := mockrepositories.NewMockChatsRepository(ctrl)
+	mockMessages := mockrepositories.NewMockMessagesRepository(ctrl)
+	mockWS := mockrepositories.NewMockWebSocketsRepository(ctrl)
+	mockLogger := mocks.NewMockLogger(ctrl)
+	mockErrorsMapper := mockerrors.NewMockErrorsMapper(ctrl)
+
+	uc := usecases.New(
+		mockUsers,
+		mockChats,
+		mockMessages,
+		mockAuth,
+		mockTokens,
+		mockSettings,
+		mockWS,
+		mockLogger,
+		mockErrorsMapper,
+	)
+
+	return uc, mockTokens, mockMessages, mockLogger, mockErrorsMapper
+}
+
+func TestUseCases_ListReactions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockMessagesRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedReactions []domains.Reaction
+		expectedError     bool
+	}{
+		{
+			name: "successful list",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "access_token"}, nil)
+
+				mockMessages.EXPECT().
+					ListReactions(gomock.Any(), "access_token").
+					Return([]domains.Reaction{{ID: 1, Emoji: "👍"}, {ID: 2, Emoji: "❤️"}}, nil)
+			},
+			expectedReactions: []domains.Reaction{{ID: 1, Emoji: "👍"}, {ID: 2, Emoji: "❤️"}},
+			expectedError:     false,
+		},
+		{
+			name: "failed to load tokens",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(nil, errors.New("tokens not found"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("mapped")).Times(1)
+			},
+			expectedError: true,
+		},
+		{
+			name: "repository error",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "access_token"}, nil)
+
+				mockMessages.EXPECT().
+					ListReactions(gomock.Any(), "access_token").
+					Return(nil, errors.New("boom"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to list reactions", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("mapped")).Times(1)
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			uc, mockTokens, mockMessages, mockLogger, mockErrorsMapper := newUseCasesForTest(t)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockMessages, mockLogger, mockErrorsMapper)
+			}
+
+			got, err := uc.ListReactions(context.Background())
+
+			if tt.expectedError {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedReactions, got)
+			}
+		})
+	}
+}
+
+func TestUseCases_AddMessageReaction(t *testing.T) {
+	t.Parallel()
+
+	dto := domains.MessageReactionDTO{MessageID: 10, ReactionID: 1}
+
+	tests := []struct {
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockMessagesRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedError bool
+	}{
+		{
+			name: "successful add",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "access_token"}, nil)
+
+				mockMessages.EXPECT().
+					AddMessageReaction(gomock.Any(), "access_token", dto).
+					Return(nil)
+			},
+			expectedError: false,
+		},
+		{
+			name: "failed to load tokens",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().Load(gomock.Any()).Return(nil, errors.New("tokens"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("mapped")).Times(1)
+			},
+			expectedError: true,
+		},
+		{
+			name: "repository error (e.g. conflict)",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "access_token"}, nil)
+
+				mockMessages.EXPECT().
+					AddMessageReaction(gomock.Any(), "access_token", dto).
+					Return(errors.New("already exists"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to add message reaction", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("mapped")).Times(1)
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			uc, mockTokens, mockMessages, mockLogger, mockErrorsMapper := newUseCasesForTest(t)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockMessages, mockLogger, mockErrorsMapper)
+			}
+
+			err := uc.AddMessageReaction(context.Background(), dto)
+
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUseCases_RemoveMessageReaction(t *testing.T) {
+	t.Parallel()
+
+	dto := domains.MessageReactionDTO{MessageID: 10, ReactionID: 1}
+
+	tests := []struct {
+		name       string
+		setupMocks func(
+			*mockrepositories.MockTokensRepository,
+			*mockrepositories.MockMessagesRepository,
+			*mocks.MockLogger,
+			*mockerrors.MockErrorsMapper,
+		)
+		expectedError bool
+	}{
+		{
+			name: "successful remove",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				_ *mocks.MockLogger,
+				_ *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "access_token"}, nil)
+
+				mockMessages.EXPECT().
+					RemoveMessageReaction(gomock.Any(), "access_token", dto).
+					Return(nil)
+			},
+			expectedError: false,
+		},
+		{
+			name: "failed to load tokens",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				_ *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().Load(gomock.Any()).Return(nil, errors.New("tokens"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to load tokens from file", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("mapped")).Times(1)
+			},
+			expectedError: true,
+		},
+		{
+			name: "repository error",
+			setupMocks: func(
+				mockTokens *mockrepositories.MockTokensRepository,
+				mockMessages *mockrepositories.MockMessagesRepository,
+				mockLogger *mocks.MockLogger,
+				mockErrorsMapper *mockerrors.MockErrorsMapper,
+			) {
+				mockTokens.EXPECT().
+					Load(gomock.Any()).
+					Return(&domains.TokensDTO{AccessToken: "access_token"}, nil)
+
+				mockMessages.EXPECT().
+					RemoveMessageReaction(gomock.Any(), "access_token", dto).
+					Return(errors.New("boom"))
+
+				mockLogger.EXPECT().
+					ErrorContext(gomock.Any(), "failed to remove message reaction", gomock.Any()).
+					Times(1)
+
+				mockErrorsMapper.EXPECT().Map(gomock.Any()).Return(errors.New("mapped")).Times(1)
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			uc, mockTokens, mockMessages, mockLogger, mockErrorsMapper := newUseCasesForTest(t)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockTokens, mockMessages, mockLogger, mockErrorsMapper)
+			}
+
+			err := uc.RemoveMessageReaction(context.Background(), dto)
+
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

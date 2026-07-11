@@ -84,6 +84,30 @@ func (h *Handler) DeleteMessage(messageID uint64, forAll bool) error {
 	})
 }
 
+func (h *Handler) ListReactions() ([]domains.Reaction, error) {
+	ctx := context.Background()
+
+	return h.useCases.ListReactions(ctx)
+}
+
+func (h *Handler) AddMessageReaction(messageID, reactionID uint64) error {
+	ctx := context.Background()
+
+	return h.useCases.AddMessageReaction(ctx, domains.MessageReactionDTO{
+		MessageID:  messageID,
+		ReactionID: reactionID,
+	})
+}
+
+func (h *Handler) RemoveMessageReaction(messageID, reactionID uint64) error {
+	ctx := context.Background()
+
+	return h.useCases.RemoveMessageReaction(ctx, domains.MessageReactionDTO{
+		MessageID:  messageID,
+		ReactionID: reactionID,
+	})
+}
+
 func (h *Handler) StartListening() {} //nolint:revive // Удалится в будущем при добавлении функционала
 
 func (h *Handler) StopListening() {} //nolint:revive // Удалится в будущем при добавлении функционала

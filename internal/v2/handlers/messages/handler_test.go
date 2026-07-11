@@ -484,3 +484,185 @@ func TestHandler_StopListening(t *testing.T) {
 	h := messageshandler.New(mockUseCases)
 	h.StopListening()
 }
+
+func TestHandler_ListReactions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		setupMocks    func(*mockusecases.MockUseCases)
+		expected      []domains.Reaction
+		expectedError error
+	}{
+		{
+			name: "successful list",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					ListReactions(gomock.Any()).
+					Return([]domains.Reaction{{ID: 1, Emoji: "👍"}}, nil).
+					Times(1)
+			},
+			expected:      []domains.Reaction{{ID: 1, Emoji: "👍"}},
+			expectedError: nil,
+		},
+		{
+			name: "use case error",
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					ListReactions(gomock.Any()).
+					Return(nil, errors.New("boom")).
+					Times(1)
+			},
+			expected:      nil,
+			expectedError: errors.New("boom"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := messageshandler.New(mockUseCases)
+
+			got, err := h.ListReactions()
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, got)
+			}
+		})
+	}
+}
+
+func TestHandler_AddMessageReaction(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		messageID     uint64
+		reactionID    uint64
+		setupMocks    func(*mockusecases.MockUseCases)
+		expectedError error
+	}{
+		{
+			name:       "successful add",
+			messageID:  10,
+			reactionID: 1,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					AddMessageReaction(gomock.Any(), domains.MessageReactionDTO{
+						MessageID:  10,
+						ReactionID: 1,
+					}).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:       "use case error",
+			messageID:  10,
+			reactionID: 1,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					AddMessageReaction(gomock.Any(), gomock.Any()).
+					Return(errors.New("already exists")).
+					Times(1)
+			},
+			expectedError: errors.New("already exists"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := messageshandler.New(mockUseCases)
+
+			err := h.AddMessageReaction(tt.messageID, tt.reactionID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestHandler_RemoveMessageReaction(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		messageID     uint64
+		reactionID    uint64
+		setupMocks    func(*mockusecases.MockUseCases)
+		expectedError error
+	}{
+		{
+			name:       "successful remove",
+			messageID:  10,
+			reactionID: 1,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					RemoveMessageReaction(gomock.Any(), domains.MessageReactionDTO{
+						MessageID:  10,
+						ReactionID: 1,
+					}).
+					Return(nil).
+					Times(1)
+			},
+			expectedError: nil,
+		},
+		{
+			name:       "use case error",
+			messageID:  10,
+			reactionID: 1,
+			setupMocks: func(uc *mockusecases.MockUseCases) {
+				uc.EXPECT().
+					RemoveMessageReaction(gomock.Any(), gomock.Any()).
+					Return(errors.New("boom")).
+					Times(1)
+			},
+			expectedError: errors.New("boom"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockUseCases := mockusecases.NewMockUseCases(ctrl)
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUseCases)
+			}
+
+			h := messageshandler.New(mockUseCases)
+
+			err := h.RemoveMessageReaction(tt.messageID, tt.reactionID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
