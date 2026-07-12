@@ -53,6 +53,11 @@ var (
 	errMessageNotFound  = errors.New("Сообщение не найдено")
 	errNotMessageAuthor = errors.New("Только автор сообщения может выполнить это действие")
 
+	// Reactions.
+	errReactionAlreadyExists = errors.New("Реакция уже поставлена")
+	errReactionNotFound      = errors.New("Такой реакции не существует")
+	errReactionNotSet        = errors.New("Реакция не была поставлена")
+
 	// File Storage.
 	errInvalidImageFormat = errors.New(
 		"Неподдерживаемый формат изображения. Допустимые форматы: JPEG, PNG, WebP, GIF",
@@ -111,6 +116,11 @@ var rawMapping = map[string]error{
 	// Messages
 	ErrNotMessageAuthor.Error(): errNotMessageAuthor,
 	ErrMessageNotFound.Error():  errMessageNotFound,
+
+	// Reactions
+	ErrReactionAlreadyExists.Error(): errReactionAlreadyExists,
+	ErrReactionNotFound.Error():      errReactionNotFound,
+	ErrReactionNotSet.Error():        errReactionNotSet,
 
 	// File Storage
 	ErrInvalidImageFormat.Error(): errInvalidImageFormat,

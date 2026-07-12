@@ -113,24 +113,19 @@ export default {
             }
         }
 
-        // toggleReaction — попытка поставить реакцию; при 409 (уже стоит) — снимаем.
-        // Локальное состояние сообщения не трогаем: обновление придёт через WS-события,
-        // единая логика с message_edited / message_deleted.
+        // toggleReaction — по локальному состоянию решаем, ставить или снимать.
+        // Один HTTP-запрос вместо двух. UI обновляется по WS-событию.
         const toggleReaction = async (messageId, reactionId) => {
+            const message = messages.value.find(m => m.id === messageId)
+            const currentUserReactionExists = isReactionSetForCurrentUser(message, reactionId)
+
             try {
-                await AddMessageReaction(messageId, reactionId)
-            } catch (err) {
-                const errStr = String(err?.message ?? err ?? '')
-                // Бэкенд не даёт нам HTTP-код напрямую — распознаём по подстроке,
-                // как и в веб-версии проекта.
-                if (errStr.includes('already exists')) {
-                    try {
-                        await RemoveMessageReaction(messageId, reactionId)
-                    } catch (removeErr) {
-                        showError(removeErr)
-                    }
-                    return
+                if (currentUserReactionExists) {
+                    await RemoveMessageReaction(messageId, reactionId)
+                } else {
+                    await AddMessageReaction(messageId, reactionId)
                 }
+            } catch (err) {
                 showError(err)
             }
         }
@@ -180,7 +175,7 @@ export default {
         }
 
         // Помощники для шаблона.
-        const isMyReactionOnMessage = (message, reactionId) => {
+        const isReactionSetForCurrentUser = (message, reactionId) => {
             if (!message || !Array.isArray(message.reactions) || !currentUser.value) return false
             const s = message.reactions.find(r => r.reaction.id === reactionId)
             return !!s && Array.isArray(s.userIds) && s.userIds.includes(currentUser.value.id)
@@ -193,6 +188,13 @@ export default {
         const isReactionMine = (summary) => {
             if (!currentUser.value) return false
             return Array.isArray(summary?.userIds) && summary.userIds.includes(currentUser.value.id)
+        }
+
+        // Колесо мыши → горизонтальный скролл полосы реакций (без Shift).
+        // Работает независимо от того, где именно в полосе курсор.
+        const onReactionsBarWheel = (event) => {
+            if (event.deltaY === 0) return
+            event.currentTarget.scrollLeft += event.deltaY
         }
 
         const loadMessages = async (chatId) => {
@@ -731,9 +733,10 @@ export default {
             onScrollDownClick,
             reactionsDictionary,
             toggleReaction,
-            isMyReactionOnMessage,
+            isReactionSetForCurrentUser,
             reactionCount,
             isReactionMine,
+            onReactionsBarWheel,
         }
     }
 }

@@ -292,12 +292,13 @@
       <div
           v-if="reactionsDictionary.length > 0"
           class="context-menu__reactions"
+          @wheel.prevent="onReactionsBarWheel"
       >
         <button
             v-for="reaction in reactionsDictionary"
             :key="reaction.id"
             type="button"
-            :class="['context-menu__reaction', { 'context-menu__reaction--active': isMyReactionOnMessage(contextMenu.message, reaction.id) }]"
+            :class="['context-menu__reaction', { 'context-menu__reaction--active': isReactionSetForCurrentUser(contextMenu.message, reaction.id) }]"
             @click.stop="toggleReaction(contextMenu.message.id, reaction.id); contextMenu.visible = false"
         >{{ reaction.emoji }}</button>
       </div>

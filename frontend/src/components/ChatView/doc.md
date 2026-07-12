@@ -53,8 +53,8 @@
 | `handleMessageEdited(payload)` | Обработчик Wails-события `message_edited`: получает обновлённое сообщение через `GetMessageByID()` и обновляет текст и `updatedAt` в UI |
 | `handleReactionAdded(payload)` | Обработчик `reaction_added`: находит сообщение в `messages.value`, аппендит `userId` в `reactions[i].userIds` или создаёт новый summary. Vue-реактивность сама перерисовывает бэйдж |
 | `handleReactionRemoved(payload)` | Обработчик `reaction_removed`: удаляет `userId` из `userIds`; если пусто — сносит summary целиком |
-| `toggleReaction(messageId, reactionId)` | Пытается `AddMessageReaction`. При ошибке `already exists` (409 от API) — автоматически делает `RemoveMessageReaction` (toggle в одной кнопке). UI не трогаем — обновится по WS-событию |
-| `isMyReactionOnMessage(message, reactionId)` | Проверяет, поставил ли currentUser эту реакцию на сообщение. Используется для подсветки `--active` в полосе меню |
+| `toggleReaction(messageId, reactionId)` | По локальному стейту через `isReactionSetForCurrentUser()` решает: если реакция уже стоит — вызывает `RemoveMessageReaction`, иначе — `AddMessageReaction`. Один HTTP-запрос, без fallback'ов. UI обновляется по WS-событию |
+| `isReactionSetForCurrentUser(message, reactionId)` | Проверяет, поставил ли currentUser эту реакцию на сообщение. Используется в `toggleReaction` для выбора направления и для подсветки `--active` в полосе меню |
 | `isReactionMine(summary)` | Проверяет, включает ли `userIds` currentUser.id. Используется для класса `--mine` на бэйдже |
 | `reactionCount(summary)` | Возвращает `len(userIds)` |
 | `loadReactionsDictionary()` | Загружает справочник emoji один раз при монтировании через `ListReactions()` |
@@ -117,7 +117,7 @@
 
 - Контекстное меню содержит полосу эмодзи под пунктами "Ответить/Копировать/Удалить". Полоса скроллится горизонтально при переполнении.
 - Реакции, уже поставленные currentUser, подсвечены классом `--active` в меню и `--mine` на бэйдже сообщения.
-- Клик по эмодзи в меню или по бэйджу на сообщении → `toggleReaction()` (Add, на 409 — Remove).
+- Клик по эмодзи в меню или по бэйджу на сообщении → `toggleReaction()` (по локальному стейту решает Add или Remove — один запрос).
 - Бэйджи под текстом сообщения показывают emoji + count. Клик по бэйджу снимает свою реакцию.
 - CSS-классы: `.context-menu__reactions`, `.context-menu__reaction[--active]`, `.message-bubble__reactions`, `.message-bubble__reaction[--mine]`, `.message-bubble__reaction-emoji`, `.message-bubble__reaction-count`.
 
