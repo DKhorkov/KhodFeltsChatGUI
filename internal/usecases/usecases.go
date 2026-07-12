@@ -13,6 +13,7 @@ type UseCases struct {
 	users        interfaces.UsersRepository
 	chats        interfaces.ChatsRepository
 	messages     interfaces.MessagesRepository
+	reactions    interfaces.ReactionsRepository
 	auth         interfaces.AuthRepository
 	tokens       interfaces.TokensRepository
 	settings     interfaces.SettingsRepository
@@ -25,6 +26,7 @@ func New(
 	users interfaces.UsersRepository,
 	chats interfaces.ChatsRepository,
 	messages interfaces.MessagesRepository,
+	reactions interfaces.ReactionsRepository,
 	auth interfaces.AuthRepository,
 	tokens interfaces.TokensRepository,
 	settings interfaces.SettingsRepository,
@@ -36,6 +38,7 @@ func New(
 		users:        users,
 		chats:        chats,
 		messages:     messages,
+		reactions:    reactions,
 		auth:         auth,
 		tokens:       tokens,
 		settings:     settings,
@@ -453,15 +456,9 @@ func (u *UseCases) GetChatMessages(
 	return messages, nil
 }
 
+// ListReactions — публичный эндпоинт, токен не нужен.
 func (u *UseCases) ListReactions(ctx context.Context) ([]domains.Reaction, error) {
-	tokens, err := u.tokens.Load(ctx)
-	if err != nil {
-		logging.LogErrorContext(ctx, u.logger, "failed to load tokens from file", err)
-
-		return nil, u.errorsMapper.Map(err)
-	}
-
-	reactions, err := u.messages.ListReactions(ctx, tokens.AccessToken)
+	reactions, err := u.reactions.ListReactions(ctx)
 	if err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to list reactions", err)
 
@@ -482,7 +479,7 @@ func (u *UseCases) AddMessageReaction(
 		return u.errorsMapper.Map(err)
 	}
 
-	if err = u.messages.AddMessageReaction(ctx, tokens.AccessToken, dto); err != nil {
+	if err = u.reactions.AddMessageReaction(ctx, tokens.AccessToken, dto); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to add message reaction", err)
 
 		return u.errorsMapper.Map(err)
@@ -502,7 +499,7 @@ func (u *UseCases) RemoveMessageReaction(
 		return u.errorsMapper.Map(err)
 	}
 
-	if err = u.messages.RemoveMessageReaction(ctx, tokens.AccessToken, dto); err != nil {
+	if err = u.reactions.RemoveMessageReaction(ctx, tokens.AccessToken, dto); err != nil {
 		logging.LogErrorContext(ctx, u.logger, "failed to remove message reaction", err)
 
 		return u.errorsMapper.Map(err)

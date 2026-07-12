@@ -174,20 +174,22 @@ export default {
             }
         }
 
-        // Помощники для шаблона.
+        // isReactionSetForCurrentUser — стоит ли уже эта реакция от currentUser
+        // на сообщении. Единая проверка для меню (--active) и бэйджа (--mine).
         const isReactionSetForCurrentUser = (message, reactionId) => {
             if (!message || !Array.isArray(message.reactions) || !currentUser.value) return false
             const s = message.reactions.find(r => r.reaction.id === reactionId)
             return !!s && Array.isArray(s.userIds) && s.userIds.includes(currentUser.value.id)
         }
 
-        const reactionCount = (summary) => {
-            return Array.isArray(summary?.userIds) ? summary.userIds.length : 0
-        }
-
-        const isReactionMine = (summary) => {
-            if (!currentUser.value) return false
-            return Array.isArray(summary?.userIds) && summary.userIds.includes(currentUser.value.id)
+        // sortReactionsBySortOrder — стабильный порядок бэйджей на пузыре.
+        // Сервер при первичной загрузке отдаёт уже упорядоченный список, но
+        // WS reaction_added добавляет новые summary в конец локально, поэтому
+        // для рендера пересортировываем по глобальному sortOrder из справочника.
+        const sortReactionsBySortOrder = (reactions) => {
+            return [...reactions].sort(
+                (a, b) => (a.reaction.sortOrder ?? 0) - (b.reaction.sortOrder ?? 0)
+            )
         }
 
         // Колесо мыши → горизонтальный скролл полосы реакций (без Shift).
@@ -734,8 +736,7 @@ export default {
             reactionsDictionary,
             toggleReaction,
             isReactionSetForCurrentUser,
-            reactionCount,
-            isReactionMine,
+            sortReactionsBySortOrder,
             onReactionsBarWheel,
         }
     }

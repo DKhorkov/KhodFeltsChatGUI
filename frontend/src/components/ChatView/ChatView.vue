@@ -110,14 +110,14 @@
                   class="message-bubble__reactions"
               >
                 <button
-                    v-for="summary in message.reactions"
+                    v-for="summary in sortReactionsBySortOrder(message.reactions)"
                     :key="summary.reaction.id"
                     type="button"
-                    :class="['message-bubble__reaction', { 'message-bubble__reaction--mine': isReactionMine(summary) }]"
+                    :class="['message-bubble__reaction', { 'message-bubble__reaction--mine': isReactionSetForCurrentUser(message, summary.reaction.id) }]"
                     @click.stop="toggleReaction(message.id, summary.reaction.id)"
                 >
                   <span class="message-bubble__reaction-emoji">{{ summary.reaction.emoji }}</span>
-                  <span class="message-bubble__reaction-count">{{ reactionCount(summary) }}</span>
+                  <span class="message-bubble__reaction-count">{{ summary.userIds.length }}</span>
                 </button>
               </div>
             </div>

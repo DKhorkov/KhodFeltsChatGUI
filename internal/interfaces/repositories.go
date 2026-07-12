@@ -6,7 +6,7 @@ import (
 	"github.com/DKhorkov/kfcGUI/internal/domains"
 )
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/auth_repository.go -package=mockrepositories -exclude_interfaces=TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/auth_repository.go -package=mockrepositories -exclude_interfaces=TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository,ReactionsRepository
 type AuthRepository interface {
 	Register(ctx context.Context, registerData domains.RegisterDTO) (*domains.User, error)
 	Login(ctx context.Context, in domains.LoginDTO) (*domains.TokensDTO, error)
@@ -22,14 +22,14 @@ type AuthRepository interface {
 	) error
 }
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/tokens_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/tokens_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository,ReactionsRepository
 type TokensRepository interface {
 	Save(ctx context.Context, tokens domains.TokensDTO) error
 	Load(ctx context.Context) (*domains.TokensDTO, error)
 	Delete(_ context.Context) error
 }
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/users_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/users_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository,ReactionsRepository
 type UsersRepository interface {
 	GetCurrentUser(ctx context.Context, accessToken string) (*domains.User, error)
 	UpdateUser(
@@ -46,7 +46,7 @@ type UsersRepository interface {
 	DeleteAvatar(ctx context.Context, accessToken string) error
 }
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/chats_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,MessagesRepository,WebSocketsRepository,SettingsRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/chats_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,MessagesRepository,WebSocketsRepository,SettingsRepository,ReactionsRepository
 type ChatsRepository interface {
 	GetUserChats(
 		ctx context.Context,
@@ -56,7 +56,7 @@ type ChatsRepository interface {
 	CreateChat(ctx context.Context, accessToken string, chat domains.Chat) (*domains.Chat, error)
 }
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/messages_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,WebSocketsRepository,SettingsRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/messages_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,WebSocketsRepository,SettingsRepository,ReactionsRepository
 type MessagesRepository interface {
 	GetChatMessages(
 		ctx context.Context,
@@ -79,7 +79,12 @@ type MessagesRepository interface {
 		accessToken string,
 		dto domains.DeleteMessageDTO,
 	) error
-	ListReactions(ctx context.Context, accessToken string) ([]domains.Reaction, error)
+}
+
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/reactions_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository
+type ReactionsRepository interface {
+	// Публичный эндпоинт /api/reactions — accessToken не нужен (сервер сам исключил роут из auth middleware).
+	ListReactions(ctx context.Context) ([]domains.Reaction, error)
 	AddMessageReaction(
 		ctx context.Context,
 		accessToken string,
@@ -92,7 +97,7 @@ type MessagesRepository interface {
 	) error
 }
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/websockets_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,SettingsRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/websockets_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,SettingsRepository,ReactionsRepository
 type WebSocketsRepository interface {
 	Connect(ctx context.Context, accessToken string) error
 	Close() error
@@ -100,7 +105,7 @@ type WebSocketsRepository interface {
 	WriteMessage(ctx context.Context, message domains.Message) error
 }
 
-//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/settings_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,TokensRepository
+//go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/settings_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,TokensRepository,ReactionsRepository
 type SettingsRepository interface {
 	GetSettings(ctx context.Context, accessToken string) (*domains.Settings, error)
 	UpdateSettings(

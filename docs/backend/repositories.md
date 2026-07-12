@@ -81,7 +81,7 @@ func New(httpClient interfaces.HTTPClient, baseURL string) *Repository
 
 Файл: `internal/repositories/chats/repository.go`
 
-HTTP-репозиторий для операций с чатами и сообщениями.
+HTTP-репозиторий для операций с чатами.
 
 ### Конструктор
 
@@ -95,9 +95,64 @@ func New(httpClient interfaces.HTTPClient, baseURL string) *Repository
 |---|---|---|---|
 | `GetUserChats(ctx, accessToken, pagination)` | GET | `/chats?limit=...&offset=...` | Список чатов пользователя |
 | `CreateChat(ctx, accessToken, Chat)` | POST | `/chats` | Создаёт чат |
-| `GetChatMessages(ctx, accessToken, chatID, pagination)` | GET | `/chats/{id}/messages?limit=...&offset=...` | Сообщения чата |
 
 Пагинация (`limit`, `offset`) передаётся как query-параметры при наличии. `accessToken` передаётся в cookie.
+
+---
+
+## messages.Repository
+
+Файл: `internal/repositories/messages/repository.go`
+
+HTTP-репозиторий для операций с сообщениями. Реакции вынесены в отдельный `reactions.Repository`.
+
+### Конструктор
+
+```go
+func New(httpClient interfaces.HTTPClient, baseURL string) *Repository
+```
+
+### Методы и эндпоинты
+
+| Метод | HTTP-метод | Эндпоинт | Описание |
+|---|---|---|---|
+| `GetChatMessages(ctx, accessToken, chatID, pagination)` | GET | `/chats/{id}/messages?limit=...&offset=...` | Сообщения чата с пагинацией |
+| `GetMessageByID(ctx, accessToken, messageID)` | GET | `/messages/{id}` | Одно сообщение по ID |
+| `UpdateMessage(ctx, accessToken, UpdateMessageDTO)` | PUT | `/messages/{id}` | Редактирование текста сообщения |
+| `DeleteMessage(ctx, accessToken, DeleteMessageDTO)` | DELETE | `/messages/{id}` | Удаление сообщения (body: `{"forAll": bool}`) |
+
+Read-методы используют `sync.RWMutex.RLock()`, write-методы — `Lock()`.
+
+---
+
+## reactions.Repository
+
+Файл: `internal/repositories/reactions/repository.go`
+
+HTTP-репозиторий для реакций на сообщения. Выделен из `messages.Repository` — реакции это отдельная сущность (справочник + M2M).
+
+### Конструктор
+
+```go
+func New(httpClient interfaces.HTTPClient, baseURL string) *Repository
+```
+
+### Методы и эндпоинты
+
+| Метод | HTTP-метод | Эндпоинт | Описание |
+|---|---|---|---|
+| `ListReactions(ctx)` | GET | `/reactions` | Публичный справочник emoji. Cookie `accessToken` **не** отправляется — роут исключён из auth middleware на сервере |
+| `AddMessageReaction(ctx, accessToken, MessageReactionDTO)` | POST | `/messages/{id}/reactions` | Body `{"reactionId": N}`. 409 → `ErrReactionAlreadyExists`, 404 → `ErrReactionNotFound` |
+| `RemoveMessageReaction(ctx, accessToken, MessageReactionDTO)` | DELETE | `/messages/{id}/reactions/{reactionId}` | Идемпотентно: 204 всегда при успехе |
+
+### Обработка ошибок
+
+`AddMessageReaction` маппит HTTP-статусы в доменные sentinel-ошибки:
+
+- `409 Conflict` → `customerrors.ErrReactionAlreadyExists` — юзер уже поставил эту реакцию.
+- `404 Not Found` → `customerrors.ErrReactionNotFound` — реакции с таким ID нет в справочнике.
+
+Остальные не-2xx возвращаются как `errors.New(<body>)`.
 
 ---
 
