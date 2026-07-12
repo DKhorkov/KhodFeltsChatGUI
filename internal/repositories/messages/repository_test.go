@@ -1025,13 +1025,16 @@ func TestRepository_ListReactions(t *testing.T) {
 						if req.Method != http.MethodGet {
 							return nil, errors.New("invalid method")
 						}
+
 						if req.URL.Path != "/reactions" {
 							return nil, errors.New("invalid URL path")
 						}
+
 						cookie, err := req.Cookie(accessTokenCookieName)
 						if err != nil || cookie.Value != validToken {
 							return nil, errors.New("invalid cookie")
 						}
+
 						return &http.Response{
 							StatusCode: http.StatusOK,
 							Body:       io.NopCloser(bytes.NewReader(data)),
@@ -1107,6 +1110,7 @@ func TestRepository_ListReactions(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockClient)
@@ -1121,6 +1125,7 @@ func TestRepository_ListReactions(t *testing.T) {
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
+
 				if !reflect.DeepEqual(got, tt.expectedReactions) {
 					t.Errorf("got %+v, want %+v", got, tt.expectedReactions)
 				}
@@ -1153,6 +1158,7 @@ func TestRepository_AddMessageReaction(t *testing.T) {
 						if req.Method != http.MethodPost {
 							return nil, errors.New("invalid method")
 						}
+
 						if req.URL.Path != "/messages/10/reactions" {
 							return nil, errors.New("invalid URL path")
 						}
@@ -1161,10 +1167,12 @@ func TestRepository_AddMessageReaction(t *testing.T) {
 						if err != nil {
 							return nil, err
 						}
+
 						var dto domains.MessageReactionDTO
 						if err = json.Unmarshal(body, &dto); err != nil {
 							return nil, err
 						}
+
 						if dto.ReactionID != 1 {
 							return nil, errors.New("wrong reactionId in body")
 						}
@@ -1261,6 +1269,7 @@ func TestRepository_AddMessageReaction(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockClient)
@@ -1303,6 +1312,7 @@ func TestRepository_RemoveMessageReaction(t *testing.T) {
 						if req.Method != http.MethodDelete {
 							return nil, errors.New("invalid method")
 						}
+
 						if req.URL.Path != "/messages/10/reactions/1" {
 							return nil, errors.New("invalid URL path: " + req.URL.Path)
 						}
@@ -1379,6 +1389,7 @@ func TestRepository_RemoveMessageReaction(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			mockClient := mockhttp.NewMockHTTPClient(ctrl)
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockClient)

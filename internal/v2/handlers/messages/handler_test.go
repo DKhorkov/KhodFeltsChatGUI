@@ -523,6 +523,7 @@ func TestHandler_ListReactions(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockUseCases)
@@ -587,6 +588,7 @@ func TestHandler_AddMessageReaction(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockUseCases)
@@ -649,6 +651,7 @@ func TestHandler_RemoveMessageReaction(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
+
 			mockUseCases := mockusecases.NewMockUseCases(ctrl)
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockUseCases)

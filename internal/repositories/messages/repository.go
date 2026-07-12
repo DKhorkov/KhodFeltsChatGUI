@@ -204,7 +204,7 @@ func (r *Repository) ListReactions(
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	path := fmt.Sprintf("%s/reactions", r.baseURL)
+	path := r.baseURL + "/reactions"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, path, http.NoBody)
 	if err != nil {
