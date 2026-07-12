@@ -21,10 +21,13 @@
 | `(h *Handler) GetMessageByID(messageID uint64) (*domains.Message, error)` | Получение сообщения по ID. |
 | `(h *Handler) DeleteMessage(messageID uint64, forAll bool) error` | Удаление сообщения (для себя или для всех). |
 | `(h *Handler) UpdateMessage(messageID uint64, text string) error` | Редактирование сообщения. Создаёт `UpdateMessageDTO` и вызывает usecases. |
+| `(h *Handler) ListReactions() ([]domains.Reaction, error)` | Возвращает справочник emoji-реакций для UI-пикера. Вызывается Vue-фронтом через Wails-биндинг. |
+| `(h *Handler) AddMessageReaction(messageID, reactionID uint64) error` | Ставит реакцию на сообщение. Ошибка `already exists` (409 от API) означает, что реакция уже стоит — Vue-компонент по этой ошибке делает автоматический toggle через `RemoveMessageReaction`. |
+| `(h *Handler) RemoveMessageReaction(messageID, reactionID uint64) error` | Снимает реакцию. Сервер идемпотентен → nil при 204. |
 | `(h *Handler) StartListening()` | Заглушка (не реализовано). |
 | `(h *Handler) StopListening()` | Заглушка (не реализовано). |
 
 ## Зависимости
 
-- `github.com/DKhorkov/kfcGUI/internal/domains` — `Message`, `DeleteMessageDTO`, `UpdateMessageDTO`, `Pagination`
+- `github.com/DKhorkov/kfcGUI/internal/domains` — `Message`, `DeleteMessageDTO`, `UpdateMessageDTO`, `Pagination`, `Reaction`, `MessageReactionDTO`
 - `github.com/DKhorkov/kfcGUI/internal/interfaces` — `UseCases`

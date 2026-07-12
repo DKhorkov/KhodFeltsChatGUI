@@ -55,6 +55,14 @@
 | `GetChatMessages(ctx, chatID, *Pagination) ([]Message, error)` | Получение сообщений чата |
 | `DeleteMessage(ctx, DeleteMessageDTO) error` | Удаление сообщения (для себя или для всех) |
 
+**Reactions:**
+
+| Метод | Описание |
+|-------|----------|
+| `ListReactions(ctx) ([]Reaction, error)` | Справочник доступных emoji-реакций |
+| `AddMessageReaction(ctx, MessageReactionDTO) error` | Поставить реакцию на сообщение |
+| `RemoveMessageReaction(ctx, MessageReactionDTO) error` | Снять реакцию с сообщения |
+
 **Chats:**
 
 | Метод | Описание |
@@ -126,7 +134,11 @@
 |-------|----------|
 | `GetChatMessages(ctx, accessToken, chatID, *Pagination) ([]Message, error)` | Получение сообщений |
 | `GetMessageByID(ctx, accessToken, messageID) (*Message, error)` | Получение сообщения по ID |
+| `UpdateMessage(ctx, accessToken, UpdateMessageDTO) error` | Редактирование текста сообщения |
 | `DeleteMessage(ctx, accessToken, DeleteMessageDTO) error` | Удаление сообщения |
+| `ListReactions(ctx, accessToken) ([]Reaction, error)` | Справочник emoji: `GET /api/reactions` |
+| `AddMessageReaction(ctx, accessToken, MessageReactionDTO) error` | `POST /api/messages/{id}/reactions` |
+| `RemoveMessageReaction(ctx, accessToken, MessageReactionDTO) error` | `DELETE /api/messages/{id}/reactions/{reactionId}` |
 
 **`WebSocketsRepository`** — WebSocket-соединение:
 

@@ -14,6 +14,8 @@
 | `newMessageEventName` | `"new_message"` | Имя Wails-события нового сообщения. |
 | `messageDeletedEventName` | `"message_deleted"` | Имя Wails-события удаления сообщения. |
 | `messageEditedEventName` | `"message_edited"` | Имя Wails-события редактирования сообщения. |
+| `reactionAddedEventName` | `"reaction_added"` | Имя Wails-события постановки реакции. |
+| `reactionRemovedEventName` | `"reaction_removed"` | Имя Wails-события снятия реакции. |
 
 ## Типы
 
@@ -36,7 +38,7 @@
 
 | Сигнатура | Описание |
 |-----------|----------|
-| `(h *Handler) readEvents()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`, `message_edited` → эмит `message_edited`. |
+| `(h *Handler) readEvents()` | Горутина чтения WS-событий. Диспатчит по типу: `new_message` → эмит `new_message`, `message_deleted` → эмит `message_deleted`, `message_edited` → эмит `message_edited`, `reaction_added` → эмит `reaction_added`, `reaction_removed` → эмит `reaction_removed`. |
 | `(h *Handler) refreshTokens()` | Горутина периодического обновления токенов (раз в минуту). |
 | `(h *Handler) updateChats()` | Горутина периодического обновления списка чатов (раз в 5 секунд). Эмитит событие `chats_updated`. |
 
@@ -48,11 +50,11 @@
 | `TestHandler_CreateChat` | Создание чата: приватный, групповой, невалидный DTO, ошибка use case. |
 | `TestHandler_SetContext` | Установка Wails-контекста. |
 | `TestHandler_StartListening_StopListening` | Запуск/остановка горутин: выход по `ErrWebsocketClosed`, остановка без запуска. |
-| `TestHandler_ReadEvents` | Горутина чтения WS-событий: generic ошибка + продолжение, невалидный JSON для `new_message`, невалидный JSON для `message_deleted`, неизвестный тип события, выход по отмене контекста. |
+| `TestHandler_ReadEvents` | Горутина чтения WS-событий: generic ошибка + продолжение, невалидный JSON для `new_message`, невалидный JSON для `message_deleted`, `message_edited` valid/invalid JSON, `reaction_added` valid/invalid JSON, `reaction_removed` valid/invalid JSON, неизвестный тип события, выход по отмене контекста. |
 
 ## Зависимости
 
-- `github.com/DKhorkov/kfcGUI/internal/domains` — `Chat`, `CreateChatDTO`, `Pagination`, `WSEvent`, `MessageDeletedPayload`, `MessageEditedPayload`
+- `github.com/DKhorkov/kfcGUI/internal/domains` — `Chat`, `CreateChatDTO`, `Pagination`, `WSEvent`, `MessageDeletedPayload`, `MessageEditedPayload`, `ReactionAddedPayload`, `ReactionRemovedPayload`
 - `github.com/DKhorkov/kfcGUI/internal/errors` — `ErrWebsocketClosed`, `ErrInvalidChat`
 - `github.com/DKhorkov/kfcGUI/internal/interfaces` — `UseCases`, `ErrorsMapper`
 - `github.com/DKhorkov/libs/logging` — логирование

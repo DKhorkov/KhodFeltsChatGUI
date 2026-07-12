@@ -12,7 +12,7 @@
 | `CHAT_TYPE` | `PRIVATE: 'private'`, `GROUP: 'group'` | Типы чатов |
 | `VIEW` | `LOADING`, `LOGIN`, `CHAT` | Экраны приложения |
 | `TAB` | `LOGIN`, `REGISTER` | Вкладки экрана входа |
-| `WAILS_EVENT` | `NEW_MESSAGE`, `MESSAGE_DELETED`, `MESSAGE_EDITED`, `CHATS_UPDATED`, `OPEN_CHAT` | События Wails Runtime |
+| `WAILS_EVENT` | `NEW_MESSAGE`, `MESSAGE_DELETED`, `MESSAGE_EDITED`, `REACTION_ADDED`, `REACTION_REMOVED`, `CHATS_UPDATED`, `OPEN_CHAT` | События Wails Runtime |
 
 ## Скалярные константы
 

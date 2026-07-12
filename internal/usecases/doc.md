@@ -51,6 +51,14 @@
 | `DeleteMessage` | `(ctx, domains.DeleteMessageDTO) error` | Удаление сообщения через HTTP API |
 | `UpdateMessage` | `(ctx, domains.UpdateMessageDTO) error` | Редактирование сообщения: загружает токены, вызывает `messages.UpdateMessage`, маппит ошибки |
 
+### Реакции
+
+| Метод | Сигнатура | Описание |
+|-------|-----------|----------|
+| `ListReactions` | `(ctx) ([]domains.Reaction, error)` | Загружает справочник emoji для UI-пикера через `messages.ListReactions` |
+| `AddMessageReaction` | `(ctx, domains.MessageReactionDTO) error` | Ставит реакцию: делегирует в `messages.AddMessageReaction`. При 409 (уже стоит) — прокидывает ошибку наружу; фронт по маркеру `already exists` делает toggle |
+| `RemoveMessageReaction` | `(ctx, domains.MessageReactionDTO) error` | Снимает реакцию через `messages.RemoveMessageReaction`. Сервер идемпотентен → всегда nil при 204 |
+
 ### Пользователи
 
 | Метод | Сигнатура | Описание |
