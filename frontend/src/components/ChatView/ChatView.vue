@@ -105,6 +105,21 @@
                 <span class="message-bubble__time">{{ formatTime(message.createdAt) }}</span>
               </div>
               <div class="message-bubble__text">{{ message.text }}</div>
+              <div
+                  v-if="Array.isArray(message.reactions) && message.reactions.length > 0"
+                  class="message-bubble__reactions"
+              >
+                <button
+                    v-for="summary in sortReactionsBySortOrder(message.reactions)"
+                    :key="summary.reaction.id"
+                    type="button"
+                    :class="['message-bubble__reaction', { 'message-bubble__reaction--mine': isReactionSetForCurrentUser(message, summary.reaction.id) }]"
+                    @click.stop="toggleReaction(message.id, summary.reaction.id)"
+                >
+                  <span class="message-bubble__reaction-emoji">{{ summary.reaction.emoji }}</span>
+                  <span class="message-bubble__reaction-count">{{ summary.userIds.length }}</span>
+                </button>
+              </div>
             </div>
           </template>
         </div>
@@ -273,6 +288,19 @@
           <button class="context-menu__item context-menu__item--danger" @click="deleteContextMessage(false)">Удалить у себя</button>
           <button class="context-menu__item context-menu__item--danger" @click="deleteContextMessage(true)">Удалить у всех</button>
         </template>
+      </div>
+      <div
+          v-if="reactionsDictionary.length > 0"
+          class="context-menu__reactions"
+          @wheel.prevent="onReactionsBarWheel"
+      >
+        <button
+            v-for="reaction in reactionsDictionary"
+            :key="reaction.id"
+            type="button"
+            :class="['context-menu__reaction', { 'context-menu__reaction--active': isReactionSetForCurrentUser(contextMenu.message, reaction.id) }]"
+            @click.stop="toggleReaction(contextMenu.message.id, reaction.id); contextMenu.visible = false"
+        >{{ reaction.emoji }}</button>
       </div>
     </div>
   </div>

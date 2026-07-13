@@ -359,6 +359,11 @@ linters:
         linters:
           - containedctx
 
+      - path: internal/v2/handlers/chats/handler.go
+        linters:
+          - gocognit
+          - cyclop
+
       - path: internal/errors/mapper.go
         linters:
           - staticcheck

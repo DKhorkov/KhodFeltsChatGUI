@@ -3,11 +3,17 @@
 import {domains} from '../models';
 import {context} from '../models';
 
+export function AddMessageReaction(arg1:number,arg2:number):Promise<void>;
+
 export function DeleteMessage(arg1:number,arg2:boolean):Promise<void>;
 
 export function GetChatMessages(arg1:number,arg2:domains.Pagination):Promise<Array<domains.Message>>;
 
 export function GetMessageByID(arg1:number):Promise<domains.Message>;
+
+export function ListReactions():Promise<Array<domains.Reaction>>;
+
+export function RemoveMessageReaction(arg1:number,arg2:number):Promise<void>;
 
 export function SendMessage(arg1:number,arg2:string,arg3:any):Promise<void>;
 

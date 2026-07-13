@@ -49,8 +49,16 @@
 
 | Тип | Описание |
 |-----|----------|
-| `Message` | Сообщение: `ID`, `ChatID`, `Sender` (`User`), `Text`, `CreatedAt`, `UpdatedAt`, `IsRead`, `ReplyToMessage *Message` |
+| `Message` | Сообщение: `ID`, `ChatID`, `Sender` (`User`), `Text`, `CreatedAt`, `UpdatedAt`, `IsRead`, `ReplyToMessage *Message`, `Reactions []MessageReactionSummary` |
 | `DeleteMessageDTO` | DTO удаления сообщения: `MessageID`, `ForAll` (`UserID` исключён из JSON через `json:"-"`) |
+
+### Реакции (`reaction.go`)
+
+| Тип | Описание |
+|-----|----------|
+| `Reaction` | Элемент справочника: `ID`, `Emoji` |
+| `MessageReactionSummary` | Агрегат на сообщении: `Reaction`, `UserIDs []uint64` — кто поставил. `count` вычисляется на фронте как `len(UserIDs)` |
+| `MessageReactionDTO` | DTO API: `MessageID` (из URL, `json:"-"`), `ReactionID` (в body) |
 
 **Функции и методы:**
 
@@ -65,10 +73,12 @@
 
 | Тип | Описание |
 |-----|----------|
-| `WSEventType` | Тип WS-события (`string`). Значения: `WSEventNewMessage` (`"new_message"`), `WSEventMessageDeleted` (`"message_deleted"`), `WSEventMessageEdited` (`"message_edited"`) |
+| `WSEventType` | Тип WS-события (`string`). Значения: `WSEventNewMessage` (`"new_message"`), `WSEventMessageDeleted` (`"message_deleted"`), `WSEventMessageEdited` (`"message_edited"`), `WSEventReactionAdded` (`"reaction_added"`), `WSEventReactionRemoved` (`"reaction_removed"`) |
 | `WSEvent` | WS-событие: `Type WSEventType`, `Payload json.RawMessage` |
 | `MessageDeletedPayload` | Полезная нагрузка удаления: `MessageID uint64`, `ChatID uint64` |
 | `MessageEditedPayload` | Полезная нагрузка редактирования: `MessageID uint64`, `ChatID uint64` |
+| `ReactionAddedPayload` | Постановка реакции: `MessageID`, `ChatID`, `UserID`, `ReactionID`, `Emoji` |
+| `ReactionRemovedPayload` | Снятие реакции: `MessageID`, `ChatID`, `UserID`, `ReactionID` |
 
 ### Пагинация (`pagination.go`)
 

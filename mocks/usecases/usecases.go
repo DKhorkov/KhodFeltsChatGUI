@@ -41,6 +41,20 @@ func (m *MockUseCases) EXPECT() *MockUseCasesMockRecorder {
 	return m.recorder
 }
 
+// AddMessageReaction mocks base method.
+func (m *MockUseCases) AddMessageReaction(ctx context.Context, dto domains.MessageReactionDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddMessageReaction", ctx, dto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddMessageReaction indicates an expected call of AddMessageReaction.
+func (mr *MockUseCasesMockRecorder) AddMessageReaction(ctx, dto any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMessageReaction", reflect.TypeOf((*MockUseCases)(nil).AddMessageReaction), ctx, dto)
+}
+
 // Authenticate mocks base method.
 func (m *MockUseCases) Authenticate(ctx context.Context) (*domains.User, error) {
 	m.ctrl.T.Helper()
@@ -216,6 +230,21 @@ func (mr *MockUseCasesMockRecorder) GetUserChats(ctx, pagination any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserChats", reflect.TypeOf((*MockUseCases)(nil).GetUserChats), ctx, pagination)
 }
 
+// ListReactions mocks base method.
+func (m *MockUseCases) ListReactions(ctx context.Context) ([]domains.Reaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListReactions", ctx)
+	ret0, _ := ret[0].([]domains.Reaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListReactions indicates an expected call of ListReactions.
+func (mr *MockUseCasesMockRecorder) ListReactions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListReactions", reflect.TypeOf((*MockUseCases)(nil).ListReactions), ctx)
+}
+
 // Login mocks base method.
 func (m *MockUseCases) Login(ctx context.Context, in domains.LoginDTO) (*domains.User, error) {
 	m.ctrl.T.Helper()
@@ -288,6 +317,20 @@ func (m *MockUseCases) Register(ctx context.Context, registerData domains.Regist
 func (mr *MockUseCasesMockRecorder) Register(ctx, registerData any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUseCases)(nil).Register), ctx, registerData)
+}
+
+// RemoveMessageReaction mocks base method.
+func (m *MockUseCases) RemoveMessageReaction(ctx context.Context, dto domains.MessageReactionDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveMessageReaction", ctx, dto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveMessageReaction indicates an expected call of RemoveMessageReaction.
+func (mr *MockUseCasesMockRecorder) RemoveMessageReaction(ctx, dto any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveMessageReaction", reflect.TypeOf((*MockUseCases)(nil).RemoveMessageReaction), ctx, dto)
 }
 
 // SearchUsers mocks base method.

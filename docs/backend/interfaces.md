@@ -61,6 +61,11 @@ type UseCases interface {
     ReadMessage(ctx context.Context) (*domains.Message, error)
     GetChatMessages(ctx context.Context, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)
 
+    // Реакции
+    ListReactions(ctx context.Context) ([]domains.Reaction, error)
+    AddMessageReaction(ctx context.Context, dto domains.MessageReactionDTO) error
+    RemoveMessageReaction(ctx context.Context, dto domains.MessageReactionDTO) error
+
     // Чаты
     CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error)
     GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error)
@@ -140,11 +145,44 @@ type UsersRepository interface {
 type ChatsRepository interface {
     GetUserChats(ctx context.Context, accessToken string, pagination *domains.Pagination) ([]domains.Chat, error)
     CreateChat(ctx context.Context, accessToken string, chat domains.Chat) (*domains.Chat, error)
-    GetChatMessages(ctx context.Context, accessToken string, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)
 }
 ```
 
 Реализован `internal/repositories/chats.Repository`.
+
+---
+
+## MessagesRepository
+
+Файл: `internal/interfaces/repositories.go`
+
+```go
+type MessagesRepository interface {
+    GetChatMessages(ctx context.Context, accessToken string, chatID uint64, pagination *domains.Pagination) ([]domains.Message, error)
+    GetMessageByID(ctx context.Context, accessToken string, messageID uint64) (*domains.Message, error)
+    UpdateMessage(ctx context.Context, accessToken string, dto domains.UpdateMessageDTO) error
+    DeleteMessage(ctx context.Context, accessToken string, dto domains.DeleteMessageDTO) error
+}
+```
+
+Реализован `internal/repositories/messages.Repository`. Реакции вынесены в отдельный `ReactionsRepository`.
+
+---
+
+## ReactionsRepository
+
+Файл: `internal/interfaces/repositories.go`
+
+```go
+type ReactionsRepository interface {
+    // Публичный эндпоинт /api/reactions — accessToken не нужен.
+    ListReactions(ctx context.Context) ([]domains.Reaction, error)
+    AddMessageReaction(ctx context.Context, accessToken string, dto domains.MessageReactionDTO) error
+    RemoveMessageReaction(ctx context.Context, accessToken string, dto domains.MessageReactionDTO) error
+}
+```
+
+Реализован `internal/repositories/reactions.Repository`. `ListReactions` бьёт в публичный роут — cookie с access-token не отправляется.
 
 ---
 

@@ -14,6 +14,7 @@ import (
 	authrepository "github.com/DKhorkov/kfcGUI/internal/repositories/auth"
 	chatsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/chats"
 	messagesrepository "github.com/DKhorkov/kfcGUI/internal/repositories/messages"
+	reactionsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/reactions"
 	settingsrepository "github.com/DKhorkov/kfcGUI/internal/repositories/settings"
 	tokensrepository "github.com/DKhorkov/kfcGUI/internal/repositories/tokens"
 	usersrepository "github.com/DKhorkov/kfcGUI/internal/repositories/users"
@@ -52,6 +53,7 @@ func main() {
 	usersRepository := usersrepository.New(httpClient, cfg.HTTP.BaseURL)
 	chatsRepository := chatsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	messagesRepository := messagesrepository.New(httpClient, cfg.HTTP.BaseURL)
+	reactionsRepository := reactionsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	tokensRepository := tokensrepository.New()
 	settingsRepository := settingsrepository.New(httpClient, cfg.HTTP.BaseURL)
 	websocketsRepository := wsrepository.New(cfg.HTTP.WebsocketURL, logger)
@@ -62,6 +64,7 @@ func main() {
 		usersRepository,
 		chatsRepository,
 		messagesRepository,
+		reactionsRepository,
 		authRepository,
 		tokensRepository,
 		settingsRepository,

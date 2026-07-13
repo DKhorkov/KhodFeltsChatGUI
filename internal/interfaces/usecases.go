@@ -32,6 +32,11 @@ type UseCases interface {
 		pagination *domains.Pagination,
 	) ([]domains.Message, error)
 
+	// Reactions
+	ListReactions(ctx context.Context) ([]domains.Reaction, error)
+	AddMessageReaction(ctx context.Context, dto domains.MessageReactionDTO) error
+	RemoveMessageReaction(ctx context.Context, dto domains.MessageReactionDTO) error
+
 	// Chats
 	CreateChat(ctx context.Context, chat domains.Chat) (*domains.Chat, error)
 	GetUserChats(ctx context.Context, pagination *domains.Pagination) ([]domains.Chat, error)

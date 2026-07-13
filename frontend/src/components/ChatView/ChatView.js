@@ -5,9 +5,12 @@ import {
     StopListening
 } from '../../../wailsjs/go/chats/Handler'
 import {
+    AddMessageReaction,
     DeleteMessage,
     GetChatMessages,
     GetMessageByID,
+    ListReactions,
+    RemoveMessageReaction,
     SendMessage,
     UpdateMessage
 } from '../../../wailsjs/go/messages/Handler'
@@ -57,6 +60,8 @@ export default {
         const highlightedMessageId = ref(null)
         const editingMessage = ref(null)
         const contextMenu = ref({ visible: false, x: 0, y: 0, message: null, deleteExpanded: false })
+        // Справочник emoji-реакций, загружается один раз при монтировании.
+        const reactionsDictionary = ref([])
         // unreadMessageIds — реактивный Set ID сообщений, прилетевших пока пользователь был отскроллен вверх.
         // Храним именно ID (а не число), чтобы при удалении сообщения «у всех» корректно вычесть его из badge.
         const unreadMessageIds = ref(new Set())
@@ -97,6 +102,108 @@ export default {
             } catch (err) {
                 console.error("Ошибка загрузки чатов:", err)
             }
+        }
+
+        const loadReactionsDictionary = async () => {
+            try {
+                const list = await ListReactions()
+                reactionsDictionary.value = Array.isArray(list) ? list : []
+            } catch (err) {
+                console.error('Ошибка загрузки справочника реакций:', err)
+            }
+        }
+
+        // toggleReaction — по локальному состоянию решаем, ставить или снимать.
+        // Один HTTP-запрос вместо двух. UI обновляется по WS-событию.
+        const toggleReaction = async (messageId, reactionId) => {
+            const message = messages.value.find(m => m.id === messageId)
+            const currentUserReactionExists = isReactionSetForCurrentUser(message, reactionId)
+
+            try {
+                if (currentUserReactionExists) {
+                    await RemoveMessageReaction(messageId, reactionId)
+                } else {
+                    await AddMessageReaction(messageId, reactionId)
+                }
+            } catch (err) {
+                showError(err)
+            }
+        }
+
+        // handleReactionAdded — обновляет message.reactions в состоянии.
+        // Не перерисовываем DOM вручную: реактивность Vue сама поднимет изменения,
+        // потому что мы правим reactive-массив messages.value[i].reactions.
+        const handleReactionAdded = (payload) => {
+            if (selectedChat.value?.id !== payload.chatId) return
+
+            const msg = messages.value.find(m => m.id === payload.messageId)
+            if (!msg) return
+
+            if (!Array.isArray(msg.reactions)) {
+                msg.reactions = []
+            }
+
+            let summary = msg.reactions.find(r => r.reaction.id === payload.reactionId)
+            if (!summary) {
+                // WS payload содержит только reactionId — emoji и sortOrder лукапим
+                // в справочнике, чтобы не таскать лишнее по сети.
+                const dict = reactionsDictionary.value.find(r => r.id === payload.reactionId)
+                summary = {
+                    reaction: {
+                        id: payload.reactionId,
+                        emoji: dict ? dict.emoji : '',
+                        sortOrder: dict ? dict.sortOrder : 0,
+                    },
+                    userIds: [],
+                }
+                msg.reactions.push(summary)
+            }
+
+            if (!summary.userIds.includes(payload.userId)) {
+                summary.userIds.push(payload.userId)
+            }
+        }
+
+        const handleReactionRemoved = (payload) => {
+            if (selectedChat.value?.id !== payload.chatId) return
+
+            const msg = messages.value.find(m => m.id === payload.messageId)
+            if (!msg || !Array.isArray(msg.reactions)) return
+
+            const idx = msg.reactions.findIndex(r => r.reaction.id === payload.reactionId)
+            if (idx < 0) return
+
+            msg.reactions[idx].userIds = msg.reactions[idx].userIds.filter(
+                uid => uid !== payload.userId
+            )
+            if (msg.reactions[idx].userIds.length === 0) {
+                msg.reactions.splice(idx, 1)
+            }
+        }
+
+        // isReactionSetForCurrentUser — стоит ли уже эта реакция от currentUser
+        // на сообщении. Единая проверка для меню (--active) и бэйджа (--mine).
+        const isReactionSetForCurrentUser = (message, reactionId) => {
+            if (!message || !Array.isArray(message.reactions) || !currentUser.value) return false
+            const s = message.reactions.find(r => r.reaction.id === reactionId)
+            return !!s && Array.isArray(s.userIds) && s.userIds.includes(currentUser.value.id)
+        }
+
+        // sortReactionsBySortOrder — стабильный порядок бэйджей на пузыре.
+        // Сервер при первичной загрузке отдаёт уже упорядоченный список, но
+        // WS reaction_added добавляет новые summary в конец локально, поэтому
+        // для рендера пересортировываем по глобальному sortOrder из справочника.
+        const sortReactionsBySortOrder = (reactions) => {
+            return [...reactions].sort(
+                (a, b) => (a.reaction.sortOrder ?? 0) - (b.reaction.sortOrder ?? 0)
+            )
+        }
+
+        // Колесо мыши → горизонтальный скролл полосы реакций (без Shift).
+        // Работает независимо от того, где именно в полосе курсор.
+        const onReactionsBarWheel = (event) => {
+            if (event.deltaY === 0) return
+            event.currentTarget.scrollLeft += event.deltaY
         }
 
         const loadMessages = async (chatId) => {
@@ -500,6 +607,7 @@ export default {
                 isDarkTheme.value = theme === THEME.DARK
                 await reloadSettings()
                 await loadChats()
+                await loadReactionsDictionary()
                 await StartListening()
             } catch (err) {
                 console.error("Ошибка инициализации:", err)
@@ -508,6 +616,8 @@ export default {
             window.runtime.EventsOn(WAILS_EVENT.NEW_MESSAGE, handleNewMessage)
             window.runtime.EventsOn(WAILS_EVENT.MESSAGE_DELETED, handleMessageDeleted)
             window.runtime.EventsOn(WAILS_EVENT.MESSAGE_EDITED, handleMessageEdited)
+            window.runtime.EventsOn(WAILS_EVENT.REACTION_ADDED, handleReactionAdded)
+            window.runtime.EventsOn(WAILS_EVENT.REACTION_REMOVED, handleReactionRemoved)
             window.runtime.EventsOn(WAILS_EVENT.CHATS_UPDATED, handleChatsUpdated)
             window.runtime.EventsOn(WAILS_EVENT.OPEN_CHAT, (chatId) => {
                 openChatById(chatId).catch(err => console.error('Ошибка открытия чата из уведомления:', err))
@@ -523,6 +633,8 @@ export default {
             window.runtime.EventsOff(WAILS_EVENT.NEW_MESSAGE)
             window.runtime.EventsOff(WAILS_EVENT.MESSAGE_DELETED)
             window.runtime.EventsOff(WAILS_EVENT.MESSAGE_EDITED)
+            window.runtime.EventsOff(WAILS_EVENT.REACTION_ADDED)
+            window.runtime.EventsOff(WAILS_EVENT.REACTION_REMOVED)
             window.runtime.EventsOff(WAILS_EVENT.CHATS_UPDATED)
             window.runtime.EventsOff(WAILS_EVENT.OPEN_CHAT)
 
@@ -628,6 +740,11 @@ export default {
             isAtBottom,
             unreadMessageIds,
             onScrollDownClick,
+            reactionsDictionary,
+            toggleReaction,
+            isReactionSetForCurrentUser,
+            sortReactionsBySortOrder,
+            onReactionsBarWheel,
         }
     }
 }

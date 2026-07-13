@@ -439,6 +439,140 @@ func TestHandler_ReadEvents(t *testing.T) {
 			},
 		},
 		{
+			name: "ReadEvent returns ReactionAdded with valid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							payload, _ := json.Marshal(domains.ReactionAddedPayload{
+								MessageID:  10,
+								ChatID:     1,
+								UserID:     7,
+								ReactionID: 2,
+							})
+
+							return &domains.WSEvent{
+								Type:    domains.WSEventReactionAdded,
+								Payload: payload,
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns ReactionAdded with invalid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return &domains.WSEvent{
+								Type:    domains.WSEventReactionAdded,
+								Payload: json.RawMessage(`not a json`),
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns ReactionRemoved with valid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							payload, _ := json.Marshal(domains.ReactionRemovedPayload{
+								MessageID:  10,
+								ChatID:     1,
+								UserID:     7,
+								ReactionID: 2,
+							})
+
+							return &domains.WSEvent{
+								Type:    domains.WSEventReactionRemoved,
+								Payload: payload,
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
+			name: "ReadEvent returns ReactionRemoved with invalid JSON then exits",
+			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
+				var callCount atomic.Int32
+
+				uc.EXPECT().
+					ReadEvent(gomock.Any()).
+					DoAndReturn(func(_ context.Context) (*domains.WSEvent, error) {
+						if callCount.Add(1) == 1 {
+							return &domains.WSEvent{
+								Type:    domains.WSEventReactionRemoved,
+								Payload: json.RawMessage(`not a json`),
+							}, nil
+						}
+
+						return nil, customerrors.ErrWebsocketClosed
+					}).
+					AnyTimes()
+
+				logger.EXPECT().
+					ErrorContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Info(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					InfoContext(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes()
+			},
+		},
+		{
 			name: "ReadEvent returns unknown event type then exits",
 			setupMocks: func(uc *mockusecases.MockUseCases, logger *loggingmocks.MockLogger) {
 				var callCount atomic.Int32

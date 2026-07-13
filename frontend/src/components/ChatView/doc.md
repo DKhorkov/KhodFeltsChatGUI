@@ -36,6 +36,7 @@
 | `editingMessage` | `Message\|null` | Сообщение, которое редактируется в данный момент |
 | `unreadMessageIds` | `Set<number>` | Реактивный Set ID сообщений, прилетевших с момента отскролла вверх. Хранится как Set (а не число), чтобы при `MESSAGE_DELETED` корректно вычесть удалённое сообщение из бейджа. Шаблон биндится на `.size` напрямую |
 | `isAtBottom` | `boolean` | Видно ли последнее сообщение чата (`IntersectionObserver` на последнем `.message-bubble`, threshold 0.1) |
+| `reactionsDictionary` | `Reaction[]` | Справочник доступных emoji, загружается один раз при монтировании через `ListReactions()`. Используется для рендера полосы реакций в контекстном меню |
 
 ## Ключевые функции
 
@@ -50,6 +51,13 @@
 | `handleNewMessage(msg)` | Обработчик Wails-события `new_message`. В открытом чате: снимок `wasAtBottom` ДО `messages.push`. Если своё сообщение или `wasAtBottom` — `scrollToBottom()` (мгновенно, follow mode); иначе — `unreadMessageIds.add(msg.id)` без скролла. В неактивном чате — emit `new-message-notification`. Системное OS-уведомление через `ShowNotification` показывается всегда, кроме случая «окно в фокусе И активный чат = чат с новым сообщением». Гейтится `webPushConsents & CONSENT_NEW_MESSAGE` |
 | `handleMessageDeleted(payload)` | Обработчик Wails-события `message_deleted`: удаляет сообщение из UI и вычитает его из `unreadMessageIds` (если оно там было). Логирует предупреждение если ID не найден |
 | `handleMessageEdited(payload)` | Обработчик Wails-события `message_edited`: получает обновлённое сообщение через `GetMessageByID()` и обновляет текст и `updatedAt` в UI |
+| `handleReactionAdded(payload)` | Обработчик `reaction_added`: находит сообщение в `messages.value`, аппендит `userId` в `reactions[i].userIds` или создаёт новый summary. Vue-реактивность сама перерисовывает бэйдж |
+| `handleReactionRemoved(payload)` | Обработчик `reaction_removed`: удаляет `userId` из `userIds`; если пусто — сносит summary целиком |
+| `toggleReaction(messageId, reactionId)` | По локальному стейту через `isReactionSetForCurrentUser()` решает: если реакция уже стоит — вызывает `RemoveMessageReaction`, иначе — `AddMessageReaction`. Один HTTP-запрос, без fallback'ов. UI обновляется по WS-событию |
+| `isReactionSetForCurrentUser(message, reactionId)` | Проверяет, поставил ли currentUser эту реакцию на сообщение. Используется в `toggleReaction` для выбора направления и для подсветки `--active` в полосе меню |
+| `isReactionMine(summary)` | Проверяет, включает ли `userIds` currentUser.id. Используется для класса `--mine` на бэйдже |
+| `reactionCount(summary)` | Возвращает `len(userIds)` |
+| `loadReactionsDictionary()` | Загружает справочник emoji один раз при монтировании через `ListReactions()` |
 | `handleChatsUpdated(chats)` | Обработчик Wails-события `chats_updated`. Обновляет `chats.value` и пересчитывает счётчик через `updateUnreadBadge(updatedChats)` |
 | `deleteContextMessage(forAll)` | Удаляет сообщение через `DeleteMessage()`. UI обновляется по WS-событию `message_deleted` от сервера |
 | `editContextMessage()` | Устанавливает `editingMessage` для редактирования сообщения из контекстного меню (только для своих сообщений) |
@@ -73,7 +81,7 @@
 ## Wails-биндинги
 
 - `chats/Handler`: `GetUserChats`, `StartListening`, `StopListening`
-- `messages/Handler`: `GetChatMessages`, `GetMessageByID`, `SendMessage`, `DeleteMessage`, `UpdateMessage`
+- `messages/Handler`: `GetChatMessages`, `GetMessageByID`, `SendMessage`, `DeleteMessage`, `UpdateMessage`, `ListReactions`, `AddMessageReaction`, `RemoveMessageReaction`
 - `users/Handler`: `GetCurrentUser`
 - `theme/Handler`: `GetTheme`, `ToggleTheme`
 - `settings/Handler`: `GetSettings`
@@ -84,6 +92,7 @@
 - `NEW_MESSAGE` — новое сообщение через WebSocket (единственный источник UI-обновлений при отправке)
 - `MESSAGE_DELETED` — удаление сообщения через WebSocket (единственный источник UI-обновлений при удалении)
 - `MESSAGE_EDITED` — редактирование сообщения через WebSocket (единственный источник UI-обновлений при редактировании)
+- `REACTION_ADDED` / `REACTION_REMOVED` — постановка/снятие реакции через WebSocket (единственный источник UI-обновлений при работе с реакциями; оптимистичный UI не используется)
 - `CHATS_UPDATED` — обновление списка чатов (каждые 5 сек с бэкенда)
 - `OPEN_CHAT` — открытие чата по клику на системное уведомление
 
@@ -104,6 +113,14 @@
 - Сброс состояния в `closeChat()` через `resetScrollDownState()`.
 - CSS-классы: `.conversation__scroll-down`, `.conversation__scroll-down-icon`, `.conversation__scroll-down-badge`.
 
+## UI: реакции
+
+- Контекстное меню содержит полосу эмодзи под пунктами "Ответить/Копировать/Удалить". Полоса скроллится горизонтально при переполнении.
+- Реакции, уже поставленные currentUser, подсвечены классом `--active` в меню и `--mine` на бэйдже сообщения.
+- Клик по эмодзи в меню или по бэйджу на сообщении → `toggleReaction()` (по локальному стейту решает Add или Remove — один запрос).
+- Бэйджи под текстом сообщения показывают emoji + count. Клик по бэйджу снимает свою реакцию.
+- CSS-классы: `.context-menu__reactions`, `.context-menu__reaction[--active]`, `.message-bubble__reactions`, `.message-bubble__reaction[--mine]`, `.message-bubble__reaction-emoji`, `.message-bubble__reaction-count`.
+
 ## Архитектурный принцип
 
-Клиент не обновляет UI самостоятельно при отправке/удалении/редактировании сообщений. Команды отправляются на сервер, сервер рассылает WS-события всем участникам чата (включая отправителя), слушатели событий обновляют UI (single source of truth).
+Клиент не обновляет UI самостоятельно при отправке/удалении/редактировании сообщений и постановке/снятии реакций. Команды отправляются на сервер, сервер рассылает WS-события всем участникам чата (включая отправителя), слушатели событий обновляют UI (single source of truth).

@@ -97,8 +97,23 @@ func New(
 
 ### `GetChatMessages(ctx, chatID, pagination) ([]Message, error)`
 - Загружает токены.
-- Получает сообщения через REST (`chats.GetChatMessages`).
+- Получает сообщения через REST (`messages.GetChatMessages`).
 - Приводит время каждого сообщения к локальному часовому поясу пользователя (`common.Timezone`).
+
+## Методы реакций
+
+### `ListReactions(ctx) ([]Reaction, error)`
+- Токены не грузит — публичный роут.
+- Проксирует `reactions.ListReactions(ctx)`.
+
+### `AddMessageReaction(ctx, MessageReactionDTO) error`
+- Загружает токены.
+- Вызывает `reactions.AddMessageReaction(ctx, accessToken, dto)`.
+- Ошибки репо (`ErrReactionAlreadyExists`, `ErrReactionNotFound`) пробрасываются как есть — их разбирает handler или UI.
+
+### `RemoveMessageReaction(ctx, MessageReactionDTO) error`
+- Загружает токены.
+- Вызывает `reactions.RemoveMessageReaction(ctx, accessToken, dto)`.
 
 ## Методы чатов
 

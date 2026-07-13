@@ -23,6 +23,8 @@ export const WAILS_EVENT = Object.freeze({
     NEW_MESSAGE: 'new_message',
     MESSAGE_DELETED: 'message_deleted',
     MESSAGE_EDITED: 'message_edited',
+    REACTION_ADDED: 'reaction_added',
+    REACTION_REMOVED: 'reaction_removed',
     CHATS_UPDATED: 'chats_updated',
     OPEN_CHAT: 'open_chat',
 })

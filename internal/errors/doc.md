@@ -65,6 +65,16 @@
 | `ErrMessageNotFound` | `message not found` |
 | `ErrNotMessageAuthor` | `only message author can perform this action` |
 
+### Реакции (`reactions.go`)
+
+Тексты sentinel'ов совпадают с серверными (KFC `internal/errors/reactions.go`). Репозиторий `messages` подменяет сырое тело ответа на sentinel по HTTP-коду (409 → `ErrReactionAlreadyExists`, 404 → `ErrReactionNotFound`), после чего маппер переводит их в русские сообщения.
+
+| Переменная | Сообщение |
+|------------|-----------|
+| `ErrReactionAlreadyExists` | `reaction already exists on this message for this user` |
+| `ErrReactionNotFound` | `reaction not found in dictionary` |
+| `ErrReactionNotSet` | `reaction was not set on this message for this user` |
+
 ### Файловое хранилище (`file_storage.go`)
 
 | Переменная | Сообщение |
@@ -98,6 +108,14 @@
 | `(*Mapper).Map(err error) error` | Преобразует ошибку в пользовательское сообщение. Ищет подстроку ошибки в таблице маппинга. Возвращает `ErrDefault` при отсутствии совпадения |
 
 **`ErrDefault`** — дефолтная ошибка: `"Что-то пошло не так..."`
+
+### Русские сообщения реакций (в маппере)
+
+| Sentinel | Русский текст |
+|----------|---------------|
+| `ErrReactionAlreadyExists` | `Реакция уже поставлена` |
+| `ErrReactionNotFound` | `Такой реакции не существует` |
+| `ErrReactionNotSet` | `Реакция не была поставлена` |
 
 ## Зависимости
 
