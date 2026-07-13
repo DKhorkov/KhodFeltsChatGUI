@@ -17,6 +17,7 @@ export namespace domains {
 	export class Reaction {
 	    id: number;
 	    emoji: string;
+	    sortOrder: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Reaction(source);
@@ -26,6 +27,7 @@ export namespace domains {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.emoji = source["emoji"];
+	        this.sortOrder = source["sortOrder"];
 	    }
 	}
 	export class MessageReactionSummary {
