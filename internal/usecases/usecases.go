@@ -456,7 +456,6 @@ func (u *UseCases) GetChatMessages(
 	return messages, nil
 }
 
-// ListReactions — публичный эндпоинт, токен не нужен.
 func (u *UseCases) ListReactions(ctx context.Context) ([]domains.Reaction, error) {
 	reactions, err := u.reactions.ListReactions(ctx)
 	if err != nil {

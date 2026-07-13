@@ -83,7 +83,6 @@ type MessagesRepository interface {
 
 //go:generate mockgen -source=repositories.go -destination=../../mocks/repositories/reactions_repository.go -package=mockrepositories -exclude_interfaces=AuthRepository,TokensRepository,UsersRepository,ChatsRepository,MessagesRepository,WebSocketsRepository,SettingsRepository
 type ReactionsRepository interface {
-	// Публичный эндпоинт /api/reactions — accessToken не нужен (сервер сам исключил роут из auth middleware).
 	ListReactions(ctx context.Context) ([]domains.Reaction, error)
 	AddMessageReaction(
 		ctx context.Context,

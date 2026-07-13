@@ -12,7 +12,6 @@ import (
 
 	"github.com/DKhorkov/kfcGUI/internal/common"
 	"github.com/DKhorkov/kfcGUI/internal/domains"
-	customerrors "github.com/DKhorkov/kfcGUI/internal/errors"
 	"github.com/DKhorkov/kfcGUI/internal/interfaces"
 	"github.com/DKhorkov/kfcGUI/internal/repositories/base"
 )
@@ -90,7 +89,12 @@ func (r *Repository) AddMessageReaction(
 	}
 
 	req.Header.Set(common.ContentTypeHeaderName, common.ApplicationJSONContentType)
-	req.AddCookie(&http.Cookie{Name: accessTokenCookieName, Value: accessToken})
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
@@ -98,21 +102,16 @@ func (r *Repository) AddMessageReaction(
 	}
 	defer r.CloseBody(ctx, resp.Body)
 
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	case http.StatusConflict:
-		return customerrors.ErrReactionAlreadyExists
-	case http.StatusNotFound:
-		return customerrors.ErrReactionNotFound
+	if resp.StatusCode != http.StatusNoContent {
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(data))
 	}
 
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	return errors.New(string(data))
+	return nil
 }
 
 func (r *Repository) RemoveMessageReaction(
@@ -133,7 +132,12 @@ func (r *Repository) RemoveMessageReaction(
 		return err
 	}
 
-	req.AddCookie(&http.Cookie{Name: accessTokenCookieName, Value: accessToken})
+	req.AddCookie(
+		&http.Cookie{
+			Name:  accessTokenCookieName,
+			Value: accessToken,
+		},
+	)
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
