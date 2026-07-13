@@ -452,7 +452,6 @@ func TestHandler_ReadEvents(t *testing.T) {
 								ChatID:     1,
 								UserID:     7,
 								ReactionID: 2,
-								Emoji:      "👍",
 							})
 
 							return &domains.WSEvent{
