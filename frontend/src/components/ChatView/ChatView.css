@@ -440,18 +440,19 @@
     line-height: 1.5;
 }
 
-.message-link {
+/* :deep() нужен, потому что ссылки вставлены через v-html и не имеют scoped data-атрибута. */
+.message-bubble__text :deep(.message-link) {
     color: var(--accent);
     text-decoration: underline;
     word-break: break-all;
     cursor: pointer;
 }
 
-.message-link:hover {
+.message-bubble__text :deep(.message-link:hover) {
     text-decoration: none;
 }
 
-.message-bubble--own .message-link {
+.message-bubble--own .message-bubble__text :deep(.message-link) {
     color: var(--text-on-accent);
     text-decoration: underline;
 }
