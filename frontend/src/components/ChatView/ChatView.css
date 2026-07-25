@@ -237,6 +237,13 @@
     align-items: center;
 }
 
+.conversation__header-left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+}
+
 .conversation__header h3 {
     font-size: var(--font-lg);
     font-weight: 600;
@@ -246,6 +253,10 @@
 .conversation__header-title {
     cursor: pointer;
     transition: color var(--transition-base);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .conversation__header-title:hover {
@@ -438,6 +449,23 @@
     white-space: pre-wrap;
     word-wrap: break-word;
     line-height: 1.5;
+}
+
+/* :deep() нужен, потому что ссылки вставлены через v-html и не имеют scoped data-атрибута. */
+.message-bubble__text :deep(.message-link) {
+    color: var(--accent);
+    text-decoration: underline;
+    word-break: break-all;
+    cursor: pointer;
+}
+
+.message-bubble__text :deep(.message-link:hover) {
+    text-decoration: none;
+}
+
+.message-bubble--own .message-bubble__text :deep(.message-link) {
+    color: var(--text-on-accent);
+    text-decoration: underline;
 }
 
 /* ═══════════════════════════════════════

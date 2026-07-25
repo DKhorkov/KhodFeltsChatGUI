@@ -103,26 +103,26 @@
         >
           <div class="modal-content__form-group">
             <label>Старый пароль</label>
-            <input
+            <PasswordInput
                 v-model="oldPassword"
-                type="password"
                 placeholder="Введите старый пароль"
+                autocomplete="current-password"
             />
           </div>
           <div class="modal-content__form-group">
             <label>Новый пароль</label>
-            <input
+            <PasswordInput
                 v-model="newPassword"
-                type="password"
                 placeholder="Введите новый пароль"
+                autocomplete="new-password"
             />
           </div>
           <div class="modal-content__form-group">
             <label>Подтверждение пароля</label>
-            <input
+            <PasswordInput
                 v-model="confirmPassword"
-                type="password"
                 placeholder="Подтвердите новый пароль"
+                autocomplete="new-password"
             />
           </div>
           <div class="modal-content__actions">

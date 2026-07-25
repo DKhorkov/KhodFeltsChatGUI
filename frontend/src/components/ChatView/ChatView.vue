@@ -73,7 +73,24 @@
       <!-- Правая панель — сообщения -->
       <main class="conversation" v-if="selectedChat" @keydown.escape="closeChat()" tabindex="-1" v-focus>
         <div class="conversation__header">
-          <h3 class="conversation__header-title" @click="openChatInfo">{{ getChatTitle(selectedChat) }}</h3>
+          <div class="conversation__header-left">
+            <img
+                v-if="getChatAvatarPath(selectedChat)"
+                class="chat-item__avatar chat-item__avatar--img chat-item__avatar--clickable"
+                :src="getChatAvatarPath(selectedChat)"
+                :alt="getChatTitle(selectedChat)"
+                @click.stop="openChatInfo"
+                @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display=''"
+            />
+            <div
+                class="chat-item__avatar chat-item__avatar--clickable"
+                :style="getChatAvatarPath(selectedChat) ? {display: 'none'} : {}"
+                @click.stop="openChatInfo"
+            >
+              {{ getChatTitle(selectedChat).charAt(0).toUpperCase() }}
+            </div>
+            <h3 class="conversation__header-title" @click="openChatInfo">{{ getChatTitle(selectedChat) }}</h3>
+          </div>
           <button @click="closeChat()" class="conversation__close-btn" title="Закрыть чат">&times;</button>
         </div>
 
@@ -104,7 +121,7 @@
                 <span class="message-bubble__sender">{{ getSenderName(message) }}</span>
                 <span class="message-bubble__time">{{ formatTime(message.createdAt) }}</span>
               </div>
-              <div class="message-bubble__text">{{ message.text }}</div>
+              <div class="message-bubble__text" v-html="linkifyToHtml(message.text)"></div>
               <div
                   v-if="Array.isArray(message.reactions) && message.reactions.length > 0"
                   class="message-bubble__reactions"

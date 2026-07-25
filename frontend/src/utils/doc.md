@@ -16,3 +16,13 @@
 - `SearchUsersModal` — дебаунс поиска пользователей
 
 Задержка передаётся из константы `SEARCH_DEBOUNCE_MS` (500 мс).
+
+## linkify.js
+
+Экспортирует функцию `linkifyToHtml(text)`.
+
+Экранирует HTML во входной строке, затем находит http(s)-URL и оборачивает их в `<a class="message-link" data-url="…">`. Хвостовая пунктуация (`.,;:!?)]}'"»›`) отделяется и остаётся вне ссылки. Возвращает безопасный HTML для рендера через `v-html`.
+
+### Использование
+
+- `ChatView` — рендер текста сообщения. Клики по `.message-link` перехватываются делегированным обработчиком на `.conversation__messages` и открываются через `window.runtime.BrowserOpenURL` (в Wails webview `target="_blank"` не работает).

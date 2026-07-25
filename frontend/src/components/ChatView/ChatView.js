@@ -19,6 +19,7 @@ import {GetTheme, ToggleTheme} from '../../../wailsjs/go/theme/Handler'
 import {GetSettings} from '../../../wailsjs/go/settings/Handler'
 import {SetUnreadBadge, ShowNotification} from '../../../wailsjs/go/notifications/Handler'
 import {CHAT_TYPE, EMOJI_CLOSE_DELAY_MS, HIGHLIGHT_DURATION_MS, MESSAGES_PAGE_SIZE, THEME, WAILS_EVENT} from '../../constants'
+import {linkifyToHtml} from '../../utils/linkify'
 
 const CONSENT_NEW_MESSAGE = 1
 import EmojiPicker from '../EmojiPicker/EmojiPicker.vue'
@@ -663,6 +664,19 @@ export default {
 
             el.addEventListener('scroll', scrollHandler)
 
+            // Клик по ссылке в сообщении: открываем во внешнем браузере через Wails runtime
+            // (default target=_blank в webview не работает).
+            const linkClickHandler = (event) => {
+                const anchor = event.target.closest('a.message-link')
+                if (!anchor) return
+                event.preventDefault()
+                const url = anchor.dataset.url || anchor.href
+                if (url && window.runtime?.BrowserOpenURL) {
+                    window.runtime.BrowserOpenURL(url)
+                }
+            }
+            el.addEventListener('click', linkClickHandler)
+
             lastMessageObserver = new IntersectionObserver((entries) => {
                 const last = entries[entries.length - 1]
                 isAtBottom.value = last.isIntersecting
@@ -673,6 +687,7 @@ export default {
 
             onCleanup(() => {
                 el.removeEventListener('scroll', scrollHandler)
+                el.removeEventListener('click', linkClickHandler)
                 if (lastMessageObserver) {
                     lastMessageObserver.disconnect()
                     lastMessageObserver = null
@@ -719,6 +734,7 @@ export default {
             getSenderName,
             formatTime,
             formatDate,
+            linkifyToHtml,
             isFirstUnread,
             loadChats,
             openChatById,

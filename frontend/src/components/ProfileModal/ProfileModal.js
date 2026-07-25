@@ -3,6 +3,7 @@ import {ChangePassword} from '../../../wailsjs/go/auth/Handler'
 import {UpdateUser, UpdateAvatar, DeleteAvatar} from '../../../wailsjs/go/users/Handler'
 import {GetSettings, UpdateSettings} from '../../../wailsjs/go/settings/Handler'
 import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal.vue'
+import PasswordInput from '../PasswordInput/PasswordInput.vue'
 
 const CONSENT_NEW_MESSAGE = 1
 
@@ -10,6 +11,7 @@ export default {
     name: 'ProfileModal',
     components: {
         ConfirmDeleteModal,
+        PasswordInput,
     },
     props: {
         user: {

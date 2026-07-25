@@ -377,6 +377,40 @@
 
 ---
 
+## PasswordInput
+
+Файлы: `PasswordInput/PasswordInput.vue`, `PasswordInput/PasswordInput.js`, `PasswordInput/PasswordInput.css`
+
+Поле ввода пароля с кнопкой-глазом. Клик по кнопке переключает `type` инпута между `password` и `text`.
+
+### Назначение
+Используется в `LoginView` (логин + регистрация), `ForgetPasswordModal` (сброс пароля) и `ProfileModal` (смена пароля).
+
+### Props
+| Проп | Тип | По умолчанию | Описание |
+|---|---|---|---|
+| `modelValue` | `String` | `''` | Значение поля (для `v-model`) |
+| `placeholder` | `String` | `''` | Плейсхолдер |
+| `id` | `String` | `''` | HTML id инпута |
+| `name` | `String` | `''` | HTML name инпута |
+| `required` | `Boolean` | `false` | Флаг обязательности |
+| `autocomplete` | `String` | `'current-password'` | HTML autocomplete (обычно `current-password` или `new-password`) |
+| `inputClass` | `String` | `''` | Дополнительный класс для инпута (для интеграции в существующие формы, например `login-form__input`) |
+
+### Emits
+| Событие | Когда | Данные |
+|---|---|---|
+| `update:modelValue` | Ввод в поле | новое значение |
+
+### Ключевое состояние (refs)
+| Переменная | Тип | Описание |
+|---|---|---|
+| `visible` | `ref<Boolean>` | Виден ли пароль в открытом виде |
+
+### Ключевые функции
+- `toggle()` — инвертирует `visible`
+- `onInput(event)` — эмитит `update:modelValue` со значением из `event.target.value`
+
 ## EmojiPicker
 
 Файлы: `EmojiPicker/EmojiPicker.vue`, `EmojiPicker/EmojiPicker.js`

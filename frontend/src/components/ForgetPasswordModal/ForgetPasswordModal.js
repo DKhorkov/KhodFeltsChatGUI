@@ -1,8 +1,10 @@
 import {inject, ref} from 'vue'
 import {ForgetPassword} from '../../../wailsjs/go/auth/Handler'
+import PasswordInput from '../PasswordInput/PasswordInput.vue'
 
 export default {
     name: 'ForgetPasswordModal',
+    components: {PasswordInput},
     emits: ['close'],
     props: {
         message: {
