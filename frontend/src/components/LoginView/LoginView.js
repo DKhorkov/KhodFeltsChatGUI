@@ -1,9 +1,12 @@
 import {inject, ref} from 'vue'
 import {Login, Register, SendForgetPassword, SendVerifyEmail} from '../../../wailsjs/go/auth/Handler'
 import {TAB} from '../../constants'
+import PasswordInput from '../PasswordInput/PasswordInput.vue'
 
 export default {
-    name: 'LoginView', emits: ['login-success', 'show-forget-password'],
+    name: 'LoginView',
+    components: {PasswordInput},
+    emits: ['login-success', 'show-forget-password'],
 
     setup(props, {emit}) {
         const showError = inject('showError')

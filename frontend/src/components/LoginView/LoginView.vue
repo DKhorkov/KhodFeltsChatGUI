@@ -26,10 +26,9 @@
             type="text"
             placeholder="Почта или имя пользователя"
           />
-          <input
+          <PasswordInput
             v-model="loginForm.password"
-            class="login-form__input"
-            type="password"
+            input-class="login-form__input"
             placeholder="Пароль"
           />
           <button type="submit" class="login-form__submit">Войти</button>
@@ -59,17 +58,17 @@
             type="text"
             placeholder="Логин"
           />
-          <input
+          <PasswordInput
             v-model="registerForm.password"
-            class="login-form__input"
-            type="password"
+            input-class="login-form__input"
             placeholder="Пароль"
+            autocomplete="new-password"
           />
-          <input
+          <PasswordInput
             v-model="registerForm.confirmPassword"
-            class="login-form__input"
-            type="password"
+            input-class="login-form__input"
             placeholder="Подтверждение пароля"
+            autocomplete="new-password"
           />
           <button type="submit" class="login-form__submit">Зарегистрироваться</button>
         </form>

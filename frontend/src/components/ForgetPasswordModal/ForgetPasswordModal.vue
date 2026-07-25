@@ -23,19 +23,19 @@
 
         <div class="modal-content__form-group">
           <label>Новый пароль</label>
-          <input
+          <PasswordInput
               v-model="newPassword"
-              type="password"
               placeholder="Новый пароль"
+              autocomplete="new-password"
           />
         </div>
 
         <div class="modal-content__form-group">
           <label>Подтверждение пароля</label>
-          <input
+          <PasswordInput
               v-model="confirmPassword"
-              type="password"
               placeholder="Подтвердите пароль"
+              autocomplete="new-password"
           />
         </div>
 
