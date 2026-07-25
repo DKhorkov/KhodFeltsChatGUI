@@ -34,7 +34,19 @@ export default {
         let nextNotificationId = 0
 
         const showError = (message) => {
-            alert.value = {message: String(message), type: 'error'}
+            let text
+            if (message instanceof Error) {
+                text = message.message
+            } else if (message && typeof message === 'object' && 'message' in message) {
+                text = String(message.message)
+            } else {
+                text = String(message)
+            }
+
+            // Wails/JS могут возвращать строку "Error: ..." — префикс не нужен пользователю.
+            text = text.replace(/^Error:\s*/i, '')
+
+            alert.value = {message: text, type: 'error'}
         }
 
         const showInfo = (message) => {
