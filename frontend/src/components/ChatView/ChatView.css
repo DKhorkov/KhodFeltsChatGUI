@@ -237,6 +237,13 @@
     align-items: center;
 }
 
+.conversation__header-left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+}
+
 .conversation__header h3 {
     font-size: var(--font-lg);
     font-weight: 600;
@@ -246,6 +253,10 @@
 .conversation__header-title {
     cursor: pointer;
     transition: color var(--transition-base);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .conversation__header-title:hover {
