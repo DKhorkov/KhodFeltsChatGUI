@@ -104,7 +104,7 @@
                 <span class="message-bubble__sender">{{ getSenderName(message) }}</span>
                 <span class="message-bubble__time">{{ formatTime(message.createdAt) }}</span>
               </div>
-              <div class="message-bubble__text">{{ message.text }}</div>
+              <div class="message-bubble__text" v-html="linkifyToHtml(message.text)"></div>
               <div
                   v-if="Array.isArray(message.reactions) && message.reactions.length > 0"
                   class="message-bubble__reactions"
